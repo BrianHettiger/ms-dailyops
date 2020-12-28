@@ -1,0 +1,38 @@
+{
+  "generator-jhipster": {
+    "promptValues": {
+      "packageName": "com.moblize.ms.dailyops"
+    },
+    "jhipsterVersion": "6.10.4",
+    "applicationType": "microservice",
+    "baseName": "dailyops",
+    "packageName": "com.moblize.ms.dailyops",
+    "packageFolder": "com/moblize/ms/dailyops",
+    "serverPort": "9108",
+    "authenticationType": "jwt",
+    "cacheProvider": "no",
+    "websocket": false,
+    "databaseType": "sql",
+    "devDatabaseType": "mssql",
+    "prodDatabaseType": "mssql",
+    "searchEngine": false,
+    "messageBroker": false,
+    "serviceDiscoveryType": "eureka",
+    "buildTool": "maven",
+    "enableSwaggerCodegen": false,
+    "jwtSecretKey": "ODkwNTlkNmY5YjU5ZmU1ZTdkYjE4ZmJiZDE5Yjc5NzZmNTcyNWJlOGE2ZDk2ZjFmZjYwYzZlZGFiMWMxYTMxY2UwN2IwNWQxYzAxNDI3MGE2NWY3MDVjZTM0NTQ2ZWE2NTBjYTlmY2RkZGU1NmFhNjVmMjMyN2ViM2NkY2FkYWI=",
+    "embeddableLaunchScript": false,
+    "creationTimestamp": 1609159975057,
+    "testFrameworks": [],
+    "jhiPrefix": "jhi",
+    "entitySuffix": "",
+    "dtoSuffix": "DTO",
+    "otherModules": [],
+    "enableTranslation": false,
+    "clientPackageManager": "npm",
+    "blueprints": [],
+    "reactive": true,
+    "skipClient": true,
+    "skipUserManagement": true
+  }
+}
