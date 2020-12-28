@@ -26,6 +26,8 @@ eureka:
     service-url:
       defaultZone: http://admin:${jhipster.registry.password}@localhost:8761/eureka/
 
+sql-instance: ${sqlclients.${CODE}.instance}
+
 spring:
   profiles:
     active: dev
@@ -64,6 +66,23 @@ spring:
     locator:
       discovery:
         enabled: true
+  data:
+    mongodb:
+      uri: mongodb://${ALTERNATE_LOCALHOST}:${nosql.instance1.port}
+      database: ${nosql.instance1.admin.dbname}
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:sqlserver://${sql.${sql-instance}.host}:${sql.${sql-instance}.port};database=${sql.${sql-instance}.${CODE}.dbname}
+    username: ${sql.${sql-instance}.${CODE}.user}
+    password: ${sql.${sql-instance}.${CODE}.pwd}
+    hikari:
+      poolName: Hikari
+      auto-commit: false
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
 
 server:
   port: 9108

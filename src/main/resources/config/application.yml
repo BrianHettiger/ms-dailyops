@@ -129,6 +129,10 @@ spring:
   output:
     ansi:
       console-available: true
+  data:
+    mongodb:
+      uri: mongodb://${nosql.instance1.host}:${nosql.instance1.port}
+      database: ${nosql.instance1.admin.dbname}
 
 server:
   servlet:
