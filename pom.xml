@@ -49,9 +49,6 @@
         <!-- The hibernate version should match the one managed by
         https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies/${spring-boot.version} -->
         <hibernate.version>5.4.15.Final</hibernate.version>
-        <!-- The liquibase version should match the one managed by
-        https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies/${spring-boot.version} -->
-        <liquibase.version>3.9.0</liquibase.version>
         <r2dbc-h2.version>0.8.3.RELEASE</r2dbc-h2.version>
         <r2dbc-mssql.version>0.8.2.RELEASE</r2dbc-mssql.version>
         <spring-boot-starter-data-r2dbc.version>0.1.0.M3</spring-boot-starter-data-r2dbc.version>
@@ -151,10 +148,6 @@
             <artifactId>mssql-jdbc</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.sabomichal</groupId>
-            <artifactId>liquibase-mssql</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.r2dbc</groupId>
             <artifactId>r2dbc-mssql</artifactId>
             <version>${r2dbc-mssql.version}</version>
@@ -171,12 +164,6 @@
         <dependency>
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-            <!-- Inherited version from Spring Boot can't be used because of regressions -->
-            <version>${liquibase.version}</version>
         </dependency>
         <dependency>
             <groupId>net.logstash.logback</groupId>
@@ -808,12 +795,6 @@
         </pluginManagement>
     </build>
     <profiles>
-        <profile>
-            <id>no-liquibase</id>
-            <properties>
-                <profile.no-liquibase>,no-liquibase</profile.no-liquibase>
-            </properties>
-        </profile>
         <profile>
             <id>swagger</id>
             <properties>

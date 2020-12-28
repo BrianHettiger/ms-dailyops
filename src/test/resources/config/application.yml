@@ -26,9 +26,6 @@ spring:
   jackson:
     serialization:
       write-durations-as-timestamps: false
-  liquibase:
-    contexts: test
-    url: jdbc:h2:mem:dailyops;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
   mail:
     host: localhost
   main:

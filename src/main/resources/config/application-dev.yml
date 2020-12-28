@@ -42,10 +42,6 @@ spring:
   jackson:
     serialization:
       indent-output: true
-  liquibase:
-    # Remove 'faker' if you do not want the sample data to be loaded automatically
-    contexts: dev, faker
-    url: jdbc:sqlserver://localhost:1433;database=dailyops
   mail:
     host: localhost
     port: 25
