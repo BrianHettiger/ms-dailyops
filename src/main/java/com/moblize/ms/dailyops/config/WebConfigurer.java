@@ -9,9 +9,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.web.ReactivePageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.ReactiveSortHandlerMethodArgumentResolver;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.reactive.config.EnableWebFlux;
+import org.springframework.web.reactive.config.PathMatchConfigurer;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver;
 import org.springframework.web.server.WebExceptionHandler;
@@ -22,6 +25,7 @@ import org.zalando.problem.spring.webflux.advice.ProblemHandling;
  * Configuration of web application with Servlet 3.0 APIs.
  */
 @Configuration
+@EnableWebFlux
 public class WebConfigurer implements WebFluxConfigurer {
 
     private final Logger log = LoggerFactory.getLogger(WebConfigurer.class);
@@ -61,6 +65,11 @@ public class WebConfigurer implements WebFluxConfigurer {
     @Order(-2) // The handler must have precedence over WebFluxResponseStatusExceptionHandler and Spring Boot's ErrorWebExceptionHandler
     public WebExceptionHandler problemExceptionHandler(ObjectMapper mapper, ProblemHandling problemHandling) {
         return new ProblemExceptionHandler(mapper, problemHandling);
+    }
+
+    @Override
+    public void configurePathMatching(PathMatchConfigurer configurer) {
+        configurer.setUseCaseSensitiveMatch(false);
     }
 
 }
