@@ -26,10 +26,10 @@ import java.util.List;
 @Configuration
 @EnableJpaRepositories("com.moblize.ms.dailyops.repository")
 @EnableJpaAuditing(auditorAwareRef = "springSecurityAuditorAware")
-@EnableMongoRepositories("com.moblize.ms.dailyops.repository")
+//@EnableMongoRepositories("com.moblize.ms.dailyops.repository")
 @Profile("!" + JHipsterConstants.SPRING_PROFILE_CLOUD)
-@Import(value = MongoAutoConfiguration.class)
-@EnableMongoAuditing(auditorAwareRef = "springSecurityAuditorAware")
+//@Import(value = MongoAutoConfiguration.class)
+//@EnableMongoAuditing(auditorAwareRef = "springSecurityAuditorAware")
 @EnableTransactionManagement
 public class DatabaseConfiguration {
 

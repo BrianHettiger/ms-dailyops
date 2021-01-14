@@ -1,4 +1,4 @@
-package com.moblize.ms.dailyops.repository;
+package com.moblize.ms.dailyops.repository.mongo.mob;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
 import org.springframework.data.mongodb.repository.MongoRepository;

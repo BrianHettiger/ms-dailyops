@@ -1,4 +1,4 @@
-package com.moblize.ms.dailyops.repository;
+package com.moblize.ms.dailyops.repository.mongo.client;
 
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
 import org.springframework.data.mongodb.repository.MongoRepository;

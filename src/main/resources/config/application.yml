@@ -113,8 +113,15 @@ spring:
     jpa:
       repositories:
         bootstrap-mode: deferred
-    mongodb:
-      uri: mongodb://${nosql.instance1.host}:${nosql.instance1.port}/${nosql.instance1.admin.dbname}
+  mongodb:
+    client:
+      host: ${nosql.instance1.host}
+      port: ${nosql.instance1.port}
+      database: ${nosql.instance1.${CODE}.dbname}
+    mob:
+      host: ${nosql.instance1.host}
+      port: ${nosql.instance1.port}
+      database: ${nosql.instance1.admin.dbname}
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:sqlserver://${sql.${sql-instance}.host}:${sql.${sql-instance}.port};database=${sql.${sql-instance}.${CODE}.dbname}

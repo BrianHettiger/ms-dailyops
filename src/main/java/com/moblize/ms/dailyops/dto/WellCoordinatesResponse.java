@@ -23,6 +23,7 @@ public class WellCoordinatesResponse {
 
     @Getter
     @Setter
+    @AllArgsConstructor
     public static class Location implements Serializable {
 
         private Float lng = 0.0f;

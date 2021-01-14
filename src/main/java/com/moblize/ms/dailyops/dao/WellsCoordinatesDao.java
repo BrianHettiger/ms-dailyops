@@ -1,7 +1,7 @@
 package com.moblize.ms.dailyops.dao;
 
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
-import com.moblize.ms.dailyops.repository.WellSurveyPlannedLatLongRepository;
+import com.moblize.ms.dailyops.repository.mongo.client.WellSurveyPlannedLatLongRepository;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
