@@ -1,9 +1,6 @@
 package com.moblize.ms.dailyops.domain;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.Instant;
@@ -15,25 +12,32 @@ import java.util.Map;
  *
  * @see org.springframework.boot.actuate.audit.AuditEvent
  */
-@Table("jhi_persistent_audit_event")
+@Entity
+@Table(name = "jhi_persistent_audit_event")
 public class PersistentAuditEvent implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column("event_id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
+    @SequenceGenerator(name = "sequenceGenerator")
+    @Column(name = "event_id")
     private Long id;
 
     @NotNull
+    @Column(nullable = false)
     private String principal;
 
-    @Column("event_date")
+    @Column(name = "event_date")
     private Instant auditEventDate;
 
-    @Column("event_type")
+    @Column(name = "event_type")
     private String auditEventType;
 
-    @Transient
+    @ElementCollection
+    @MapKeyColumn(name = "name")
+    @Column(name = "value")
+    @CollectionTable(name = "jhi_persistent_audit_evt_data", joinColumns=@JoinColumn(name="event_id"))
     private Map<String, String> data = new HashMap<>();
 
     public Long getId() {

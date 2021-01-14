@@ -1,7 +1,6 @@
 package com.moblize.ms.dailyops.config.audit;
 
 import com.moblize.ms.dailyops.domain.PersistentAuditEvent;
-
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
