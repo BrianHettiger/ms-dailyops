@@ -44,6 +44,10 @@ public class WellsCoordinatesService {
         List<WellSurveyPlannedLatLong> wellSurveyDetail = wellsCoordinatesDao.getWellCoordinates();
         wellSurveyDetail.forEach(wellSurvey -> {
             WellCoordinatesResponse wellCoordinatesResponse = latLngMap.getOrDefault(wellSurvey.getUid(), new WellCoordinatesResponse());
+
+            if(wellCoordinatesResponse.getUid() == null) {
+                wellCoordinatesResponse.setUid(wellSurvey.getUid());
+            }
             if(wellSurvey.getDrilledData() != null) {
                 wellCoordinatesResponse.setDrilledData(wellSurvey.getDrilledData());
             }
@@ -56,6 +60,30 @@ public class WellsCoordinatesService {
 
 
         return latLngMap.values();
+    }
+
+    public WellSurveyPlannedLatLong saveWellSurveyPlannedLatLong(WellSurveyPlannedLatLong wellSurveyPlannedLatLong){
+        return wellsCoordinatesDao.saveWellSurveyPlannedLatLong(wellSurveyPlannedLatLong);
+    }
+
+    public List<WellSurveyPlannedLatLong> saveWellSurveyPlannedLatLong(List<WellSurveyPlannedLatLong> wellSurveyPlannedLatLong){
+        return wellsCoordinatesDao.saveWellSurveyPlannedLatLong(wellSurveyPlannedLatLong);
+    }
+
+    public WellSurveyPlannedLatLong updateWellSurveyPlannedLatLong(WellSurveyPlannedLatLong wellSurveyPlannedLatLong){
+        return wellsCoordinatesDao.updateWellSurveyPlannedLatLong(wellSurveyPlannedLatLong);
+    }
+
+    public WellSurveyPlannedLatLong findWellSurveyPlannedLatLong(String uid){
+        return wellsCoordinatesDao.findWellSurveyPlannedLatLong(uid);
+    }
+
+    public List<WellSurveyPlannedLatLong> findWellSurveyPlannedLatLong(List<String> uid){
+        return wellsCoordinatesDao.findWellSurveyPlannedLatLong(uid);
+    }
+
+    public void deleteWellSurveyPlannedLatLong(String uid){
+        wellsCoordinatesDao.deleteWellSurveyPlannedLatLong(uid);
     }
 
 }

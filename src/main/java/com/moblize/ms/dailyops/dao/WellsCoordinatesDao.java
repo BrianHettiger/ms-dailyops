@@ -26,4 +26,31 @@ public class WellsCoordinatesDao {
     public List<WellSurveyPlannedLatLong> getWellCoordinates(){
         return wellSurveyPlannedLatLongRepository.findAll();
     }
+
+    public WellSurveyPlannedLatLong saveWellSurveyPlannedLatLong(WellSurveyPlannedLatLong wellSurveyPlannedLatLong){
+        return wellSurveyPlannedLatLongRepository.save(wellSurveyPlannedLatLong);
+    }
+
+    public List<WellSurveyPlannedLatLong> saveWellSurveyPlannedLatLong(List<WellSurveyPlannedLatLong> wellSurveyPlannedLatLong){
+        return wellSurveyPlannedLatLongRepository.saveAll((Iterable)wellSurveyPlannedLatLong);
+    }
+
+    public WellSurveyPlannedLatLong updateWellSurveyPlannedLatLong(WellSurveyPlannedLatLong wellSurveyPlannedLatLong){
+        WellSurveyPlannedLatLong dbObj = findWellSurveyPlannedLatLong(wellSurveyPlannedLatLong.getUid());
+        wellSurveyPlannedLatLong.set_id(dbObj.get_id());
+        return wellSurveyPlannedLatLongRepository.save(wellSurveyPlannedLatLong);
+    }
+
+    public WellSurveyPlannedLatLong findWellSurveyPlannedLatLong(String uid){
+        return wellSurveyPlannedLatLongRepository.findByUid(uid);
+    }
+
+    public List<WellSurveyPlannedLatLong> findWellSurveyPlannedLatLong(List<String> uid){
+        return wellSurveyPlannedLatLongRepository.findByUidIn(uid);
+    }
+
+    public void deleteWellSurveyPlannedLatLong(String uid){
+        wellSurveyPlannedLatLongRepository.deleteByUid(uid);
+    }
+
 }
