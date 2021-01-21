@@ -37,8 +37,8 @@ public class WellsCoordinatesDao {
 
     public WellSurveyPlannedLatLong updateWellSurveyPlannedLatLong(WellSurveyPlannedLatLong wellSurveyPlannedLatLong){
         WellSurveyPlannedLatLong dbObj = findWellSurveyPlannedLatLong(wellSurveyPlannedLatLong.getUid());
-        wellSurveyPlannedLatLong.set_id(dbObj.get_id());
-        return wellSurveyPlannedLatLongRepository.save(wellSurveyPlannedLatLong);
+        dbObj.getDrilledData().addAll(wellSurveyPlannedLatLong.getDrilledData());
+        return wellSurveyPlannedLatLongRepository.save(dbObj);
     }
 
     public WellSurveyPlannedLatLong findWellSurveyPlannedLatLong(String uid){
