@@ -22,10 +22,10 @@ public class WellSurveyPlannedLatLong {
     ObjectId _id;
     @NotNull
     private String uid;
-    private List<Float[]> drilledData;
-    @NotNull
-    @NotEmpty
-    private List<Float[]> plannedData;
+    private List<Double[]> drilledData;
+//    @NotNull
+//    @NotEmpty
+    private List<Double[]> plannedData;
 
 
 }

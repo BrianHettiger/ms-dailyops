@@ -17,8 +17,8 @@ public class WellCoordinatesResponse {
     private String uid;
     private String name;
     private Location location;
-    private List<Float[]> drilledData;
-    private List<Float[]> plannedData;
+    private List<Double[]> drilledData;
+    private List<Double[]> plannedData;
 
 
     @Getter
