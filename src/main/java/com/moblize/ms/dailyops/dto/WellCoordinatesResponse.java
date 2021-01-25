@@ -5,7 +5,6 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 @Getter
 @Setter
@@ -20,8 +19,8 @@ public class WellCoordinatesResponse {
     private Location location;
     private AvgROP avgROP;
     private Cost cost;
-    private List<Map<String,Object>> drilledData;
-    private List<Map<String,Object>> plannedData;
+    private List<Object> drilledData;
+    private List<Object> plannedData;
 
 
 

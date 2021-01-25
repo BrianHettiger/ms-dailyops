@@ -40,7 +40,7 @@ public class WellsCoordinatesDao {
     public List<WellboreStick> getWellboreStickWithROPAndCost(String script) {
         ScriptOperations scriptOps = mongoTemplate.scriptOps();
         ExecutableMongoScript echoScript = new ExecutableMongoScript(script);
-        Map<String, List<WellboreStick>> map = (Map<String, List<WellboreStick>>) scriptOps.execute(echoScript, "4225535545");
+        Map<String, List<WellboreStick>> map = (Map<String, List<WellboreStick>>) scriptOps.execute(echoScript, "");
        return map.get("_batch");
 
     }

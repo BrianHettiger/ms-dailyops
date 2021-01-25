@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
 import java.io.*;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,10 +42,13 @@ public class WellsCoordinatesService {
                 wellCoordinatesResponse.getLocation().setLat(0f);
                 wellCoordinatesResponse.getLocation().setLng(0f);
             }
+            wellCoordinatesResponse.setDrilledData(Collections.emptyList());
+            wellCoordinatesResponse.setPlannedData(Collections.emptyList());
+
             latLngMap.put(well.getUid(), wellCoordinatesResponse);
         });
 
-     /*  List<WellboreStick> latLongList = wellsCoordinatesDao.getWellboreStickWithROPAndCost(loadScript());
+       /*List<WellboreStick> latLongList = wellsCoordinatesDao.getWellboreStickWithROPAndCost(loadScript());
         latLongList.forEach(wellSurvey ->{
             WellCoordinatesResponse wellCoordinatesResponse = latLngMap.getOrDefault(wellSurvey.getUid(), new WellCoordinatesResponse());
             if (wellCoordinatesResponse.getUid() == null) {
@@ -77,12 +77,17 @@ public class WellsCoordinatesService {
                 wellCoordinatesResponse.setUid(wellSurvey.getUid());
             }
             if (wellSurvey.getDrilledData() != null) {
-                drilledWellDepth.put(wellSurvey.getUid(), Float.valueOf( wellSurvey.getDrilledData().get(wellSurvey.getDrilledData().size() - 1).get("depth").toString()));
-                wellCoordinatesResponse.setDrilledData(wellSurvey.getDrilledData());
+                drilledWellDepth.put(wellSurvey.getUid(), Float.valueOf(wellSurvey.getDrilledData().get(wellSurvey.getDrilledData().size() - 1).get("depth").toString()));
+                wellCoordinatesResponse.setDrilledData(wellSurvey.getDrilledData().stream().map(drill -> drill.get("coordinates")).collect(Collectors.toList()));
+            } else{
+                wellCoordinatesResponse.setDrilledData( Collections.emptyList());
             }
             if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty()) {
-
-                wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData().stream().filter(planned -> Float.valueOf(planned.get("depth").toString()) >= drilledWellDepth.get(wellSurvey.getUid())).collect(Collectors.toList()));
+                wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData().stream()
+                    .filter(planned -> Float.valueOf(planned.get("depth").toString()) >= drilledWellDepth.get(wellSurvey.getUid()))
+                    .map(drill ->  drill.get("coordinates")).collect(Collectors.toList()));
+            } else {
+                wellCoordinatesResponse.setPlannedData(Collections.emptyList());
             }
             latLngMap.put(wellSurvey.getUid(), wellCoordinatesResponse);
         });
