@@ -15,7 +15,4 @@ public interface WellSurveyPlannedLatLongRepository extends MongoRepository<Well
 
     public void deleteByUid(String uid);
 
-
-
-
 }

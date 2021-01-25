@@ -6,9 +6,13 @@ import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
 import com.moblize.ms.dailyops.dto.WellboreStick;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.query.BasicQuery;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
@@ -79,13 +83,13 @@ public class WellsCoordinatesService {
             if (wellSurvey.getDrilledData() != null) {
                 drilledWellDepth.put(wellSurvey.getUid(), Float.valueOf(wellSurvey.getDrilledData().get(wellSurvey.getDrilledData().size() - 1).get("depth").toString()));
                 wellCoordinatesResponse.setDrilledData(wellSurvey.getDrilledData().stream().map(drill -> drill.get("coordinates")).collect(Collectors.toList()));
-            } else{
-                wellCoordinatesResponse.setDrilledData( Collections.emptyList());
+            } else {
+                wellCoordinatesResponse.setDrilledData(Collections.emptyList());
             }
             if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty()) {
                 wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData().stream()
                     .filter(planned -> Float.valueOf(planned.get("depth").toString()) >= drilledWellDepth.get(wellSurvey.getUid()))
-                    .map(drill ->  drill.get("coordinates")).collect(Collectors.toList()));
+                    .map(drill -> drill.get("coordinates")).collect(Collectors.toList()));
             } else {
                 wellCoordinatesResponse.setPlannedData(Collections.emptyList());
             }
@@ -140,5 +144,13 @@ public class WellsCoordinatesService {
         wellsCoordinatesDao.deleteWellSurveyPlannedLatLong(uid);
     }
 
+    public List<String> getNearByWell(String primaryWellUID, int distance, String customer, int limit) {
+        List<MongoWell> ls = wellsCoordinatesDao.getNearByWell(mongoWellRepository.findByUid(primaryWellUID), distance, customer, limit);
+        if (ls != null && !ls.isEmpty()) {
+            return ls.stream().map(well -> well.getUid()).collect(Collectors.toList());
+        } else {
+            return Collections.emptyList();
+        }
+    }
 
 }

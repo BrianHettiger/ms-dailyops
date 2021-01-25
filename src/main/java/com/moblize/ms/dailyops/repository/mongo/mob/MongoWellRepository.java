@@ -11,4 +11,6 @@ public interface MongoWellRepository extends MongoRepository<MongoWell, String> 
     public List<MongoWell> findAllByUidIn(List<String> iterable);
 
     public List<MongoWell> findAllByCustomer(String customer);
+
+    MongoWell findByUid(String uid);
 }

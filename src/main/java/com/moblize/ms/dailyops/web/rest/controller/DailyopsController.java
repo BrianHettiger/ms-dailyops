@@ -1,6 +1,7 @@
 package com.moblize.ms.dailyops.web.rest.controller;
 
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
+import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
 import com.moblize.ms.dailyops.dto.ResponseDTO;
 import com.moblize.ms.dailyops.service.WellsCoordinatesService;
 import lombok.SneakyThrows;
@@ -105,5 +106,12 @@ public class DailyopsController {
         }
     }
 
+    @SneakyThrows
+    @Transactional
+    @PutMapping("/api/v1/getNearByWell")
+    public ResponseDTO getNearByWells(@Valid @RequestBody NearByWellRequestDTO nearByWell, HttpServletResponse response) {
+
+        return ResponseDTO.complete(wellsCoordinatesService.getNearByWell(nearByWell.getPrimaryWell(), nearByWell.getDistance(), nearByWell.getCustomer(), nearByWell.getLimit()));
+    }
 
 }
