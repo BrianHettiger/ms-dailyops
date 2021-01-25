@@ -2,8 +2,8 @@ package com.moblize.ms.dailyops.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -13,26 +13,13 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class WellCoordinatesResponse {
+@Document
+public class WellboreStick {
 
     private String uid;
-    private String name;
-    private Location location;
     private AvgROP avgROP;
     private Cost cost;
     private List<Map<String,Object>> drilledData;
     private List<Map<String,Object>> plannedData;
 
-
-
-    @Getter
-    @Setter
-    @AllArgsConstructor
-    public static class Location implements Serializable {
-
-        private Float lng = 0.0f;
-
-        private Float lat = 0.0f;
-
-    }
 }

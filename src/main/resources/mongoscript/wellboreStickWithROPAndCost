@@ -1,0 +1,59 @@
+function(x) {
+return db.getCollection('wellSurveyPlannedLatLong').aggregate(
+
+    [
+        {
+            '$project' : {
+                '_id' : NumberInt(0),
+                'ws' : '$$ROOT'
+            }
+        },
+        {
+            '$lookup' : {
+                'localField' : 'ws.uid',
+                'from' : 'performanceROP',
+                'foreignField' : 'uid',
+                'as' : 'p'
+            }
+        },
+        {
+            '$unwind' : {
+                'path' : '$p',
+                'preserveNullAndEmptyArrays' : false
+            }
+        },
+        {
+            '$lookup' : {
+                'localField' : 'ws.uid',
+                'from' : 'performanceCost',
+                'foreignField' : 'uid',
+                'as' : 'c'
+            }
+        },
+        {
+            '$unwind' : {
+                'path' : '$c',
+                'preserveNullAndEmptyArrays' : false
+            }
+        },
+                 {
+                     '$match' : {
+                         'ws.uid' : '4231136934'
+                     }
+                 },
+        {
+            '$project' : {
+                'uid' : '$ws.uid',
+                'avgROP' : '$p.avgROP',
+                'cost' : '$c.cost',
+                'drilledData' : '$ws.drilledData',
+                'plannedData' : '$ws.plannedData',
+                '_id' : NumberInt(0)
+            }
+        }
+    ],
+    {
+        'allowDiskUse' : true
+    }
+);
+}
