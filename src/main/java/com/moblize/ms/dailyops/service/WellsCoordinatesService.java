@@ -33,6 +33,7 @@ public class WellsCoordinatesService {
             WellCoordinatesResponse wellCoordinatesResponse = latLngMap.getOrDefault(well.getUid(), new WellCoordinatesResponse());
             wellCoordinatesResponse.setUid(well.getUid());
             wellCoordinatesResponse.setName(well.getName());
+            wellCoordinatesResponse.setStatusWell(well.getStatusWell());
             if (well.getLocation() != null) {
                 WellCoordinatesResponse.Location location = new WellCoordinatesResponse.Location(well.getLocation().getLng(), well.getLocation().getLat());
                 wellCoordinatesResponse.setLocation(location);
@@ -80,7 +81,7 @@ public class WellsCoordinatesService {
             } else {
                 wellCoordinatesResponse.setDrilledData(Collections.emptyList());
             }
-            if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty()) {
+            if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty() && !wellCoordinatesResponse.getStatusWell().equalsIgnoreCase("completed")) {
                 wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData().stream()
                     .filter(planned -> Float.valueOf(planned.get("depth").toString()) >= drilledWellDepth.get(wellSurvey.getUid()))
                     .map(drill -> ((ArrayList)drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
