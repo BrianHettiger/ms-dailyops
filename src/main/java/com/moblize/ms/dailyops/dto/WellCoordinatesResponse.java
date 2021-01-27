@@ -1,5 +1,6 @@
 package com.moblize.ms.dailyops.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
@@ -17,6 +18,8 @@ public class WellCoordinatesResponse {
     private String uid;
     private String name;
     private Location location;
+    @JsonIgnore
+    private String statusWell;
     private AvgROP avgROP;
     private Cost cost;
     private List<Object> drilledData;
