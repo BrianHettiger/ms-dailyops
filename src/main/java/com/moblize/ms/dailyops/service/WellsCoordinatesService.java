@@ -76,14 +76,14 @@ public class WellsCoordinatesService {
             }
             if (wellSurvey.getDrilledData() != null) {
                 drilledWellDepth.put(wellSurvey.getUid(), Float.valueOf(wellSurvey.getDrilledData().get(wellSurvey.getDrilledData().size() - 1).get("depth").toString()));
-                wellCoordinatesResponse.setDrilledData(wellSurvey.getDrilledData().stream().map(drill -> drill.get("coordinates")).collect(Collectors.toList()));
+                wellCoordinatesResponse.setDrilledData(wellSurvey.getDrilledData().stream().map(drill -> ((ArrayList)drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
             } else {
                 wellCoordinatesResponse.setDrilledData(Collections.emptyList());
             }
             if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty()) {
                 wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData().stream()
                     .filter(planned -> Float.valueOf(planned.get("depth").toString()) >= drilledWellDepth.get(wellSurvey.getUid()))
-                    .map(drill -> drill.get("coordinates")).collect(Collectors.toList()));
+                    .map(drill -> ((ArrayList)drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
             } else {
                 wellCoordinatesResponse.setPlannedData(Collections.emptyList());
             }
