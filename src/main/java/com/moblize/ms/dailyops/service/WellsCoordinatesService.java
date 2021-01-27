@@ -1,18 +1,12 @@
 package com.moblize.ms.dailyops.service;
 
-import com.moblize.ms.dailyops.dto.WellCoordinatesResponse;
 import com.moblize.ms.dailyops.dao.WellsCoordinatesDao;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
-import com.moblize.ms.dailyops.dto.WellboreStick;
+import com.moblize.ms.dailyops.dto.WellCoordinatesResponse;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
-import com.mongodb.client.model.geojson.Point;
-import com.mongodb.client.model.geojson.Position;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.query.BasicQuery;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
@@ -40,7 +34,7 @@ public class WellsCoordinatesService {
             wellCoordinatesResponse.setUid(well.getUid());
             wellCoordinatesResponse.setName(well.getName());
             if (well.getLocation() != null) {
-                WellCoordinatesResponse.Location location = new WellCoordinatesResponse.Location(well.getLocation().getLat(), well.getLocation().getLat());
+                WellCoordinatesResponse.Location location = new WellCoordinatesResponse.Location(well.getLocation().getLng(), well.getLocation().getLat());
                 wellCoordinatesResponse.setLocation(location);
             } else {
                 wellCoordinatesResponse.getLocation().setLat(0f);
