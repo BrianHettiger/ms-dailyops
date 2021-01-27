@@ -20,14 +20,17 @@ public class WellPerformanceMetaData implements Serializable {
     @JsonIgnore
     @Column(name = "_id")
     private ObjectId id;
+
     private String wellUid;
     private Double processedUntilDepth;
     @JsonProperty("rop")
     private RopMetaData ropMetaData;
     @JsonProperty("cost")
     private CostMetaData costMetaData;
-    //@CreatedDate
+
+    @JsonIgnore
     private LocalDateTime addedAt;
-    //@LastModifiedDate
+
+    @JsonIgnore
     private LocalDateTime updatedAt;
 }
