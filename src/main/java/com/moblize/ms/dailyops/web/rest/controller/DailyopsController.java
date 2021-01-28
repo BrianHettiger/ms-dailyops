@@ -24,7 +24,7 @@ public class DailyopsController {
     @Autowired
     private PerformanceROPService performanceROPService;
 
-    @SneakyThrows
+    
     @Transactional(readOnly = true)
     @GetMapping("/api/v1/getWellCoordinates")
     public ResponseDTO getWellCoordinates(@RequestParam("customer") String customer, HttpServletResponse response) {
@@ -36,7 +36,7 @@ public class DailyopsController {
         }
     }
 
-    @SneakyThrows
+    
     @Transactional
     @PostMapping("/api/v1/wellSurveyPlannedLatLong/create")
     public ResponseDTO save(@Valid @RequestBody WellSurveyPlannedLatLong wellSurveyPlannedLatLong, HttpServletResponse response) {
@@ -49,7 +49,7 @@ public class DailyopsController {
         }
     }
 
-    @SneakyThrows
+    
     @Transactional
     @PostMapping("/api/v1/wellSurveyPlannedLatLong/createAll")
     public ResponseDTO saveAll(@Valid @RequestBody List<WellSurveyPlannedLatLong> wellSurveyPlannedLatLongAll, HttpServletResponse response) {
@@ -61,7 +61,7 @@ public class DailyopsController {
         }
     }
 
-    @SneakyThrows
+    
     @Transactional
     @PutMapping("/api/v1/wellSurveyPlannedLatLong/update")
     public ResponseDTO update(@Valid @RequestBody WellSurveyPlannedLatLong wellSurveyPlannedLatLong, HttpServletResponse response) {
@@ -74,7 +74,7 @@ public class DailyopsController {
         }
     }
 
-    @SneakyThrows
+    
     @Transactional(readOnly = true)
     @GetMapping("/api/v1/wellSurveyPlannedLatLong/read")
     public ResponseDTO find(@RequestParam String uid, HttpServletResponse response) {
@@ -86,7 +86,7 @@ public class DailyopsController {
         }
     }
 
-    @SneakyThrows
+    
     @Transactional(readOnly = true)
     @GetMapping("/api/v1/wellSurveyPlannedLatLong/readAll")
     public ResponseDTO findAll(@RequestParam List<String> uid, HttpServletResponse response) {
@@ -98,7 +98,7 @@ public class DailyopsController {
         }
     }
 
-    @SneakyThrows
+    
     @Transactional
     @DeleteMapping("/api/v1/wellSurveyPlannedLatLong/remove")
     public ResponseDTO delete(@RequestParam String uid, HttpServletResponse response) {
@@ -111,7 +111,7 @@ public class DailyopsController {
         }
     }
 
-    @SneakyThrows
+    
     @Transactional
     @PutMapping("/api/v1/getNearByWell")
     public ResponseDTO getNearByWells(@Valid @RequestBody NearByWellRequestDTO nearByWell, HttpServletResponse response) {
@@ -119,7 +119,7 @@ public class DailyopsController {
         return ResponseDTO.complete(wellsCoordinatesService.getNearByWell(nearByWell.getPrimaryWell(), nearByWell.getDistance(), nearByWell.getCustomer(), nearByWell.getLimit()));
     }
 
-    @SneakyThrows
+    
     @Transactional(readOnly = true)
     @GetMapping("/api/v1/performanceROP/read")
     public ResponseDTO findPerformanceROP(@RequestParam String uid, HttpServletResponse response) {
@@ -131,14 +131,14 @@ public class DailyopsController {
         }
     }
 
-    @SneakyThrows
+    
     @Transactional
     @PostMapping("/api/v1/performanceROP/create")
     public ResponseDTO savePerformanceROP(@Valid @RequestBody PerformanceROP performanceROP) {
         return ResponseDTO.complete(performanceROPService.savePerformanceROP(performanceROP));
     }
 
-    @SneakyThrows
+    
     @Transactional
     @DeleteMapping("/api/v1/performanceROP/remove")
     public ResponseDTO deletePerformanceROP(@Valid @RequestParam String uid, HttpServletResponse response) {
@@ -151,7 +151,7 @@ public class DailyopsController {
         }
     }
 
-    @SneakyThrows
+    
     @Transactional
     @PutMapping("/api/v1/performanceROP/update")
     public ResponseDTO updatePerformanceROP(@Valid @RequestBody PerformanceROP performanceROP) {

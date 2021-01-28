@@ -23,7 +23,7 @@ public class PerformanceMetaDataController {
     @Autowired
     private WellPerformanceMetaDataService metaDataService;
 
-    @SneakyThrows
+    
     @Transactional
     @PostMapping("/api/v1/metadata")
     public ResponseDTO save(@Valid @RequestBody WellPerformanceMetaData metaData, HttpServletResponse response) {
@@ -35,7 +35,7 @@ public class PerformanceMetaDataController {
         }
     }
 
-    @SneakyThrows
+    
     @Transactional
     @PutMapping("/api/v1/metadata")
     public ResponseDTO update(@Valid @RequestBody WellPerformanceMetaData metaData, HttpServletResponse response) {
@@ -47,7 +47,7 @@ public class PerformanceMetaDataController {
         }
     }
 
-    @SneakyThrows
+    
     @Transactional(readOnly = true)
     @GetMapping("/api/v1/metadata/{wellUid}")
     public ResponseDTO find(@PathVariable String wellUid, HttpServletResponse response) {
@@ -59,7 +59,7 @@ public class PerformanceMetaDataController {
         }
     }
 
-    @SneakyThrows
+    
     @Transactional
     @DeleteMapping("/api/v1/metadata/{wellUid}")
     public ResponseDTO delete(@PathVariable String wellUid, HttpServletResponse response) {
