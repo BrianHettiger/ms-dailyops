@@ -1,8 +1,10 @@
 package com.moblize.ms.dailyops.web.rest.controller;
 
+import com.moblize.ms.dailyops.domain.PerformanceROP;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
 import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
 import com.moblize.ms.dailyops.dto.ResponseDTO;
+import com.moblize.ms.dailyops.service.PerformanceROPService;
 import com.moblize.ms.dailyops.service.WellsCoordinatesService;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,9 @@ public class DailyopsController {
 
     @Autowired
     private WellsCoordinatesService wellsCoordinatesService;
+
+    @Autowired
+    private PerformanceROPService performanceROPService;
 
     @SneakyThrows
     @Transactional(readOnly = true)
@@ -113,5 +118,45 @@ public class DailyopsController {
 
         return ResponseDTO.complete(wellsCoordinatesService.getNearByWell(nearByWell.getPrimaryWell(), nearByWell.getDistance(), nearByWell.getCustomer(), nearByWell.getLimit()));
     }
+
+    @SneakyThrows
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/performanceROP/read")
+    public ResponseDTO findPerformanceROP(@RequestParam String uid, HttpServletResponse response) {
+        if (uid == null || uid.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return ResponseDTO.invalid("UID cannot be empty.");
+        } else {
+            return ResponseDTO.complete(performanceROPService.findPerformanceROP(uid));
+        }
+    }
+
+    @SneakyThrows
+    @Transactional
+    @PostMapping("/api/v1/performanceROP/create")
+    public ResponseDTO savePerformanceROP(@Valid @RequestBody PerformanceROP performanceROP) {
+        return ResponseDTO.complete(performanceROPService.savePerformanceROP(performanceROP));
+    }
+
+    @SneakyThrows
+    @Transactional
+    @DeleteMapping("/api/v1/performanceROP/remove")
+    public ResponseDTO deletePerformanceROP(@Valid @RequestParam String uid, HttpServletResponse response) {
+        if (uid == null || uid.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return ResponseDTO.invalid("UID cannot be empty.");
+        } else {
+            performanceROPService.deletePerformanceROP(uid);
+            return ResponseDTO.complete("Well PerformanceROP data has deleted successfully", uid);
+        }
+    }
+
+    @SneakyThrows
+    @Transactional
+    @PutMapping("/api/v1/performanceROP/update")
+    public ResponseDTO updatePerformanceROP(@Valid @RequestBody PerformanceROP performanceROP) {
+        return ResponseDTO.complete(performanceROPService.updatePerformanceROP(performanceROP));
+    }
+
 
 }

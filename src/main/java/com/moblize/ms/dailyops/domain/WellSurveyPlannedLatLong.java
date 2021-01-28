@@ -19,7 +19,7 @@ import java.util.Map;
 public class WellSurveyPlannedLatLong {
 
 
-    ObjectId _id;
+    private ObjectId _id;
     @NotNull
     private String uid;
     private List<Map<String,Object>> drilledData;

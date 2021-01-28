@@ -30,10 +30,10 @@ import java.util.Map;
 public class WellsCoordinatesDao {
 
     @Autowired
-    MongoTemplate mongoTemplate;
+    private MongoTemplate mongoTemplate;
     @Autowired
     @Qualifier("mobMongoTemplate")
-    MongoTemplate mobMongoTemplate;
+    private MongoTemplate mobMongoTemplate;
 
     @Autowired
     private WellSurveyPlannedLatLongRepository wellSurveyPlannedLatLongRepository;

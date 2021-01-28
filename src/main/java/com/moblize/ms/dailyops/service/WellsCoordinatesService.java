@@ -75,16 +75,20 @@ public class WellsCoordinatesService {
             if (wellCoordinatesResponse.getUid() == null) {
                 wellCoordinatesResponse.setUid(wellSurvey.getUid());
             }
-            if (wellSurvey.getDrilledData() != null) {
+            if (wellSurvey.getDrilledData() != null && !wellSurvey.getDrilledData().isEmpty()) {
                 drilledWellDepth.put(wellSurvey.getUid(), Float.valueOf(wellSurvey.getDrilledData().get(wellSurvey.getDrilledData().size() - 1).get("depth").toString()));
-                wellCoordinatesResponse.setDrilledData(wellSurvey.getDrilledData().stream().map(drill -> ((ArrayList)drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
+                wellCoordinatesResponse.setDrilledData(wellSurvey.getDrilledData().stream().map(drill -> ((ArrayList) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
             } else {
                 wellCoordinatesResponse.setDrilledData(Collections.emptyList());
             }
-            if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty() && !wellCoordinatesResponse.getStatusWell().equalsIgnoreCase("completed")) {
+            if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty() && !wellCoordinatesResponse.getStatusWell().equalsIgnoreCase("completed") && wellSurvey.getDrilledData() != null && !wellSurvey.getDrilledData().isEmpty()) {
                 wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData().stream()
-                    .filter(planned -> Float.valueOf(planned.get("depth").toString()) >= drilledWellDepth.get(wellSurvey.getUid()))
-                    .map(drill -> ((ArrayList)drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
+                    .filter(planned -> {
+                        return planned != null && drilledWellDepth.get(wellSurvey.getUid()) != null && planned.get("depth") != null && planned.get("coordinates") != null ? Float.valueOf(planned.get("depth").toString()) >= drilledWellDepth.get(wellSurvey.getUid()) : false;
+                    })
+                    .map(drill -> ((ArrayList) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
+            } else if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty() && (wellSurvey.getDrilledData() == null || wellSurvey.getDrilledData().isEmpty())) {
+                wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData().stream().map(drill -> ((ArrayList) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
             } else {
                 wellCoordinatesResponse.setPlannedData(Collections.emptyList());
             }
