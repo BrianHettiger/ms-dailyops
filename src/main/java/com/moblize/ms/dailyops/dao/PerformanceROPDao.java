@@ -26,6 +26,10 @@ public class PerformanceROPDao {
 
 
     public PerformanceROP savePerformanceROP(PerformanceROP performanceROPDTO){
+        PerformanceROP dbObj =  performanceROPRepository.findByUid(performanceROPDTO.getUid());
+        if (null != dbObj) {
+            performanceROPDTO.set_id(dbObj.get_id());
+        }
        return performanceROPRepository.save(performanceROPDTO);
     }
 
