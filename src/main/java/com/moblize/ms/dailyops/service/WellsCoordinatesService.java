@@ -2,16 +2,29 @@ package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.dao.WellsCoordinatesDao;
 import com.moblize.ms.dailyops.domain.MongoWell;
+import com.moblize.ms.dailyops.domain.PerformanceROP;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
+import com.moblize.ms.dailyops.dto.AvgROP;
+import com.moblize.ms.dailyops.dto.Section;
 import com.moblize.ms.dailyops.dto.WellCoordinatesResponse;
+import com.moblize.ms.dailyops.repository.mongo.client.PerformanceROPRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,12 +36,20 @@ public class WellsCoordinatesService {
 
     @Autowired
     private MongoWellRepository mongoWellRepository;
+    @Autowired
+    private PerformanceROPRepository ropRepository;
 
     public Collection<WellCoordinatesResponse> getWellCoordinates(String customer) {
 
         Map<String, WellCoordinatesResponse> latLngMap = new HashMap<>();
 
         List<MongoWell> mongoWell = mongoWellRepository.findAllByCustomer(customer);
+        final List<PerformanceROP> ropList = ropRepository.findAll();
+        final Map<String, AvgROP> ropByWellUidMap = ropList.stream()
+            .collect(Collectors.toMap(
+                PerformanceROP::getUid,
+                WellsCoordinatesService::avgRopDomainToDto,
+                (k1, k2) -> k1));
         mongoWell.forEach(well -> {
             WellCoordinatesResponse wellCoordinatesResponse = latLngMap.getOrDefault(well.getUid(), new WellCoordinatesResponse());
             wellCoordinatesResponse.setUid(well.getUid());
@@ -43,7 +64,8 @@ public class WellsCoordinatesService {
             }
             wellCoordinatesResponse.setDrilledData(Collections.emptyList());
             wellCoordinatesResponse.setPlannedData(Collections.emptyList());
-
+            // set ROP
+            wellCoordinatesResponse.setAvgROP(ropByWellUidMap.get(well.getUid()));
             latLngMap.put(well.getUid(), wellCoordinatesResponse);
         });
 
@@ -92,7 +114,8 @@ public class WellsCoordinatesService {
             } else {
                 wellCoordinatesResponse.setPlannedData(Collections.emptyList());
             }
-            latLngMap.put(wellSurvey.getUid(), wellCoordinatesResponse);
+
+            latLngMap.putIfAbsent(wellSurvey.getUid(), wellCoordinatesResponse);
         });
 
 
@@ -150,6 +173,20 @@ public class WellsCoordinatesService {
         } else {
             return Collections.emptyList();
         }
+    }
+
+    private static AvgROP avgRopDomainToDto(final PerformanceROP ropDomain) {
+        final Section section = new Section();
+        if (null != ropDomain.getAvgROP() && null != ropDomain.getAvgROP().getSection()) {
+            section.setAll(ropDomain.getAvgROP().getSection().getAll());
+            section.setSurface(ropDomain.getAvgROP().getSection().getSurface());
+            section.setIntermediate(ropDomain.getAvgROP().getSection().getIntermediate());
+            section.setCurve(ropDomain.getAvgROP().getSection().getCurve());
+            section.setLateral(ropDomain.getAvgROP().getSection().getLateral());
+        }
+        final AvgROP avgRopDto = new AvgROP();
+        avgRopDto.setSection(section);
+        return avgRopDto;
     }
 
 }
