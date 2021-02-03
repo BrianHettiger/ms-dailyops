@@ -28,7 +28,7 @@ public class WellCoordinatesResponse {
     private Cost cost;
     private List<Object> drilledData;
     private List<Object> plannedData;
-    private Integer distinctBHAsUsedCount;
+    private Integer distinctBHAsUsedCount = 0;
 
 
     @Getter

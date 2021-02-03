@@ -22,7 +22,7 @@ public class WellSurveyPlannedLatLong {
     private ObjectId _id;
     @NotNull
     private String uid;
-    private Integer distinctBHAsUsedCount;
+    private Integer distinctBHAsUsedCount = 0;
     private List<Map<String,Object>> drilledData;
 //    @NotNull
 //    @NotEmpty
