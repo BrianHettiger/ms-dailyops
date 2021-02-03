@@ -178,11 +178,11 @@ public class WellsCoordinatesService {
     private static AvgROP avgRopDomainToDto(final PerformanceROP ropDomain) {
         final Section section = new Section();
         if (null != ropDomain.getAvgROP() && null != ropDomain.getAvgROP().getSection()) {
-            section.setAll(ropDomain.getAvgROP().getSection().getAll());
-            section.setSurface(ropDomain.getAvgROP().getSection().getSurface());
-            section.setIntermediate(ropDomain.getAvgROP().getSection().getIntermediate());
-            section.setCurve(ropDomain.getAvgROP().getSection().getCurve());
-            section.setLateral(ropDomain.getAvgROP().getSection().getLateral());
+            section.setAll(ropDomain.getAvgROP().getSection().getAll().intValue());
+            section.setSurface(ropDomain.getAvgROP().getSection().getSurface().intValue());
+            section.setIntermediate(ropDomain.getAvgROP().getSection().getIntermediate().intValue());
+            section.setCurve(ropDomain.getAvgROP().getSection().getCurve().intValue());
+            section.setLateral(ropDomain.getAvgROP().getSection().getLateral().intValue());
         }
         final AvgROP avgRopDto = new AvgROP();
         avgRopDto.setSection(section);
