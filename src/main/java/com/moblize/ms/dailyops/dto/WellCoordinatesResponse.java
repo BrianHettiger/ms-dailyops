@@ -2,7 +2,11 @@ package com.moblize.ms.dailyops.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.util.List;
@@ -24,7 +28,7 @@ public class WellCoordinatesResponse {
     private Cost cost;
     private List<Object> drilledData;
     private List<Object> plannedData;
-
+    private Integer distinctBHAsUsedCount = 0;
 
 
     @Getter

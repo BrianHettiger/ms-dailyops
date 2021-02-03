@@ -114,7 +114,8 @@ public class WellsCoordinatesService {
             } else {
                 wellCoordinatesResponse.setPlannedData(Collections.emptyList());
             }
-
+            // set BHAs used count
+            wellCoordinatesResponse.setDistinctBHAsUsedCount(wellSurvey.getDistinctBHAsUsedCount());
             latLngMap.putIfAbsent(wellSurvey.getUid(), wellCoordinatesResponse);
         });
 
