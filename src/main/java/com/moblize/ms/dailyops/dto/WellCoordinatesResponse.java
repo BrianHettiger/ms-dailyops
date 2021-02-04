@@ -29,7 +29,7 @@ public class WellCoordinatesResponse {
     private List<Object> drilledData;
     private List<Object> plannedData;
     private Integer distinctBHAsUsedCount = 0;
-
+    private String activeRigName;
 
     @Getter
     @Setter
