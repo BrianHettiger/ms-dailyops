@@ -69,27 +69,6 @@ public class WellsCoordinatesService {
             latLngMap.put(well.getUid(), wellCoordinatesResponse);
         });
 
-       /*List<WellboreStick> latLongList = wellsCoordinatesDao.getWellboreStickWithROPAndCost(loadScript());
-        latLongList.forEach(wellSurvey ->{
-            WellCoordinatesResponse wellCoordinatesResponse = latLngMap.getOrDefault(wellSurvey.getUid(), new WellCoordinatesResponse());
-            if (wellCoordinatesResponse.getUid() == null) {
-                wellCoordinatesResponse.setUid(wellSurvey.getUid());
-            }
-            if (wellSurvey.getDrilledData() != null) {
-                wellCoordinatesResponse.setDrilledData(wellSurvey.getDrilledData());
-            }
-            if (wellSurvey.getPlannedData() != null) {
-                wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData());
-            }
-            if(wellSurvey.getAvgROP() != null){
-                wellCoordinatesResponse.setAvgROP(wellSurvey.getAvgROP());
-            }
-            if(wellSurvey.getCost() != null){
-                wellCoordinatesResponse.setCost(wellSurvey.getCost());
-            }
-            latLngMap.put(wellSurvey.getUid(), wellCoordinatesResponse);
-
-        });*/
         HashMap<String, Float> drilledWellDepth = new HashMap<>();
         List<WellSurveyPlannedLatLong> wellSurveyDetail = wellsCoordinatesDao.getWellCoordinates();
         wellSurveyDetail.forEach(wellSurvey -> {
@@ -181,11 +160,11 @@ public class WellsCoordinatesService {
     private static AvgROP avgRopDomainToDto(final PerformanceROP ropDomain) {
         final Section section = new Section();
         if (null != ropDomain.getAvgROP() && null != ropDomain.getAvgROP().getSection()) {
-            section.setAll(ropDomain.getAvgROP().getSection().getAll().intValue());
-            section.setSurface(ropDomain.getAvgROP().getSection().getSurface().intValue());
-            section.setIntermediate(ropDomain.getAvgROP().getSection().getIntermediate().intValue());
-            section.setCurve(ropDomain.getAvgROP().getSection().getCurve().intValue());
-            section.setLateral(ropDomain.getAvgROP().getSection().getLateral().intValue());
+            section.setAll((int)Math.round(ropDomain.getAvgROP().getSection().getAll()));
+            section.setSurface((int)Math.round(ropDomain.getAvgROP().getSection().getSurface()));
+            section.setIntermediate((int)Math.round(ropDomain.getAvgROP().getSection().getIntermediate()));
+            section.setCurve((int)Math.round(ropDomain.getAvgROP().getSection().getCurve()));
+            section.setLateral((int)Math.round(ropDomain.getAvgROP().getSection().getLateral()));
         }
         final AvgROP avgRopDto = new AvgROP();
         avgRopDto.setSection(section);
