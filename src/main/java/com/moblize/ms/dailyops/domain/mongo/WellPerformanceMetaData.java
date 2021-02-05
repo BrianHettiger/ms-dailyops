@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class WellPerformanceMetaData implements Serializable {
     @Id
-    @JsonIgnore
     @Column(name = "_id")
     private ObjectId id;
 

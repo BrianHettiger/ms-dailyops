@@ -75,7 +75,11 @@ public class WellsCoordinatesDao {
 
     public WellSurveyPlannedLatLong updateWellSurveyPlannedLatLong(WellSurveyPlannedLatLong wellSurveyPlannedLatLong) {
         WellSurveyPlannedLatLong dbObj = findWellSurveyPlannedLatLong(wellSurveyPlannedLatLong.getUid());
-        dbObj.getDrilledData().addAll(wellSurveyPlannedLatLong.getDrilledData());
+        if (null != wellSurveyPlannedLatLong.getDrilledData() && !wellSurveyPlannedLatLong.getDrilledData().isEmpty()) {
+            if (null != dbObj.getDrilledData()) {
+                dbObj.getDrilledData().addAll(wellSurveyPlannedLatLong.getDrilledData());
+            }
+        }
         return wellSurveyPlannedLatLongRepository.save(dbObj);
     }
 
