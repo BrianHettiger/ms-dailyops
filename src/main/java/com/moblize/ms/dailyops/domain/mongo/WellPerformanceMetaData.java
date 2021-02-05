@@ -3,9 +3,9 @@ package com.moblize.ms.dailyops.domain.mongo;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @JsonAutoDetect
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Document(collection = "wellPerformanceMetaData")
 public class WellPerformanceMetaData implements Serializable {
     @Id
     @Column(name = "_id")
@@ -22,10 +23,6 @@ public class WellPerformanceMetaData implements Serializable {
 
     private String wellUid;
     private Double processedUntilDepth;
-    @JsonProperty("rop")
-    private RopMetaData ropMetaData;
-    @JsonProperty("cost")
-    private CostMetaData costMetaData;
 
     @JsonIgnore
     private LocalDateTime addedAt;
