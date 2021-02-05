@@ -57,7 +57,7 @@ public class WellsCoordinatesDao {
 
         BasicQuery query1 = new BasicQuery("{'location':{'$near': {\n" +
             "        '$geometry':  {'type': 'Point'," +" 'coordinates': [" + well.getLocation().getLng() + ", " + well.getLocation().getLat() + " ]},\n" +
-            "    query: { type: 'public' },    '$spherical': true,'$distanceField': 'dist.calculated','$minDistance': 1,'$maxDistance': 16090.34 }}       \n" +
+            "    query: { type: 'public' },    '$spherical': true,'$distanceField': 'dist.calculated','$minDistance': 10,'$maxDistance': "+(distance*1609.34)+" }}       \n" +
             "       ,'customer': '" + customer + "'\n" +
             "      }  \n");
         query1.limit(limit);
