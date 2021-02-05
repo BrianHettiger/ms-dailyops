@@ -69,8 +69,7 @@ public class DailyopsController {
     @Transactional
     @PutMapping("/api/v1/wellSurveyPlannedLatLong/update")
     public ResponseDTO update(@Valid @RequestBody WellSurveyPlannedLatLong wellSurveyPlannedLatLong, HttpServletResponse response) {
-        if (wellSurveyPlannedLatLong == null || wellSurveyPlannedLatLong.getUid() == null
-            || wellSurveyPlannedLatLong.getDrilledData() == null || wellSurveyPlannedLatLong.getDrilledData().isEmpty()) {
+        if (wellSurveyPlannedLatLong == null || wellSurveyPlannedLatLong.getUid() == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return ResponseDTO.invalid("Request parameters did not meet requirements.");
         } else {
