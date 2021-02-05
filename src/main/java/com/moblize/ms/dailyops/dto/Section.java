@@ -4,7 +4,11 @@ package com.moblize.ms.dailyops.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
@@ -22,14 +26,14 @@ import lombok.*;
 public class Section {
 
     @JsonProperty("all")
-    public Double all;
+    public Integer all;
     @JsonProperty("surface")
-    public Double surface;
+    public Integer surface;
     @JsonProperty("intermediate")
-    public Double intermediate;
+    public Integer intermediate;
     @JsonProperty("curve")
-    public Double curve;
+    public Integer curve;
     @JsonProperty("lateral")
-    public Double lateral;
+    public Integer lateral;
 
 }

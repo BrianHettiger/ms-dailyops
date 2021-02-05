@@ -22,10 +22,9 @@ public class WellSurveyPlannedLatLong {
     private ObjectId _id;
     @NotNull
     private String uid;
+    private Integer distinctBHAsUsedCount = 0;
+    private String activeRigName;
+    private Long activeRigStartDate;
     private List<Map<String,Object>> drilledData;
-//    @NotNull
-//    @NotEmpty
     private List<Map<String,Object>> plannedData;
-
-
 }
