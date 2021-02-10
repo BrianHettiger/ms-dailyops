@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 
 @Slf4j
 @Service
@@ -17,13 +19,21 @@ public class WellPerformanceMetaDataServiceImpl implements WellPerformanceMetaDa
 
     @Override
     public WellPerformanceMetaData save(final WellPerformanceMetaData wellPerformanceMetaData) {
+        wellPerformanceMetaData.setAddedAt(LocalDateTime.now());
+        wellPerformanceMetaData.setUpdatedAt(LocalDateTime.now());
         return metaDataRepository.save(wellPerformanceMetaData);
     }
 
     @Override
     public WellPerformanceMetaData update(final WellPerformanceMetaData updatedData) {
-        final WellPerformanceMetaData oldData = metaDataRepository.findByWellUid(updatedData.getWellUid());
-        updatedData.setId(oldData.getId());
+        if(null == updatedData.getId() || updatedData.getId().isEmpty()) {
+            final WellPerformanceMetaData oldData = metaDataRepository.findByWellUid(updatedData.getWellUid());
+            updatedData.setId(oldData.getId());
+        }
+        if(null != updatedData.getAddedAt()){
+            updatedData.setAddedAt(null);
+        }
+        updatedData.setUpdatedAt(LocalDateTime.now());
         return metaDataRepository.save(updatedData);
     }
 

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
-import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.persistence.Column;
@@ -19,7 +18,7 @@ import java.time.LocalDateTime;
 public class WellPerformanceMetaData implements Serializable {
     @Id
     @Column(name = "_id")
-    private ObjectId id;
+    private String id;
 
     private String wellUid;
     private Double processedUntilDepth;
