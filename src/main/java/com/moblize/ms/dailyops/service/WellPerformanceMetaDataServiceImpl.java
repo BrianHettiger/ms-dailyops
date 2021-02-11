@@ -17,19 +17,23 @@ public class WellPerformanceMetaDataServiceImpl implements WellPerformanceMetaDa
 
     @Override
     public WellPerformanceMetaData save(final WellPerformanceMetaData wellPerformanceMetaData) {
-        return metaDataRepository.save(wellPerformanceMetaData);
+        if(getByWellUid(wellPerformanceMetaData.getWellUid()) != null) {
+            return update(wellPerformanceMetaData);
+        } else {
+            return metaDataRepository.save(wellPerformanceMetaData);
+        }
     }
 
     @Override
     public WellPerformanceMetaData update(final WellPerformanceMetaData updatedData) {
-        final WellPerformanceMetaData oldData = metaDataRepository.findByWellUid(updatedData.getWellUid());
+        final WellPerformanceMetaData oldData = metaDataRepository.findFirstByWellUid(updatedData.getWellUid());
         updatedData.setId(oldData.getId());
         return metaDataRepository.save(updatedData);
     }
 
     @Override
     public WellPerformanceMetaData getByWellUid(final String wellUid) {
-        return metaDataRepository.findByWellUid(wellUid);
+        return metaDataRepository.findFirstByWellUid(wellUid);
     }
 
     @Override
