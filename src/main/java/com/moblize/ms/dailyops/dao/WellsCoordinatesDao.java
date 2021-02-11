@@ -88,8 +88,8 @@ public class WellsCoordinatesDao {
             existingObj.setActiveRigName(wellSurveyPlannedLatLong.getActiveRigName());
             existingObj.setActiveRigStartDate(wellSurveyPlannedLatLong.getActiveRigStartDate());
         }
-        wellSurveyPlannedLatLong.setUpdatedAt(LocalDateTime.now());
-        return wellSurveyPlannedLatLongRepository.save(wellSurveyPlannedLatLong);
+        existingObj.setUpdatedAt(LocalDateTime.now());
+        return wellSurveyPlannedLatLongRepository.save(existingObj);
     }
 
     public WellSurveyPlannedLatLong findWellSurveyPlannedLatLong(String uid) {
