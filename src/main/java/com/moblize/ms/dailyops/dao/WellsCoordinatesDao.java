@@ -66,21 +66,31 @@ public class WellsCoordinatesDao {
     }
 
     public WellSurveyPlannedLatLong saveWellSurveyPlannedLatLong(WellSurveyPlannedLatLong wellSurveyPlannedLatLong) {
-        return wellSurveyPlannedLatLongRepository.save(wellSurveyPlannedLatLong);
+        if(findWellSurveyPlannedLatLong(wellSurveyPlannedLatLong.getUid()) != null) {
+            return updateWellSurveyPlannedLatLong(wellSurveyPlannedLatLong);
+        } else {
+            return wellSurveyPlannedLatLongRepository.save(wellSurveyPlannedLatLong);
+        }
     }
 
     public List<WellSurveyPlannedLatLong> saveWellSurveyPlannedLatLong(List<WellSurveyPlannedLatLong> wellSurveyPlannedLatLong) {
+        wellSurveyPlannedLatLong.forEach(wellSurveyPlannedLatLongRec ->{
+            WellSurveyPlannedLatLong oldRec = findWellSurveyPlannedLatLong(wellSurveyPlannedLatLongRec.getUid());
+            if(oldRec != null) {
+                wellSurveyPlannedLatLongRec.setId(oldRec.getId());
+            }
+        });
         return wellSurveyPlannedLatLongRepository.saveAll((Iterable) wellSurveyPlannedLatLong);
     }
 
     public WellSurveyPlannedLatLong updateWellSurveyPlannedLatLong(WellSurveyPlannedLatLong wellSurveyPlannedLatLong) {
         final WellSurveyPlannedLatLong dbObj = findWellSurveyPlannedLatLong(wellSurveyPlannedLatLong.getUid());
-        wellSurveyPlannedLatLong.set_id(dbObj.get_id());
+        wellSurveyPlannedLatLong.setId(dbObj.getId());
         return wellSurveyPlannedLatLongRepository.save(wellSurveyPlannedLatLong);
     }
 
     public WellSurveyPlannedLatLong findWellSurveyPlannedLatLong(String uid) {
-        return wellSurveyPlannedLatLongRepository.findByUid(uid);
+        return wellSurveyPlannedLatLongRepository.findFirstByUid(uid);
     }
 
     public List<WellSurveyPlannedLatLong> findWellSurveyPlannedLatLong(List<String> uid) {

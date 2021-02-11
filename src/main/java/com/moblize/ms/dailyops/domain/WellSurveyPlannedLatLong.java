@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
@@ -18,8 +19,8 @@ import java.util.Map;
 @JsonIgnoreProperties(value = { "_id" })
 public class WellSurveyPlannedLatLong {
 
-
-    private ObjectId _id;
+    @Id
+    private ObjectId id;
     @NotNull
     private String uid;
     private Integer distinctBHAsUsedCount = 0;
