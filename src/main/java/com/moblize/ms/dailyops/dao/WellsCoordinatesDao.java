@@ -17,6 +17,7 @@ import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.script.ExecutableMongoScript;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,8 @@ public class WellsCoordinatesDao {
     }
 
     public WellSurveyPlannedLatLong saveWellSurveyPlannedLatLong(WellSurveyPlannedLatLong wellSurveyPlannedLatLong) {
+        wellSurveyPlannedLatLong.setAddedAt(LocalDateTime.now());
+        wellSurveyPlannedLatLong.setUpdatedAt(LocalDateTime.now());
         return wellSurveyPlannedLatLongRepository.save(wellSurveyPlannedLatLong);
     }
 
@@ -74,9 +77,19 @@ public class WellsCoordinatesDao {
     }
 
     public WellSurveyPlannedLatLong updateWellSurveyPlannedLatLong(WellSurveyPlannedLatLong wellSurveyPlannedLatLong) {
-        final WellSurveyPlannedLatLong dbObj = findWellSurveyPlannedLatLong(wellSurveyPlannedLatLong.getUid());
-        wellSurveyPlannedLatLong.set_id(dbObj.get_id());
-        return wellSurveyPlannedLatLongRepository.save(wellSurveyPlannedLatLong);
+        final WellSurveyPlannedLatLong existingObj = findWellSurveyPlannedLatLong(wellSurveyPlannedLatLong.getUid());
+        if(null != wellSurveyPlannedLatLong.getDrilledData() && !wellSurveyPlannedLatLong.getDrilledData().isEmpty()){
+            existingObj.getDrilledData().addAll(wellSurveyPlannedLatLong.getDrilledData());
+        }
+        if(wellSurveyPlannedLatLong.getDistinctBHAsUsedCount() > 0){
+            existingObj.setDistinctBHAsUsedCount(wellSurveyPlannedLatLong.getDistinctBHAsUsedCount());
+        }
+        if(null != wellSurveyPlannedLatLong.getActiveRigName() && !wellSurveyPlannedLatLong.getActiveRigName().isEmpty()){
+            existingObj.setActiveRigName(wellSurveyPlannedLatLong.getActiveRigName());
+            existingObj.setActiveRigStartDate(wellSurveyPlannedLatLong.getActiveRigStartDate());
+        }
+        existingObj.setUpdatedAt(LocalDateTime.now());
+        return wellSurveyPlannedLatLongRepository.save(existingObj);
     }
 
     public WellSurveyPlannedLatLong findWellSurveyPlannedLatLong(String uid) {
