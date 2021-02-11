@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface WellSurveyPlannedLatLongRepository extends MongoRepository<WellSurveyPlannedLatLong, String> {
 
-    public WellSurveyPlannedLatLong findByUid(String uid);
+    public WellSurveyPlannedLatLong findFirstByUid(String uid);
 
     public List<WellSurveyPlannedLatLong> findByUidIn(List<String> uid);
 
