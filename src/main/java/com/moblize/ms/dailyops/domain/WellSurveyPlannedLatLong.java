@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotNull;
@@ -16,7 +17,8 @@ import java.util.Map;
 @NoArgsConstructor
 @Document(collection = "wellSurveyPlannedLatLong")
 public class WellSurveyPlannedLatLong {
-    private String _id;
+    @Id
+    private String id;
     @NotNull
     private String uid;
     private Integer distinctBHAsUsedCount = 0;
