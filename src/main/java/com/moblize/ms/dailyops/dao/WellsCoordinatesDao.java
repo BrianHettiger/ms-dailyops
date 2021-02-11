@@ -77,12 +77,16 @@ public class WellsCoordinatesDao {
     }
 
     public WellSurveyPlannedLatLong updateWellSurveyPlannedLatLong(WellSurveyPlannedLatLong wellSurveyPlannedLatLong) {
-        if(null == wellSurveyPlannedLatLong.get_id() || wellSurveyPlannedLatLong.get_id().isEmpty()) {
-            final WellSurveyPlannedLatLong dbObj = findWellSurveyPlannedLatLong(wellSurveyPlannedLatLong.getUid());
-            wellSurveyPlannedLatLong.set_id(dbObj.get_id());
+        final WellSurveyPlannedLatLong existingObj = findWellSurveyPlannedLatLong(wellSurveyPlannedLatLong.getUid());
+        if(null != wellSurveyPlannedLatLong.getDrilledData() && !wellSurveyPlannedLatLong.getDrilledData().isEmpty()){
+            existingObj.getDrilledData().addAll(wellSurveyPlannedLatLong.getDrilledData());
         }
-        if(null != wellSurveyPlannedLatLong.getAddedAt()){
-            wellSurveyPlannedLatLong.setAddedAt(null);
+        if(wellSurveyPlannedLatLong.getDistinctBHAsUsedCount() > 0){
+            existingObj.setDistinctBHAsUsedCount(wellSurveyPlannedLatLong.getDistinctBHAsUsedCount());
+        }
+        if(null != wellSurveyPlannedLatLong.getActiveRigName() && !wellSurveyPlannedLatLong.getActiveRigName().isEmpty()){
+            existingObj.setActiveRigName(wellSurveyPlannedLatLong.getActiveRigName());
+            existingObj.setActiveRigStartDate(wellSurveyPlannedLatLong.getActiveRigStartDate());
         }
         wellSurveyPlannedLatLong.setUpdatedAt(LocalDateTime.now());
         return wellSurveyPlannedLatLongRepository.save(wellSurveyPlannedLatLong);
