@@ -28,14 +28,14 @@ public class PerformanceCostDao {
     public PerformanceCost savePerformanceCost(PerformanceCost performanceCostDTO){
         PerformanceCost dbObj =  performanceCostRepository.findByUid(performanceCostDTO.getUid());
         if (null != dbObj) {
-            performanceCostDTO.set_id(dbObj.get_id());
+            performanceCostDTO.setId(dbObj.getId());
         }
        return performanceCostRepository.save(performanceCostDTO);
     }
 
     public PerformanceCost updatePerformanceCost(PerformanceCost performanceCostDTO){
         PerformanceCost dbObj =  performanceCostRepository.findByUid(performanceCostDTO.getUid());
-        performanceCostDTO.set_id(dbObj.get_id());
+        performanceCostDTO.setId(dbObj.getId());
         return performanceCostRepository.save(performanceCostDTO);
     }
 

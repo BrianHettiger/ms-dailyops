@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
@@ -13,10 +13,11 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @Document(collection = "performanceCost")
-@JsonIgnoreProperties(value = { "_id" })
+@JsonIgnoreProperties(value = { "id" })
 public class PerformanceCost {
 
-    private ObjectId _id;
+    @Id
+    private String id;
     public String uid;
     public Cost cost;
 
