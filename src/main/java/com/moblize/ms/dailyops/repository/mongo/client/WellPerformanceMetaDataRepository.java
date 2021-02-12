@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface WellPerformanceMetaDataRepository extends MongoRepository<WellPerformanceMetaData, String> {
-    WellPerformanceMetaData findByWellUid(String wellUid);
+    WellPerformanceMetaData findFirstByWellUid(String wellUid);
 
     Object deleteByWellUid(String wellUid);
 }

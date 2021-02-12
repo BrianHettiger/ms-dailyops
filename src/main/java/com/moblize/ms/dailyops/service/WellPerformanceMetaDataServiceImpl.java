@@ -27,7 +27,7 @@ public class WellPerformanceMetaDataServiceImpl implements WellPerformanceMetaDa
     @Override
     public WellPerformanceMetaData update(final WellPerformanceMetaData updatedData) {
         if(null == updatedData.getId() || updatedData.getId().isEmpty()) {
-            final WellPerformanceMetaData oldData = metaDataRepository.findByWellUid(updatedData.getWellUid());
+            final WellPerformanceMetaData oldData = metaDataRepository.findFirstByWellUid(updatedData.getWellUid());
             updatedData.setId(oldData.getId());
         }
         if(null != updatedData.getAddedAt()){
@@ -39,7 +39,7 @@ public class WellPerformanceMetaDataServiceImpl implements WellPerformanceMetaDa
 
     @Override
     public WellPerformanceMetaData getByWellUid(final String wellUid) {
-        return metaDataRepository.findByWellUid(wellUid);
+        return metaDataRepository.findFirstByWellUid(wellUid);
     }
 
     @Override

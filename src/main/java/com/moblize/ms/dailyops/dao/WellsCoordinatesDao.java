@@ -93,7 +93,7 @@ public class WellsCoordinatesDao {
     }
 
     public WellSurveyPlannedLatLong findWellSurveyPlannedLatLong(String uid) {
-        return wellSurveyPlannedLatLongRepository.findByUid(uid);
+        return wellSurveyPlannedLatLongRepository.findFirstByUid(uid);
     }
 
     public List<WellSurveyPlannedLatLong> findWellSurveyPlannedLatLong(List<String> uid) {

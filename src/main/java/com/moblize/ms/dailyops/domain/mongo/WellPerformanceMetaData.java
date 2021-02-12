@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 @Document(collection = "wellPerformanceMetaData")
 public class WellPerformanceMetaData implements Serializable {
     @Id
-    @Column(name = "_id")
     private String id;
 
     private String wellUid;
