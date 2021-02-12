@@ -1,14 +1,14 @@
 package com.moblize.ms.dailyops.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -16,11 +16,9 @@ import java.util.Map;
 @Setter
 @NoArgsConstructor
 @Document(collection = "wellSurveyPlannedLatLong")
-@JsonIgnoreProperties(value = { "_id" })
 public class WellSurveyPlannedLatLong {
-
     @Id
-    private ObjectId id;
+    private String id;
     @NotNull
     private String uid;
     private Integer distinctBHAsUsedCount = 0;
@@ -28,4 +26,8 @@ public class WellSurveyPlannedLatLong {
     private Long activeRigStartDate;
     private List<Map<String,Object>> drilledData;
     private List<Map<String,Object>> plannedData;
+    @JsonIgnore
+    private LocalDateTime addedAt;
+    @JsonIgnore
+    private LocalDateTime updatedAt;
 }
