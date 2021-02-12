@@ -21,7 +21,11 @@ public class WellPerformanceMetaDataServiceImpl implements WellPerformanceMetaDa
     public WellPerformanceMetaData save(final WellPerformanceMetaData wellPerformanceMetaData) {
         wellPerformanceMetaData.setAddedAt(LocalDateTime.now());
         wellPerformanceMetaData.setUpdatedAt(LocalDateTime.now());
-        return metaDataRepository.save(wellPerformanceMetaData);
+        if(getByWellUid(wellPerformanceMetaData.getWellUid()) != null) {
+            return update(wellPerformanceMetaData);
+        } else {
+            return metaDataRepository.save(wellPerformanceMetaData);
+        }
     }
 
     @Override
