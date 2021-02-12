@@ -29,9 +29,7 @@ public class WellPerformanceMetaDataServiceImpl implements WellPerformanceMetaDa
         if(null == updatedData.getId() || updatedData.getId().isEmpty()) {
             final WellPerformanceMetaData oldData = metaDataRepository.findFirstByWellUid(updatedData.getWellUid());
             updatedData.setId(oldData.getId());
-        }
-        if(null != updatedData.getAddedAt()){
-            updatedData.setAddedAt(null);
+            updatedData.setAddedAt(oldData.getAddedAt());
         }
         updatedData.setUpdatedAt(LocalDateTime.now());
         return metaDataRepository.save(updatedData);

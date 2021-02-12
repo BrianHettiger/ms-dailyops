@@ -69,10 +69,20 @@ public class WellsCoordinatesDao {
     public WellSurveyPlannedLatLong saveWellSurveyPlannedLatLong(WellSurveyPlannedLatLong wellSurveyPlannedLatLong) {
         wellSurveyPlannedLatLong.setAddedAt(LocalDateTime.now());
         wellSurveyPlannedLatLong.setUpdatedAt(LocalDateTime.now());
-        return wellSurveyPlannedLatLongRepository.save(wellSurveyPlannedLatLong);
+        if(findWellSurveyPlannedLatLong(wellSurveyPlannedLatLong.getUid()) != null) {
+            return updateWellSurveyPlannedLatLong(wellSurveyPlannedLatLong);
+        } else {
+            return wellSurveyPlannedLatLongRepository.save(wellSurveyPlannedLatLong);
+        }
     }
 
     public List<WellSurveyPlannedLatLong> saveWellSurveyPlannedLatLong(List<WellSurveyPlannedLatLong> wellSurveyPlannedLatLong) {
+        wellSurveyPlannedLatLong.forEach(wellSurveyPlannedLatLongRec ->{
+            WellSurveyPlannedLatLong oldRec = findWellSurveyPlannedLatLong(wellSurveyPlannedLatLongRec.getUid());
+            if(oldRec != null) {
+                wellSurveyPlannedLatLongRec.setId(oldRec.getId());
+            }
+        });
         return wellSurveyPlannedLatLongRepository.saveAll((Iterable) wellSurveyPlannedLatLong);
     }
 
