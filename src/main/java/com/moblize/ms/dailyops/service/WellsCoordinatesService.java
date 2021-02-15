@@ -4,9 +4,12 @@ import com.moblize.ms.dailyops.dao.WellsCoordinatesDao;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.domain.PerformanceROP;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
+import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
 import com.moblize.ms.dailyops.dto.AvgROP;
+import com.moblize.ms.dailyops.dto.Cost;
 import com.moblize.ms.dailyops.dto.Section;
 import com.moblize.ms.dailyops.dto.WellCoordinatesResponse;
+import com.moblize.ms.dailyops.repository.mongo.client.PerformanceCostRepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceROPRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +41,8 @@ public class WellsCoordinatesService {
     private MongoWellRepository mongoWellRepository;
     @Autowired
     private PerformanceROPRepository ropRepository;
+    @Autowired
+    private PerformanceCostRepository costRepository;
 
     public Collection<WellCoordinatesResponse> getWellCoordinates(String customer) {
 
@@ -50,6 +55,13 @@ public class WellsCoordinatesService {
                 PerformanceROP::getUid,
                 WellsCoordinatesService::avgRopDomainToDto,
                 (k1, k2) -> k1));
+        final List<PerformanceCost> costList = costRepository.findAll();
+        final Map<String, Cost> costByWellUidMap = costList.stream()
+            .collect(
+                Collectors.toMap(
+                    PerformanceCost::getUid,
+                    WellsCoordinatesService::costToDto,
+                    (k1, k2) -> k1));
         mongoWell.forEach(well -> {
             WellCoordinatesResponse wellCoordinatesResponse = latLngMap.getOrDefault(well.getUid(), new WellCoordinatesResponse());
             wellCoordinatesResponse.setUid(well.getUid());
@@ -66,6 +78,7 @@ public class WellsCoordinatesService {
             wellCoordinatesResponse.setPlannedData(Collections.emptyList());
             // set ROP
             wellCoordinatesResponse.setAvgROP(ropByWellUidMap.get(well.getUid()));
+            wellCoordinatesResponse.setCost(costByWellUidMap.get(well.getUid()));
             latLngMap.put(well.getUid(), wellCoordinatesResponse);
         });
 
@@ -169,6 +182,17 @@ public class WellsCoordinatesService {
         final AvgROP avgRopDto = new AvgROP();
         avgRopDto.setSection(section);
         return avgRopDto;
+    }
+
+    private static Cost costToDto(final PerformanceCost domainCost) {
+        final Cost cost = new Cost();
+        if(null != domainCost && null != domainCost.getCost()){
+            cost.setAfe((int)Math.round(domainCost.getCost().getAfe()));
+            cost.setPerFt((int)Math.round(domainCost.getCost().getPerFt()));
+            cost.setPerLatFt((int)Math.round(domainCost.getCost().getPerFt()));
+            cost.setTotal((int)Math.round(domainCost.getCost().getTotal()));
+        }
+        return cost;
     }
 
 }

@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,21 +28,50 @@ public class PerformanceCostDao {
 
 
     public PerformanceCost savePerformanceCost(PerformanceCost performanceCostDTO){
-        PerformanceCost dbObj =  performanceCostRepository.findByUid(performanceCostDTO.getUid());
+        PerformanceCost dbObj =  performanceCostRepository.findFirstByUid(performanceCostDTO.getUid());
         if (null != dbObj) {
-            performanceCostDTO.setId(dbObj.getId());
+            updatePerformanceCost(performanceCostDTO, dbObj);
+        } else {
+            performanceCostDTO.setAddedAt(LocalDateTime.now());
+            performanceCostDTO.setUpdatedAt(LocalDateTime.now());
         }
        return performanceCostRepository.save(performanceCostDTO);
     }
 
     public PerformanceCost updatePerformanceCost(PerformanceCost performanceCostDTO){
-        PerformanceCost dbObj =  performanceCostRepository.findByUid(performanceCostDTO.getUid());
-        performanceCostDTO.setId(dbObj.getId());
+        return updatePerformanceCost(performanceCostDTO, null);
+    }
+
+    public PerformanceCost updatePerformanceCost(PerformanceCost performanceCostDTO, PerformanceCost existingObj){
+        PerformanceCost dbObj;
+        if (null == existingObj) {
+            dbObj = performanceCostRepository.findFirstByUid(performanceCostDTO.getUid());
+        } else {
+            dbObj = existingObj;
+        }
+        if(null != performanceCostDTO.getCost()) {
+            if (null == dbObj.getCost()) {
+                dbObj.setCost(new PerformanceCost.Cost());
+            }
+            if (null != performanceCostDTO.getCost().getAfe()) {
+                performanceCostDTO.getCost().setAfe(performanceCostDTO.getCost().getAfe());
+            }
+            if (null != performanceCostDTO.getCost().getPerFt()) {
+                performanceCostDTO.getCost().setPerFt(performanceCostDTO.getCost().getPerFt());
+            }
+            if (null != performanceCostDTO.getCost().getPerLatFt()) {
+                performanceCostDTO.getCost().setPerLatFt(performanceCostDTO.getCost().getPerLatFt());
+            }
+            if (null != performanceCostDTO.getCost().getTotal()) {
+                performanceCostDTO.getCost().setTotal(performanceCostDTO.getCost().getTotal());
+            }
+        }
+        dbObj.setUpdatedAt(LocalDateTime.now());
         return performanceCostRepository.save(performanceCostDTO);
     }
 
     public PerformanceCost findPerformanceCost(String uid) {
-        return performanceCostRepository.findByUid(uid);
+        return performanceCostRepository.findFirstByUid(uid);
     }
 
     public void deletePerformanceCost(String uid){
