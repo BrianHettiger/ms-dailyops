@@ -61,7 +61,7 @@ public class PerformanceCostDao {
                 performanceCostDTO.getCost().setTotal(performanceCostDTO.getCost().getTotal());
             }
         }
-        return performanceCostRepository.save(performanceCostDTO);
+        return performanceCostRepository.save(dbObj);
     }
 
     public PerformanceCost findPerformanceCost(String uid) {
@@ -71,6 +71,4 @@ public class PerformanceCostDao {
     public void deletePerformanceCost(String uid){
         performanceCostRepository.deleteByUid(uid);
     }
-
-
 }
