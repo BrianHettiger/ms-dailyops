@@ -21,17 +21,19 @@ public class WellPerformanceMetaDataServiceImpl implements WellPerformanceMetaDa
     public WellPerformanceMetaData save(final WellPerformanceMetaData wellPerformanceMetaData) {
         wellPerformanceMetaData.setAddedAt(LocalDateTime.now());
         wellPerformanceMetaData.setUpdatedAt(LocalDateTime.now());
-        return metaDataRepository.save(wellPerformanceMetaData);
+        if(getByWellUid(wellPerformanceMetaData.getWellUid()) != null) {
+            return update(wellPerformanceMetaData);
+        } else {
+            return metaDataRepository.save(wellPerformanceMetaData);
+        }
     }
 
     @Override
     public WellPerformanceMetaData update(final WellPerformanceMetaData updatedData) {
         if(null == updatedData.getId() || updatedData.getId().isEmpty()) {
-            final WellPerformanceMetaData oldData = metaDataRepository.findByWellUid(updatedData.getWellUid());
+            final WellPerformanceMetaData oldData = metaDataRepository.findFirstByWellUid(updatedData.getWellUid());
             updatedData.setId(oldData.getId());
-        }
-        if(null != updatedData.getAddedAt()){
-            updatedData.setAddedAt(null);
+            updatedData.setAddedAt(oldData.getAddedAt());
         }
         updatedData.setUpdatedAt(LocalDateTime.now());
         return metaDataRepository.save(updatedData);
@@ -39,7 +41,7 @@ public class WellPerformanceMetaDataServiceImpl implements WellPerformanceMetaDa
 
     @Override
     public WellPerformanceMetaData getByWellUid(final String wellUid) {
-        return metaDataRepository.findByWellUid(wellUid);
+        return metaDataRepository.findFirstByWellUid(wellUid);
     }
 
     @Override
