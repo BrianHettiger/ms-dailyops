@@ -162,11 +162,11 @@ public class WellsCoordinatesService {
     }
 
     public List<String> getNearByWell(String primaryWellUID, int distance, String customer, int limit) {
-        List<MongoWell> ls = wellsCoordinatesDao.getNearByWell(mongoWellRepository.findByUid(primaryWellUID), distance, customer, limit);
-        if (ls != null && !ls.isEmpty()) {
-            return ls.stream().map(well -> well.getUid()).collect(Collectors.toList());
-        } else {
+        List<String> ls = wellsCoordinatesDao.getNearByWell(mongoWellRepository.findByUid(primaryWellUID), distance, customer, limit);
+        if (ls == null && ls.isEmpty()) {
             return Collections.emptyList();
+        }else {
+            return ls;
         }
     }
 
