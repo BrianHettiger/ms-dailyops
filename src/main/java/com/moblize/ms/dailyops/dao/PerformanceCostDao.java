@@ -11,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,16 +24,13 @@ public class PerformanceCostDao {
     @Autowired
     private PerformanceCostRepository performanceCostRepository;
 
-
     public PerformanceCost savePerformanceCost(PerformanceCost performanceCostDTO){
         PerformanceCost dbObj =  performanceCostRepository.findFirstByUid(performanceCostDTO.getUid());
         if (null != dbObj) {
-            updatePerformanceCost(performanceCostDTO, dbObj);
+            return updatePerformanceCost(performanceCostDTO, dbObj);
         } else {
-            performanceCostDTO.setAddedAt(LocalDateTime.now());
-            performanceCostDTO.setUpdatedAt(LocalDateTime.now());
+            return performanceCostRepository.save(performanceCostDTO);
         }
-       return performanceCostRepository.save(performanceCostDTO);
     }
 
     public PerformanceCost updatePerformanceCost(PerformanceCost performanceCostDTO){
@@ -66,7 +61,6 @@ public class PerformanceCostDao {
                 performanceCostDTO.getCost().setTotal(performanceCostDTO.getCost().getTotal());
             }
         }
-        dbObj.setUpdatedAt(LocalDateTime.now());
         return performanceCostRepository.save(performanceCostDTO);
     }
 
