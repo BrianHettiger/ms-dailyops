@@ -17,7 +17,7 @@ logging:
   level:
     ROOT: DEBUG
     io.github.jhipster: DEBUG
-    com.moblize.ms.dailyops: DEBUG
+    com.moblize.ms: DEBUG
 
 eureka:
   instance:
@@ -25,8 +25,6 @@ eureka:
   client:
     service-url:
       defaultZone: http://admin:${jhipster.registry.password}@localhost:8761/eureka/
-
-sql-instance: ${sqlclients.${CODE}.instance}
 
 spring:
   profiles:
@@ -44,6 +42,8 @@ spring:
   jackson:
     serialization:
       indent-output: true
+  jpa:
+    show-sql: true
   mail:
     host: localhost
     port: 25
@@ -51,10 +51,6 @@ spring:
     password:
   messages:
     cache-duration: PT1S # 1 second, see the ISO 8601 standard
-  r2dbc:
-    url: r2dbc:sqlserver://localhost:1433/dailyops
-    username: SA
-    password: yourStrong(!)Password
   thymeleaf:
     cache: false
   sleuth:
@@ -66,23 +62,6 @@ spring:
     locator:
       discovery:
         enabled: true
-  data:
-    mongodb:
-      uri: mongodb://${ALTERNATE_LOCALHOST}:${nosql.instance1.port}
-      database: ${nosql.instance1.admin.dbname}
-  datasource:
-    type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:sqlserver://${sql.${sql-instance}.host}:${sql.${sql-instance}.port};database=${sql.${sql-instance}.${CODE}.dbname}
-    username: ${sql.${sql-instance}.${CODE}.user}
-    password: ${sql.${sql-instance}.${CODE}.pwd}
-    hikari:
-      poolName: Hikari
-      auto-commit: false
-      data-source-properties:
-        cachePrepStmts: true
-        prepStmtCacheSize: 250
-        prepStmtCacheSqlLimit: 2048
-        useServerPrepStmts: true
 
 server:
   port: 9108
@@ -94,6 +73,10 @@ server:
 # ===================================================================
 
 jhipster:
+  cache: # Cache configuration
+    ehcache: # Ehcache configuration
+      time-to-live-seconds: 3600 # By default objects stay 1 hour in the cache
+      max-entries: 100 # Number of objects in each cache entry
   # CORS is disabled by default on microservices, as you should access them through a gateway.
   # If you want to enable it, please uncomment the configuration below.
   # cors:

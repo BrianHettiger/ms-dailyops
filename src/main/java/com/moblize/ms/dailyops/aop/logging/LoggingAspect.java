@@ -1,12 +1,10 @@
 package com.moblize.ms.dailyops.aop.logging;
 
 import io.github.jhipster.config.JHipsterConstants;
-
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +18,7 @@ import java.util.Arrays;
  *
  * By default, it only runs with the "dev" profile.
  */
-@Aspect
+//@Aspect
 public class LoggingAspect {
 
     private final Environment env;
