@@ -49,16 +49,16 @@ public class PerformanceCostDao {
                 dbObj.setCost(new PerformanceCost.Cost());
             }
             if (null != performanceCostDTO.getCost().getAfe()) {
-                performanceCostDTO.getCost().setAfe(performanceCostDTO.getCost().getAfe());
+                dbObj.getCost().setAfe(performanceCostDTO.getCost().getAfe());
             }
             if (null != performanceCostDTO.getCost().getPerFt()) {
-                performanceCostDTO.getCost().setPerFt(performanceCostDTO.getCost().getPerFt());
+                dbObj.getCost().setPerFt(performanceCostDTO.getCost().getPerFt());
             }
             if (null != performanceCostDTO.getCost().getPerLatFt()) {
-                performanceCostDTO.getCost().setPerLatFt(performanceCostDTO.getCost().getPerLatFt());
+                dbObj.getCost().setPerLatFt(performanceCostDTO.getCost().getPerLatFt());
             }
             if (null != performanceCostDTO.getCost().getTotal()) {
-                performanceCostDTO.getCost().setTotal(performanceCostDTO.getCost().getTotal());
+                dbObj.getCost().setTotal(performanceCostDTO.getCost().getTotal());
             }
         }
         return performanceCostRepository.save(dbObj);
