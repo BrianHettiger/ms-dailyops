@@ -187,10 +187,18 @@ public class WellsCoordinatesService {
     private static Cost costToDto(final PerformanceCost domainCost) {
         final Cost cost = new Cost();
         if(null != domainCost && null != domainCost.getCost()){
-            cost.setAfe((int)Math.round(domainCost.getCost().getAfe()));
-            cost.setPerFt((int)Math.round(domainCost.getCost().getPerFt()));
-            cost.setPerLatFt((int)Math.round(domainCost.getCost().getPerFt()));
-            cost.setTotal((int)Math.round(domainCost.getCost().getTotal()));
+            if(null != domainCost.getCost().getAfe()) {
+                cost.setAfe((int) Math.round(domainCost.getCost().getAfe()));
+            }
+            if(null != domainCost.getCost().getPerFt()) {
+                cost.setPerFt((int) Math.round(domainCost.getCost().getPerFt()));
+            }
+            if(null != domainCost.getCost().getPerLatFt()) {
+                cost.setPerLatFt((int) Math.round(domainCost.getCost().getPerLatFt()));
+            }
+            if(null != domainCost.getCost().getTotal()) {
+                cost.setTotal((int) Math.round(domainCost.getCost().getTotal()));
+            }
         }
         return cost;
     }
