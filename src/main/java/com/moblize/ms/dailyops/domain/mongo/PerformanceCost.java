@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @Document(collection = "performanceCost")
-@JsonIgnoreProperties(value = { "id" })
+@JsonIgnoreProperties(value = { "id", "addedAt", "updatedAt"})
 public class PerformanceCost {
 
     @Id

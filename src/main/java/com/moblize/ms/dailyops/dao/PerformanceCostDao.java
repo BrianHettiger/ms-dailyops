@@ -60,8 +60,9 @@ public class PerformanceCostDao {
             if (null != performanceCostDTO.getCost().getTotal()) {
                 dbObj.getCost().setTotal(performanceCostDTO.getCost().getTotal());
             }
+            return performanceCostRepository.save(dbObj);
         }
-        return performanceCostRepository.save(dbObj);
+        return existingObj;
     }
 
     public PerformanceCost findPerformanceCost(String uid) {
