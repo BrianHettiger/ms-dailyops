@@ -24,28 +24,52 @@ public class PerformanceCostDao {
     @Autowired
     private PerformanceCostRepository performanceCostRepository;
 
-
     public PerformanceCost savePerformanceCost(PerformanceCost performanceCostDTO){
-        PerformanceCost dbObj =  performanceCostRepository.findByUid(performanceCostDTO.getUid());
+        PerformanceCost dbObj =  performanceCostRepository.findFirstByUid(performanceCostDTO.getUid());
         if (null != dbObj) {
-            performanceCostDTO.setId(dbObj.getId());
+            return updatePerformanceCost(performanceCostDTO, dbObj);
+        } else {
+            return performanceCostRepository.save(performanceCostDTO);
         }
-       return performanceCostRepository.save(performanceCostDTO);
     }
 
     public PerformanceCost updatePerformanceCost(PerformanceCost performanceCostDTO){
-        PerformanceCost dbObj =  performanceCostRepository.findByUid(performanceCostDTO.getUid());
-        performanceCostDTO.setId(dbObj.getId());
-        return performanceCostRepository.save(performanceCostDTO);
+        return updatePerformanceCost(performanceCostDTO, null);
+    }
+
+    public PerformanceCost updatePerformanceCost(PerformanceCost performanceCostDTO, PerformanceCost existingObj){
+        PerformanceCost dbObj;
+        if (null == existingObj) {
+            dbObj = performanceCostRepository.findFirstByUid(performanceCostDTO.getUid());
+        } else {
+            dbObj = existingObj;
+        }
+        if(null != performanceCostDTO.getCost()) {
+            if (null == dbObj.getCost()) {
+                dbObj.setCost(new PerformanceCost.Cost());
+            }
+            if (null != performanceCostDTO.getCost().getAfe()) {
+                dbObj.getCost().setAfe(performanceCostDTO.getCost().getAfe());
+            }
+            if (null != performanceCostDTO.getCost().getPerFt()) {
+                dbObj.getCost().setPerFt(performanceCostDTO.getCost().getPerFt());
+            }
+            if (null != performanceCostDTO.getCost().getPerLatFt()) {
+                dbObj.getCost().setPerLatFt(performanceCostDTO.getCost().getPerLatFt());
+            }
+            if (null != performanceCostDTO.getCost().getTotal()) {
+                dbObj.getCost().setTotal(performanceCostDTO.getCost().getTotal());
+            }
+            return performanceCostRepository.save(dbObj);
+        }
+        return existingObj;
     }
 
     public PerformanceCost findPerformanceCost(String uid) {
-        return performanceCostRepository.findByUid(uid);
+        return performanceCostRepository.findFirstByUid(uid);
     }
 
     public void deletePerformanceCost(String uid){
         performanceCostRepository.deleteByUid(uid);
     }
-
-
 }

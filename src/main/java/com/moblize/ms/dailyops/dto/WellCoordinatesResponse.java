@@ -9,6 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -26,8 +27,8 @@ public class WellCoordinatesResponse {
     private String statusWell;
     private AvgROP avgROP;
     private Cost cost;
-    private List<Object> drilledData;
-    private List<Object> plannedData;
+    private List<Object> drilledData = new ArrayList<>();
+    private List<Object> plannedData = new ArrayList<>();
     private Integer distinctBHAsUsedCount = 0;
     private String activeRigName;
 

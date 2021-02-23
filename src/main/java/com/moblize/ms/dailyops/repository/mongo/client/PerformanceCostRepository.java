@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PerformanceCostRepository extends MongoRepository<PerformanceCost, String> {
 
-    PerformanceCost findByUid(String uid);
+    PerformanceCost findFirstByUid(String uid);
 
-    public void deleteByUid(String uid);
+    void deleteByUid(String uid);
 }
