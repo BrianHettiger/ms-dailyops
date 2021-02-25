@@ -2,8 +2,10 @@ package com.moblize.ms.dailyops.web.rest.controller;
 
 import com.moblize.ms.dailyops.domain.PerformanceROP;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
+import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
 import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
 import com.moblize.ms.dailyops.dto.ResponseDTO;
+import com.moblize.ms.dailyops.service.PerformanceCostService;
 import com.moblize.ms.dailyops.service.PerformanceROPService;
 import com.moblize.ms.dailyops.service.WellsCoordinatesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,8 @@ public class DailyopsController {
 
     @Autowired
     private PerformanceROPService performanceROPService;
+    @Autowired
+    private PerformanceCostService performanceCostService;
 
 
     @Transactional(readOnly = true)
@@ -161,5 +165,41 @@ public class DailyopsController {
         return ResponseDTO.complete(performanceROPService.updatePerformanceROP(performanceROP));
     }
 
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/performanceCost/read")
+    public ResponseDTO findPerformanceCost(@RequestParam String uid, HttpServletResponse response) {
+        if (uid == null || uid.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return ResponseDTO.invalid("UID cannot be empty.");
+        } else {
+            return ResponseDTO.complete(performanceCostService.findPerformanceCost(uid));
+        }
+    }
 
+
+    @Transactional
+    @PostMapping("/api/v1/performanceCost/create")
+    public ResponseDTO savePerformanceCost(@Valid @RequestBody PerformanceCost performanceCost) {
+        return ResponseDTO.complete(performanceCostService.savePerformanceCost(performanceCost));
+    }
+
+
+    @Transactional
+    @DeleteMapping("/api/v1/performanceCost/remove")
+    public ResponseDTO deletePerformanceCost(@Valid @RequestParam String uid, HttpServletResponse response) {
+        if (uid == null || uid.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return ResponseDTO.invalid("UID cannot be empty.");
+        } else {
+            performanceCostService.deletePerformanceCost(uid);
+            return ResponseDTO.complete("Well PerformanceCost data has deleted successfully", uid);
+        }
+    }
+
+
+    @Transactional
+    @PutMapping("/api/v1/performanceCost/update")
+    public ResponseDTO updatePerformanceCost(@Valid @RequestBody PerformanceCost performanceCost) {
+        return ResponseDTO.complete(performanceCostService.updatePerformanceCost(performanceCost));
+    }
 }

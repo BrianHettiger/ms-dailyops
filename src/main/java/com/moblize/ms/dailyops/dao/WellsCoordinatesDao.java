@@ -20,7 +20,11 @@ import org.springframework.data.mongodb.core.script.ExecutableMongoScript;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -105,7 +109,11 @@ public class WellsCoordinatesDao {
     public WellSurveyPlannedLatLong updateWellSurveyPlannedLatLong(WellSurveyPlannedLatLong wellSurveyPlannedLatLong) {
         final WellSurveyPlannedLatLong existingObj = findWellSurveyPlannedLatLong(wellSurveyPlannedLatLong.getUid());
         if(null != wellSurveyPlannedLatLong.getDrilledData() && !wellSurveyPlannedLatLong.getDrilledData().isEmpty()){
-            existingObj.getDrilledData().addAll(wellSurveyPlannedLatLong.getDrilledData());
+            if(null != existingObj.getDrilledData()) {
+                existingObj.getDrilledData().addAll(wellSurveyPlannedLatLong.getDrilledData());
+            } else {
+                existingObj.setDrilledData(wellSurveyPlannedLatLong.getDrilledData());
+            }
         }
         if(wellSurveyPlannedLatLong.getDistinctBHAsUsedCount() > 0){
             existingObj.setDistinctBHAsUsedCount(wellSurveyPlannedLatLong.getDistinctBHAsUsedCount());
