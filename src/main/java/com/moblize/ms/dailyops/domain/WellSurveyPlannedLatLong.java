@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -24,8 +25,8 @@ public class WellSurveyPlannedLatLong {
     private Integer distinctBHAsUsedCount = 0;
     private String activeRigName;
     private Long activeRigStartDate;
-    private List<Map<String,Object>> drilledData;
-    private List<Map<String,Object>> plannedData;
+    private List<Map<String,Object>> drilledData = new ArrayList<>();
+    private List<Map<String,Object>> plannedData = new ArrayList<>();
     @JsonIgnore
     private LocalDateTime addedAt;
     @JsonIgnore
