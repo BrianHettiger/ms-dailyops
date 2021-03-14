@@ -3,8 +3,11 @@ package com.moblize.ms.dailyops.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.moblize.ms.dailyops.domain.PerformanceROP;
 import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.io.Serializable;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
@@ -25,13 +28,13 @@ public class BHA {
     @JsonProperty("ds")
     public String motorType;
     @JsonProperty("aRop")
-    public Double avgROP;
+    public RopType avgRop ;
     @JsonProperty("sRop")
-    public Double slidingROP;
+    public RopType rotatingROP ;
     @JsonProperty("rRop")
-    public Double rotatingROP;
+    public RopType slidingROP ;
     @JsonProperty("eRop")
-    public Double effectiveROP;
+    public RopType effectiveROP;
     @JsonProperty("sp")
     public Double slidePercentage;
     @JsonProperty("dls")
@@ -42,6 +45,30 @@ public class BHA {
     public Double buildWalkCompassAngle;
     @JsonProperty("c_dir")
     public String buildWalkCompassDirection;
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class RopType implements Serializable {
+        @JsonProperty("s")
+        public Section section;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class Section implements Serializable {
+        @JsonProperty("a")
+        public double all;
+        @JsonProperty("s")
+        public double surface;
+        @JsonProperty("i")
+        public double intermediate;
+        @JsonProperty("c")
+        public double curve;
+        @JsonProperty("l")
+        public double lateral;
+    }
 }
 
 

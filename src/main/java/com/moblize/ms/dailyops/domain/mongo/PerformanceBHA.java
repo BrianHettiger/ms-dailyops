@@ -1,6 +1,7 @@
 package com.moblize.ms.dailyops.domain.mongo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.moblize.ms.dailyops.domain.PerformanceROP;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -56,10 +57,10 @@ public class PerformanceBHA {
         public float mdEnd;
         public float footageDrilled;
         public String motorType;
-        public Double avgROP;
-        public Double slidingROP;
-        public Double rotatingROP;
-        public Double effectiveROP;
+        public PerformanceROP.RopType avgRop = new PerformanceROP.RopType();
+        public PerformanceROP.RopType rotatingROP = new PerformanceROP.RopType();
+        public PerformanceROP.RopType slidingROP = new PerformanceROP.RopType();
+        public PerformanceROP.RopType effectiveROP = new PerformanceROP.RopType();
         public Double slidePercentage;
         public String avgDLS;
         public Double buildWalkAngle;

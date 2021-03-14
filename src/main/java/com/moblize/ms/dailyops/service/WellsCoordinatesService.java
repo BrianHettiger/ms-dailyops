@@ -271,11 +271,39 @@ public class WellsCoordinatesService {
                 bha.setMdStart(bhaMongo.getMdStart());
                 bha.setMdEnd(bhaMongo.getMdEnd());
                 bha.setFootageDrilled(bhaMongo.getFootageDrilled());
-                bha.setDriveSystem(bhaMongo.getDriveSystem());
-                bha.setAvgROP(bhaMongo.getAvgROP());
-                bha.setSlidingROP(bhaMongo.getSlidingROP());
-                bha.setRotatingROP(bhaMongo.getRotatingROP());
-                bha.setEffectiveROP(bhaMongo.getEffectiveROP());
+                bha.setMotorType(bhaMongo.getMotorType());
+                bha.setAvgRop(new BHA.RopType(
+                    new BHA.Section(
+                        bhaMongo.getAvgRop().getSection().getAll(),
+                        bhaMongo.getAvgRop().getSection().getSurface(),
+                        bhaMongo.getAvgRop().getSection().getIntermediate(),
+                        bhaMongo.getAvgRop().getSection().getCurve(),
+                        bhaMongo.getAvgRop().getSection().getLateral()
+                    )));
+                bha.setSlidingROP(new BHA.RopType(
+                    new BHA.Section(
+                        bhaMongo.getSlidingROP().getSection().getAll(),
+                        bhaMongo.getSlidingROP().getSection().getSurface(),
+                        bhaMongo.getSlidingROP().getSection().getIntermediate(),
+                        bhaMongo.getSlidingROP().getSection().getCurve(),
+                        bhaMongo.getSlidingROP().getSection().getLateral()
+                    )));
+                bha.setRotatingROP(new BHA.RopType(
+                    new BHA.Section(
+                        bhaMongo.getRotatingROP().getSection().getAll(),
+                        bhaMongo.getRotatingROP().getSection().getSurface(),
+                        bhaMongo.getRotatingROP().getSection().getIntermediate(),
+                        bhaMongo.getRotatingROP().getSection().getCurve(),
+                        bhaMongo.getRotatingROP().getSection().getLateral()
+                    )));
+                bha.setEffectiveROP(new BHA.RopType(
+                    new BHA.Section(
+                        bhaMongo.getEffectiveROP().getSection().getAll(),
+                        bhaMongo.getEffectiveROP().getSection().getSurface(),
+                        bhaMongo.getEffectiveROP().getSection().getIntermediate(),
+                        bhaMongo.getEffectiveROP().getSection().getCurve(),
+                        bhaMongo.getEffectiveROP().getSection().getLateral()
+                    )));
                 bha.setSlidePercentage(bhaMongo.getSlidePercentage());
                 bha.setAvgDLS(bhaMongo.getAvgDLS());
                 bha.setBuildWalkAngle(bhaMongo.getBuildWalkAngle());

@@ -12,11 +12,11 @@ import lombok.ToString;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
-    "all",
-    "surface",
-    "intermediate",
-    "curve",
-    "lateral"
+    "a",
+    "s",
+    "i",
+    "c",
+    "l"
 })
 @Getter
 @Setter
