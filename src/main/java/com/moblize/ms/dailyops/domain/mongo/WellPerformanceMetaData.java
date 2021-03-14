@@ -23,6 +23,7 @@ public class WellPerformanceMetaData implements Serializable {
     private String wellUid;
     private Double processedUntilDepth;
     private Long ropCalculatedUntilTime = 0L;
+    private Long ropBHACalculatedUntilTime = 0L;
     private Map<String, Number> ropMetaData = new HashMap<>();
 
     @JsonIgnore

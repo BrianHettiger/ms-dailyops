@@ -12,6 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -57,6 +58,7 @@ public class PerformanceBHA {
         public float mdEnd;
         public float footageDrilled;
         public String motorType;
+        public List<String> sections = new ArrayList<>();
         public PerformanceROP.RopType avgRop = new PerformanceROP.RopType();
         public PerformanceROP.RopType rotatingROP = new PerformanceROP.RopType();
         public PerformanceROP.RopType slidingROP = new PerformanceROP.RopType();

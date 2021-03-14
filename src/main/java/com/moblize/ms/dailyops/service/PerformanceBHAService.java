@@ -13,11 +13,11 @@ public class PerformanceBHAService {
     private PerformanceBHADao performanceBHADao;
 
     public PerformanceBHA savePerformanceBHA(PerformanceBHA performanceBHADTO){
-        return performanceBHADao.savePerformanceBHA(performanceBHADTO);
+        return performanceBHADao.saveUpdatePerformanceBHA(performanceBHADTO);
     }
 
     public PerformanceBHA updatePerformanceBHA(PerformanceBHA performanceBHADTO){
-        return performanceBHADao.updatePerformanceBHA(performanceBHADTO);
+        return performanceBHADao.saveUpdatePerformanceBHA(performanceBHADTO);
     }
 
     public PerformanceBHA findPerformanceBHA(String uid) {

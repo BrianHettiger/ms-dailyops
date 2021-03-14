@@ -272,6 +272,7 @@ public class WellsCoordinatesService {
                 bha.setMdEnd(bhaMongo.getMdEnd());
                 bha.setFootageDrilled(bhaMongo.getFootageDrilled());
                 bha.setMotorType(bhaMongo.getMotorType());
+                bha.setSections(bhaMongo.getSections());
                 bha.setAvgRop(new BHA.RopType(
                     new BHA.Section(
                         bhaMongo.getAvgRop().getSection().getAll(),
