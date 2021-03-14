@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.io.Serializable;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "section"
@@ -17,9 +19,25 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document
-public class AvgROP {
+public class ROPs {
 
-    @JsonProperty("section")
-    public Section section;
+    @JsonProperty("aRop")
+    public ROP avgROP;
+    @JsonProperty("sRop")
+    public ROP slidingROP;
+    @JsonProperty("rRop")
+    public ROP rotatingROP;
+    @JsonProperty("eRop")
+    public ROP effectiveROP;
+
+
+    @Getter
+    @Setter
+    public static class ROP implements Serializable {
+        @JsonProperty("sec")
+        public Section section;
+    }
+
+
 
 }

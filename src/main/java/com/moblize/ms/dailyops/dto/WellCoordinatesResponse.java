@@ -2,6 +2,7 @@ package com.moblize.ms.dailyops.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,8 +26,16 @@ public class WellCoordinatesResponse {
     private Location location;
     @JsonIgnore
     private String statusWell;
-    private AvgROP avgROP;
+    @JsonProperty("aRop")
+    private ROPs.ROP avgROP;
+    @JsonProperty("sRop")
+    private ROPs.ROP slidingROP;
+    @JsonProperty("rRop")
+    private ROPs.ROP rotatingROP;
+    @JsonProperty("eRop")
+    private ROPs.ROP effectiveROP;
     private Cost cost;
+    private BHACount bhaCount;
     private List<Object> drilledData = new ArrayList<>();
     private List<Object> plannedData = new ArrayList<>();
     private Integer distinctBHAsUsedCount = 0;
