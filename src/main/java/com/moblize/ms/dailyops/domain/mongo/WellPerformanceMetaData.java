@@ -7,9 +7,10 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.persistence.Column;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
 @JsonAutoDetect
@@ -21,6 +22,8 @@ public class WellPerformanceMetaData implements Serializable {
 
     private String wellUid;
     private Double processedUntilDepth;
+    private Long ropCalculatedUntilTime = 0L;
+    private Map<String, Number> ropMetaData = new HashMap<>();
 
     @JsonIgnore
     private LocalDateTime addedAt;
