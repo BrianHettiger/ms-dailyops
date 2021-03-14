@@ -4,11 +4,10 @@ import com.moblize.ms.dailyops.dao.WellsCoordinatesDao;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.domain.PerformanceROP;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
+import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
-import com.moblize.ms.dailyops.dto.AvgROP;
-import com.moblize.ms.dailyops.dto.Cost;
-import com.moblize.ms.dailyops.dto.Section;
-import com.moblize.ms.dailyops.dto.WellCoordinatesResponse;
+import com.moblize.ms.dailyops.dto.*;
+import com.moblize.ms.dailyops.repository.mongo.client.PerformanceBHARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceCostRepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceROPRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
@@ -43,6 +42,18 @@ public class WellsCoordinatesService {
     private PerformanceROPRepository ropRepository;
     @Autowired
     private PerformanceCostRepository costRepository;
+    @Autowired
+    private PerformanceBHARepository bhaRepository;
+
+    public Map<String, List<BHA>>  getWellBHAs() {
+
+        final List<PerformanceBHA> bhaList = bhaRepository.findAll();
+        return bhaList.stream()
+            .collect(Collectors.toMap(
+                PerformanceBHA::getUid,
+                WellsCoordinatesService::bhasToDto,
+                (k1, k2) -> k1));
+    }
 
     public Collection<WellCoordinatesResponse> getWellCoordinates(String customer) {
 
@@ -50,10 +61,10 @@ public class WellsCoordinatesService {
 
         List<MongoWell> mongoWell = mongoWellRepository.findAllByCustomer(customer);
         final List<PerformanceROP> ropList = ropRepository.findAll();
-        final Map<String, AvgROP> ropByWellUidMap = ropList.stream()
+        final Map<String, ROPs> ropByWellUidMap = ropList.stream()
             .collect(Collectors.toMap(
                 PerformanceROP::getUid,
-                WellsCoordinatesService::avgRopDomainToDto,
+                WellsCoordinatesService::ropDomainToDto,
                 (k1, k2) -> k1));
         final List<PerformanceCost> costList = costRepository.findAll();
         final Map<String, Cost> costByWellUidMap = costList.stream()
@@ -62,6 +73,14 @@ public class WellsCoordinatesService {
                     PerformanceCost::getUid,
                     WellsCoordinatesService::costToDto,
                     (k1, k2) -> k1));
+        final List<PerformanceBHA> bhaList = bhaRepository.findAll();
+
+        final Map<String, BHACount> bhaSectionCountByWellUidMap = bhaList.stream()
+            .collect(Collectors.toMap(
+                PerformanceBHA::getUid,
+                WellsCoordinatesService::bhaSectionCountToDto,
+                (k1, k2) -> k1));
+
         mongoWell.forEach(well -> {
             WellCoordinatesResponse wellCoordinatesResponse = latLngMap.getOrDefault(well.getUid(), new WellCoordinatesResponse());
             wellCoordinatesResponse.setUid(well.getUid());
@@ -76,9 +95,13 @@ public class WellsCoordinatesService {
             }
             wellCoordinatesResponse.setDrilledData(Collections.emptyList());
             wellCoordinatesResponse.setPlannedData(Collections.emptyList());
-            // set ROP
-            wellCoordinatesResponse.setAvgROP(ropByWellUidMap.get(well.getUid()));
+            // set avgROP
+            wellCoordinatesResponse.setAvgROP(ropByWellUidMap.get(well.getUid()).getAvgROP());
+            wellCoordinatesResponse.setSlidingROP(ropByWellUidMap.get(well.getUid()).getSlidingROP());
+            wellCoordinatesResponse.setRotatingROP(ropByWellUidMap.get(well.getUid()).getRotatingROP());
+            wellCoordinatesResponse.setEffectiveROP(ropByWellUidMap.get(well.getUid()).getEffectiveROP());
             wellCoordinatesResponse.setCost(costByWellUidMap.get(well.getUid()));
+            wellCoordinatesResponse.setBhaCount(bhaSectionCountByWellUidMap.get(well.getUid()));
             latLngMap.put(well.getUid(), wellCoordinatesResponse);
         });
 
@@ -165,42 +188,119 @@ public class WellsCoordinatesService {
         List<String> ls = wellsCoordinatesDao.getNearByWell(mongoWellRepository.findByUid(primaryWellUID), distance, customer, limit);
         if (ls == null && ls.isEmpty()) {
             return Collections.emptyList();
-        }else {
+        } else {
             return ls;
         }
     }
 
-    private static AvgROP avgRopDomainToDto(final PerformanceROP ropDomain) {
-        final Section section = new Section();
+    private static ROPs ropDomainToDto(final PerformanceROP ropDomain) {
+        final ROPs ropDto = new ROPs();
         if (null != ropDomain.getAvgROP() && null != ropDomain.getAvgROP().getSection()) {
-            section.setAll((int)Math.round(ropDomain.getAvgROP().getSection().getAll()));
-            section.setSurface((int)Math.round(ropDomain.getAvgROP().getSection().getSurface()));
-            section.setIntermediate((int)Math.round(ropDomain.getAvgROP().getSection().getIntermediate()));
-            section.setCurve((int)Math.round(ropDomain.getAvgROP().getSection().getCurve()));
-            section.setLateral((int)Math.round(ropDomain.getAvgROP().getSection().getLateral()));
+            final Section avgROPSection = new Section();
+            avgROPSection.setAll((int) Math.round(ropDomain.getAvgROP().getSection().getAll()));
+            avgROPSection.setSurface((int) Math.round(ropDomain.getAvgROP().getSection().getSurface()));
+            avgROPSection.setIntermediate((int) Math.round(ropDomain.getAvgROP().getSection().getIntermediate()));
+            avgROPSection.setCurve((int) Math.round(ropDomain.getAvgROP().getSection().getCurve()));
+            avgROPSection.setLateral((int) Math.round(ropDomain.getAvgROP().getSection().getLateral()));
+            ROPs.ROP ropAvg = new ROPs.ROP();
+            ropAvg.setSection(avgROPSection);
+            ropDto.setAvgROP(ropAvg);
         }
-        final AvgROP avgRopDto = new AvgROP();
-        avgRopDto.setSection(section);
-        return avgRopDto;
+        if (null != ropDomain.getSlidingROP() && null != ropDomain.getSlidingROP().getSection()) {
+            final Section slidingROPSection = new Section();
+            slidingROPSection.setAll((int) Math.round(ropDomain.getSlidingROP().getSection().getAll()));
+            slidingROPSection.setSurface((int) Math.round(ropDomain.getSlidingROP().getSection().getSurface()));
+            slidingROPSection.setIntermediate((int) Math.round(ropDomain.getSlidingROP().getSection().getIntermediate()));
+            slidingROPSection.setCurve((int) Math.round(ropDomain.getSlidingROP().getSection().getCurve()));
+            slidingROPSection.setLateral((int) Math.round(ropDomain.getSlidingROP().getSection().getLateral()));
+            ROPs.ROP slidingROP = new ROPs.ROP();
+            slidingROP.setSection(slidingROPSection);
+            ropDto.setSlidingROP(slidingROP);
+        }
+        if (null != ropDomain.getRotatingROP() && null != ropDomain.getRotatingROP().getSection()) {
+            final Section rotatingROPSection = new Section();
+            rotatingROPSection.setAll((int) Math.round(ropDomain.getRotatingROP().getSection().getAll()));
+            rotatingROPSection.setSurface((int) Math.round(ropDomain.getRotatingROP().getSection().getSurface()));
+            rotatingROPSection.setIntermediate((int) Math.round(ropDomain.getRotatingROP().getSection().getIntermediate()));
+            rotatingROPSection.setCurve((int) Math.round(ropDomain.getRotatingROP().getSection().getCurve()));
+            rotatingROPSection.setLateral((int) Math.round(ropDomain.getRotatingROP().getSection().getLateral()));
+            ROPs.ROP rotatingROP = new ROPs.ROP();
+            rotatingROP.setSection(rotatingROPSection);
+            ropDto.setRotatingROP(rotatingROP);
+        }
+        if (null != ropDomain.getEffectiveROP() && null != ropDomain.getEffectiveROP().getSection()) {
+            final Section effectiveROPSection = new Section();
+            effectiveROPSection.setAll((int) Math.round(ropDomain.getEffectiveROP().getSection().getAll()));
+            effectiveROPSection.setSurface((int) Math.round(ropDomain.getEffectiveROP().getSection().getSurface()));
+            effectiveROPSection.setIntermediate((int) Math.round(ropDomain.getEffectiveROP().getSection().getIntermediate()));
+            effectiveROPSection.setCurve((int) Math.round(ropDomain.getEffectiveROP().getSection().getCurve()));
+            effectiveROPSection.setLateral((int) Math.round(ropDomain.getEffectiveROP().getSection().getLateral()));
+            ROPs.ROP effectiveROP = new ROPs.ROP();
+            effectiveROP.setSection(effectiveROPSection);
+            ropDto.setEffectiveROP(effectiveROP);
+        }
+        return ropDto;
     }
 
     private static Cost costToDto(final PerformanceCost domainCost) {
         final Cost cost = new Cost();
-        if(null != domainCost && null != domainCost.getCost()){
-            if(null != domainCost.getCost().getAfe()) {
+        if (null != domainCost && null != domainCost.getCost()) {
+            if (null != domainCost.getCost().getAfe()) {
                 cost.setAfe((int) Math.round(domainCost.getCost().getAfe()));
             }
-            if(null != domainCost.getCost().getPerFt()) {
+            if (null != domainCost.getCost().getPerFt()) {
                 cost.setPerFt((int) Math.round(domainCost.getCost().getPerFt()));
             }
-            if(null != domainCost.getCost().getPerLatFt()) {
+            if (null != domainCost.getCost().getPerLatFt()) {
                 cost.setPerLatFt((int) Math.round(domainCost.getCost().getPerLatFt()));
             }
-            if(null != domainCost.getCost().getTotal()) {
+            if (null != domainCost.getCost().getTotal()) {
                 cost.setTotal((int) Math.round(domainCost.getCost().getTotal()));
             }
         }
         return cost;
+    }
+
+    private static List<BHA> bhasToDto(final PerformanceBHA performanceBHA) {
+        List<BHA> bhaList = new ArrayList<>();
+        if (null != performanceBHA.getBha() && !performanceBHA.getBha().isEmpty()) {
+            performanceBHA.getBha().forEach(bhaMongo -> {
+                BHA bha = new BHA();
+                bha.setId(bhaMongo.getId());
+                bha.setName(bhaMongo.getName());
+                bha.setMdStart(bhaMongo.getMdStart());
+                bha.setMdEnd(bhaMongo.getMdEnd());
+                bha.setFootageDrilled(bhaMongo.getFootageDrilled());
+                bha.setDriveSystem(bhaMongo.getDriveSystem());
+                bha.setAvgROP(bhaMongo.getAvgROP());
+                bha.setSlidingROP(bhaMongo.getSlidingROP());
+                bha.setRotatingROP(bhaMongo.getRotatingROP());
+                bha.setEffectiveROP(bhaMongo.getEffectiveROP());
+                bha.setSlidePercentage(bhaMongo.getSlidePercentage());
+                bha.setAvgDLS(bhaMongo.getAvgDLS());
+                bha.setBuildWalkAngle(bhaMongo.getBuildWalkAngle());
+                bha.setBuildWalkCompassAngle(bhaMongo.getBuildWalkCompassAngle());
+                bha.setBuildWalkCompassDirection(bhaMongo.getBuildWalkCompassDirection());
+                bhaList.add(bha);
+
+            });
+        }
+
+        return bhaList;
+    }
+
+
+    private static BHACount bhaSectionCountToDto(final PerformanceBHA performanceBHA) {
+        BHACount bhaCount = new BHACount();
+        BHACount.Section section = new BHACount.Section();
+        section.setAll(performanceBHA.getBhaCount().getSection().getAll());
+        section.setCurve(performanceBHA.getBhaCount().getSection().getCurve());
+        section.setIntermediate(performanceBHA.getBhaCount().getSection().getIntermediate());
+        section.setSurface(performanceBHA.getBhaCount().getSection().getSurface());
+        section.setLateral(performanceBHA.getBhaCount().getSection().getLateral());
+        bhaCount.setSection(section);
+
+        return bhaCount;
     }
 
 }

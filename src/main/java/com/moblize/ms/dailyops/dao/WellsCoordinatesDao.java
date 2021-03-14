@@ -2,7 +2,6 @@ package com.moblize.ms.dailyops.dao;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
-import com.moblize.ms.dailyops.dto.WellboreStick;
 import com.moblize.ms.dailyops.repository.mongo.client.WellSurveyPlannedLatLongRepository;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
@@ -15,8 +14,6 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.ScriptOperations;
-import org.springframework.data.mongodb.core.script.ExecutableMongoScript;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -24,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @Getter
 @Setter
@@ -45,14 +41,6 @@ public class WellsCoordinatesDao {
 
     public List<WellSurveyPlannedLatLong> getWellCoordinates() {
         return wellSurveyPlannedLatLongRepository.findAll();
-    }
-
-    public List<WellboreStick> getWellboreStickWithROPAndCost(String script) {
-        ScriptOperations scriptOps = mongoTemplate.scriptOps();
-        ExecutableMongoScript echoScript = new ExecutableMongoScript(script);
-        Map<String, List<WellboreStick>> map = (Map<String, List<WellboreStick>>) scriptOps.execute(echoScript, "");
-        return map.get("_batch");
-
     }
 
     public List<String> getNearByWell(MongoWell well, int distance, String customer, int limit) {

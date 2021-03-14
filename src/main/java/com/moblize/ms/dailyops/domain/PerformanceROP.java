@@ -19,10 +19,29 @@ public class PerformanceROP {
     private ObjectId _id;
     public String uid;
     public AvgROP avgROP;
+    public SlideROP slidingROP;
+    public RotatingROP rotatingROP;
+    public EffectiveROP effectiveROP;
+
 
     @Getter
     @Setter
     public static class AvgROP implements Serializable {
+        public Section section;
+    }
+    @Getter
+    @Setter
+    public static class SlideROP implements Serializable {
+        public Section section;
+    }
+    @Getter
+    @Setter
+    public static class RotatingROP implements Serializable {
+        public Section section;
+    }
+    @Getter
+    @Setter
+    public static class EffectiveROP implements Serializable {
         public Section section;
     }
 

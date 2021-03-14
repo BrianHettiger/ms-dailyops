@@ -25,15 +25,15 @@ import lombok.ToString;
 @NoArgsConstructor
 public class Section {
 
-    @JsonProperty("all")
+    @JsonProperty("a")
     public Integer all;
-    @JsonProperty("surface")
+    @JsonProperty("s")
     public Integer surface;
-    @JsonProperty("intermediate")
+    @JsonProperty("i")
     public Integer intermediate;
-    @JsonProperty("curve")
+    @JsonProperty("c")
     public Integer curve;
-    @JsonProperty("lateral")
+    @JsonProperty("l")
     public Integer lateral;
 
 }
