@@ -54,7 +54,7 @@ public class BHA {
     @Setter
     @AllArgsConstructor
     public static class RopType implements Serializable {
-        @JsonProperty("s")
+        @JsonProperty("sec")
         public Section section;
     }
 
