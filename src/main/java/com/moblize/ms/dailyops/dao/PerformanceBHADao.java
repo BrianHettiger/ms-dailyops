@@ -8,7 +8,6 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
 @Getter
@@ -19,9 +18,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class PerformanceBHADao {
 
-
-    @Autowired
-    private MongoTemplate mongoTemplate;
     @Autowired
     private PerformanceBHARepository performanceBHARepository;
 
@@ -29,6 +25,7 @@ public class PerformanceBHADao {
         PerformanceBHA dbObj =  performanceBHARepository.findFirstByUid(performanceBHADTO.getUid());
         if (null != dbObj) {
             performanceBHADTO.setId(dbObj.getId());
+            performanceBHADTO.setAddedAt(dbObj.getAddedAt());
         }
             return performanceBHARepository.save(performanceBHADTO);
     }
