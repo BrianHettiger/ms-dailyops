@@ -63,7 +63,7 @@ public class PerformanceBHA {
         public PerformanceROP.RopType rotatingROP = new PerformanceROP.RopType();
         public PerformanceROP.RopType slidingROP = new PerformanceROP.RopType();
         public PerformanceROP.RopType effectiveROP = new PerformanceROP.RopType();
-        public Double slidePercentage;
+        public PerformanceROP.RopType slidePercentage = new PerformanceROP.RopType();
         public String avgDLS;
         public Double buildWalkAngle;
         public Double buildWalkCompassAngle;

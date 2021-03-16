@@ -6,10 +6,12 @@ import com.moblize.ms.dailyops.domain.PerformanceROP;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
+import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
 import com.moblize.ms.dailyops.dto.*;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceBHARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceCostRepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceROPRepository;
+import com.moblize.ms.dailyops.repository.mongo.client.PerformanceWellRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,11 +46,13 @@ public class WellsCoordinatesService {
     private PerformanceCostRepository costRepository;
     @Autowired
     private PerformanceBHARepository bhaRepository;
+    @Autowired
+    private PerformanceWellRepository wellRepository;
 
-    public Map<String, List<BHA>>  getWellBHAs() {
+    public Map<String, List<BHA>> getWellBHAs() {
 
         final List<PerformanceBHA> bhaList = bhaRepository.findAll();
-        return bhaList.stream()
+        return bhaList.stream().filter(obj-> null !=obj.getUid())
             .collect(Collectors.toMap(
                 PerformanceBHA::getUid,
                 WellsCoordinatesService::bhasToDto,
@@ -81,11 +85,25 @@ public class WellsCoordinatesService {
                 WellsCoordinatesService::bhaSectionCountToDto,
                 (k1, k2) -> k1));
 
+        final List<PerformanceWell> wellList = wellRepository.findAll();
+
+        final Map<String, WellData> wellMap = wellList.stream()
+            .collect(Collectors.toMap(
+                PerformanceWell::getUid,
+                WellsCoordinatesService::performanceWellToDto,
+                (k1, k2) -> k1));
+
         mongoWell.forEach(well -> {
             WellCoordinatesResponse wellCoordinatesResponse = latLngMap.getOrDefault(well.getUid(), new WellCoordinatesResponse());
             wellCoordinatesResponse.setUid(well.getUid());
             wellCoordinatesResponse.setName(well.getName());
             wellCoordinatesResponse.setStatusWell(well.getStatusWell());
+            if(null != well.getDaysVsDepthAdjustmentDates()) {
+                wellCoordinatesResponse.setSpudDate(well.getDaysVsDepthAdjustmentDates().getSpudDate());
+            } else {
+                wellCoordinatesResponse.setSpudDate(0f);
+            }
+
             if (well.getLocation() != null) {
                 WellCoordinatesResponse.Location location = new WellCoordinatesResponse.Location(well.getLocation().getLng(), well.getLocation().getLat());
                 wellCoordinatesResponse.setLocation(location);
@@ -102,6 +120,10 @@ public class WellsCoordinatesService {
             wellCoordinatesResponse.setEffectiveROP(ropByWellUidMap.get(well.getUid()).getEffectiveROP());
             wellCoordinatesResponse.setCost(costByWellUidMap.get(well.getUid()));
             wellCoordinatesResponse.setBhaCount(bhaSectionCountByWellUidMap.get(well.getUid()));
+            wellCoordinatesResponse.setTotalDays(wellMap.getOrDefault(well.getUid(), new WellData()).getTotalDays());
+            wellCoordinatesResponse.setFootagePerDay(wellMap.getOrDefault(well.getUid(), new WellData()).getFootagePerDay());
+            wellCoordinatesResponse.setSlidingPercentage(wellMap.getOrDefault(well.getUid(), new WellData()).getSlidingPercentage());
+            wellCoordinatesResponse.setHoleSectionRange(wellMap.getOrDefault(well.getUid(), new WellData()).getHoleSectionRange());
             latLngMap.put(well.getUid(), wellCoordinatesResponse);
         });
 
@@ -263,7 +285,7 @@ public class WellsCoordinatesService {
 
     private static List<BHA> bhasToDto(final PerformanceBHA performanceBHA) {
         List<BHA> bhaList = new ArrayList<>();
-        if (null != performanceBHA.getBha() && !performanceBHA.getBha().isEmpty()) {
+        if (null != performanceBHA.getBha() && performanceBHA.getUid() != null && !performanceBHA.getBha().isEmpty()) {
             performanceBHA.getBha().forEach(bhaMongo -> {
                 BHA bha = new BHA();
                 bha.setId(bhaMongo.getId());
@@ -305,7 +327,14 @@ public class WellsCoordinatesService {
                         bhaMongo.getEffectiveROP().getSection().getCurve(),
                         bhaMongo.getEffectiveROP().getSection().getLateral()
                     )));
-                bha.setSlidePercentage(bhaMongo.getSlidePercentage());
+               bha.setSlidePercentage(new BHA.RopType(
+                    new BHA.Section(
+                        bhaMongo.getSlidePercentage().getSection().getAll(),
+                        bhaMongo.getSlidePercentage().getSection().getSurface(),
+                        bhaMongo.getSlidePercentage().getSection().getIntermediate(),
+                        bhaMongo.getSlidePercentage().getSection().getCurve(),
+                        bhaMongo.getSlidePercentage().getSection().getLateral()
+                    )));
                 bha.setAvgDLS(bhaMongo.getAvgDLS());
                 bha.setBuildWalkAngle(bhaMongo.getBuildWalkAngle());
                 bha.setBuildWalkCompassAngle(bhaMongo.getBuildWalkCompassAngle());
@@ -322,14 +351,63 @@ public class WellsCoordinatesService {
     private static BHACount bhaSectionCountToDto(final PerformanceBHA performanceBHA) {
         BHACount bhaCount = new BHACount();
         BHACount.Section section = new BHACount.Section();
-        section.setAll(performanceBHA.getBhaCount().getSection().getAll());
-        section.setCurve(performanceBHA.getBhaCount().getSection().getCurve());
-        section.setIntermediate(performanceBHA.getBhaCount().getSection().getIntermediate());
-        section.setSurface(performanceBHA.getBhaCount().getSection().getSurface());
-        section.setLateral(performanceBHA.getBhaCount().getSection().getLateral());
-        bhaCount.setSection(section);
-
+        if (null != performanceBHA.getUid()) {
+            section.setAll(performanceBHA.getBhaCount().getSection().getAll());
+            section.setCurve(performanceBHA.getBhaCount().getSection().getCurve());
+            section.setIntermediate(performanceBHA.getBhaCount().getSection().getIntermediate());
+            section.setSurface(performanceBHA.getBhaCount().getSection().getSurface());
+            section.setLateral(performanceBHA.getBhaCount().getSection().getLateral());
+            bhaCount.setSection(section);
+        }
         return bhaCount;
+    }
+
+    private static WellData performanceWellToDto(final PerformanceWell performanceWell) {
+        WellData.SectionData totalDays = new WellData.SectionData();
+        totalDays.setSection(new WellData.Section(performanceWell.getTotalDays().getSection().getAll(),
+            performanceWell.getTotalDays().getSection().getSurface(),
+            performanceWell.getTotalDays().getSection().getIntermediate(),
+            performanceWell.getTotalDays().getSection().getCurve(),
+            performanceWell.getTotalDays().getSection().getLateral()));
+        WellData.SectionData footagePerDay = new WellData.SectionData();
+        footagePerDay.setSection(new WellData.Section(performanceWell.getFootagePerDay().getSection().getAll(),
+            performanceWell.getFootagePerDay().getSection().getSurface(),
+            performanceWell.getFootagePerDay().getSection().getIntermediate(),
+            performanceWell.getFootagePerDay().getSection().getCurve(),
+            performanceWell.getFootagePerDay().getSection().getLateral()));
+        WellData.SectionData slidingPercentage = new WellData.SectionData();
+        slidingPercentage.setSection(new WellData.Section(performanceWell.getSlidingPercentage().getSection().getAll(),
+            performanceWell.getSlidingPercentage().getSection().getSurface(),
+            performanceWell.getSlidingPercentage().getSection().getIntermediate(),
+            performanceWell.getSlidingPercentage().getSection().getCurve(),
+            performanceWell.getSlidingPercentage().getSection().getLateral()));
+        Map<String, WellData.RangeData> holeSectionRange = new HashMap<>();
+        performanceWell.getHoleSectionRange().entrySet().forEach(sec -> {
+            holeSectionRange.put(getSectionKey(sec.getKey()), new WellData.RangeData(sec.getValue().getStart(), sec.getValue().getEnd(), sec.getValue().getDiff()));
+        });
+        return new WellData(performanceWell.getUid(), totalDays, footagePerDay, slidingPercentage, holeSectionRange);
+    }
+
+    private static  String getSectionKey(String sectionName) {
+        String key = "";
+        switch (sectionName) {
+            case "surface":
+                key = "s";
+                break;
+            case "curve":
+                key = "c";
+                break;
+            case "intermediate":
+                key = "i";
+                break;
+            case "lateral":
+                key = "l";
+                break;
+            case "all":
+                key = "a";
+                break;
+        }
+        return key;
     }
 
 }

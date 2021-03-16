@@ -32,10 +32,10 @@ public class PerformanceROP {
     @Getter
     @Setter
     public static class Section implements Serializable {
-        public double all;
-        public double surface;
-        public double intermediate;
-        public double curve;
-        public double lateral;
+        public double all =0d;
+        public double surface=0d;
+        public double intermediate=0d;
+        public double curve=0d;
+        public double lateral=0d;
     }
 }

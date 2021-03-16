@@ -23,6 +23,7 @@ public class PerformanceWell {
     @Id
     private String id;
     private String uid;
+    private BySection totalDays = new BySection();
     private BySection footagePerDay = new BySection();
     private BySection slidingPercentage = new BySection();
     private Map<String, Range> holeSectionRange = new HashMap<>();

@@ -3,9 +3,7 @@ package com.moblize.ms.dailyops.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.moblize.ms.dailyops.domain.PerformanceROP;
 import lombok.*;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -17,7 +15,6 @@ import java.util.List;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@Document
 public class BHA {
     public long id;
     public String name;
@@ -40,7 +37,7 @@ public class BHA {
     @JsonProperty("eRop")
     public RopType effectiveROP;
     @JsonProperty("sp")
-    public Double slidePercentage;
+    public RopType slidePercentage;
     @JsonProperty("dls")
     public String avgDLS;
     @JsonProperty("angle")
