@@ -79,7 +79,7 @@ public class WellsCoordinatesService {
                     (k1, k2) -> k1));
         final List<PerformanceBHA> bhaList = bhaRepository.findAll();
 
-        final Map<String, BHACount> bhaSectionCountByWellUidMap = bhaList.stream()
+        final Map<String, BHACount> bhaSectionCountByWellUidMap = bhaList.stream().filter(obj-> null !=obj.getUid())
             .collect(Collectors.toMap(
                 PerformanceBHA::getUid,
                 WellsCoordinatesService::bhaSectionCountToDto,
