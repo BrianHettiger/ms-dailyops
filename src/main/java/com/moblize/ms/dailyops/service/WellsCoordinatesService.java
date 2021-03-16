@@ -15,6 +15,8 @@ import com.moblize.ms.dailyops.repository.mongo.client.PerformanceWellRepository
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.cloudfoundry.com.fasterxml.jackson.core.JsonProcessingException;
+import org.springframework.cloud.cloudfoundry.com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
@@ -52,60 +54,64 @@ public class WellsCoordinatesService {
     public Map<String, List<BHA>> getWellBHAs() {
 
         final List<PerformanceBHA> bhaList = bhaRepository.findAll();
-        return bhaList.stream().filter(obj-> null !=obj.getUid())
+        return bhaList.stream().filter(obj -> null != obj.getUid())
             .collect(Collectors.toMap(
                 PerformanceBHA::getUid,
                 WellsCoordinatesService::bhasToDto,
                 (k1, k2) -> k1));
     }
 
-    public Collection<WellCoordinatesResponse> getWellCoordinates(String customer) {
+    public List<WellCoordinatesResponse> getWellCoordinatesV1(String customer) {
+        Collection<WellCoordinatesResponseV2> v2List = getWellCoordinates(customer);
+        return v2List.stream().map(v2 -> {
+            WellCoordinatesResponse res = new WellCoordinatesResponse();
+            res.setUid(v2.getUid());
+            res.setName(v2.getName());
+            res.setActiveRigName(v2.getActiveRigName());
+            res.setDistinctBHAsUsedCount(v2.getDistinctBHAsUsedCount());
+            System.out.println(v2.getUid());
+            if(null != v2.getLocation() ){
+                res.setLocation(new WellCoordinatesResponse.Location(v2.getLocation().getLng(), v2.getLocation().getLat()));
+            }
+            if(null != v2.getAvgROP()) {
+                WellCoordinatesResponse.ROP avgROP = new WellCoordinatesResponse.ROP();
+                avgROP.setSection(new WellCoordinatesResponse.Section(v2.getAvgROP().getSection().getAll(),
+                    v2.getAvgROP().getSection().getSurface(), v2.getAvgROP().getSection().getIntermediate(), v2.getAvgROP().getSection().getCurve(),
+                    v2.getAvgROP().getSection().getLateral()));
+                res.setAvgROP(avgROP);
+            }
+            if(null != v2.getCost()){
+                res.setCost(v2.getCost());
+            }
+            res.setDrilledData(v2.getDrilledData());
+            res.setPlannedData(v2.getPlannedData());
+            return res;
+        }).collect(Collectors.toList());
+    }
 
-        Map<String, WellCoordinatesResponse> latLngMap = new HashMap<>();
+    public Collection<WellCoordinatesResponseV2> getWellCoordinates(String customer) {
+
+        Map<String, WellCoordinatesResponseV2> latLngMap = new HashMap<>();
 
         List<MongoWell> mongoWell = mongoWellRepository.findAllByCustomer(customer);
-        final List<PerformanceROP> ropList = ropRepository.findAll();
-        final Map<String, ROPs> ropByWellUidMap = ropList.stream()
-            .collect(Collectors.toMap(
-                PerformanceROP::getUid,
-                WellsCoordinatesService::ropDomainToDto,
-                (k1, k2) -> k1));
-        final List<PerformanceCost> costList = costRepository.findAll();
-        final Map<String, Cost> costByWellUidMap = costList.stream()
-            .collect(
-                Collectors.toMap(
-                    PerformanceCost::getUid,
-                    WellsCoordinatesService::costToDto,
-                    (k1, k2) -> k1));
-        final List<PerformanceBHA> bhaList = bhaRepository.findAll();
-
-        final Map<String, BHACount> bhaSectionCountByWellUidMap = bhaList.stream().filter(obj-> null !=obj.getUid())
-            .collect(Collectors.toMap(
-                PerformanceBHA::getUid,
-                WellsCoordinatesService::bhaSectionCountToDto,
-                (k1, k2) -> k1));
-
-        final List<PerformanceWell> wellList = wellRepository.findAll();
-
-        final Map<String, WellData> wellMap = wellList.stream()
-            .collect(Collectors.toMap(
-                PerformanceWell::getUid,
-                WellsCoordinatesService::performanceWellToDto,
-                (k1, k2) -> k1));
+        final Map<String, ROPs> ropByWellUidMap = getWellROPsMap();
+        final Map<String, Cost> costByWellUidMap = getWellCostMap();
+        final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap();
+        final Map<String, WellData> wellMap = getWellDataMap();
 
         mongoWell.forEach(well -> {
-            WellCoordinatesResponse wellCoordinatesResponse = latLngMap.getOrDefault(well.getUid(), new WellCoordinatesResponse());
+            WellCoordinatesResponseV2 wellCoordinatesResponse = latLngMap.getOrDefault(well.getUid(), new WellCoordinatesResponseV2());
             wellCoordinatesResponse.setUid(well.getUid());
             wellCoordinatesResponse.setName(well.getName());
             wellCoordinatesResponse.setStatusWell(well.getStatusWell());
-            if(null != well.getDaysVsDepthAdjustmentDates()) {
+            if (null != well.getDaysVsDepthAdjustmentDates()) {
                 wellCoordinatesResponse.setSpudDate(well.getDaysVsDepthAdjustmentDates().getSpudDate());
             } else {
                 wellCoordinatesResponse.setSpudDate(0f);
             }
 
             if (well.getLocation() != null) {
-                WellCoordinatesResponse.Location location = new WellCoordinatesResponse.Location(well.getLocation().getLng(), well.getLocation().getLat());
+                WellCoordinatesResponseV2.Location location = new WellCoordinatesResponseV2.Location(well.getLocation().getLng(), well.getLocation().getLat());
                 wellCoordinatesResponse.setLocation(location);
             } else {
                 wellCoordinatesResponse.getLocation().setLat(0f);
@@ -119,7 +125,7 @@ public class WellsCoordinatesService {
             wellCoordinatesResponse.setRotatingROP(ropByWellUidMap.get(well.getUid()).getRotatingROP());
             wellCoordinatesResponse.setEffectiveROP(ropByWellUidMap.get(well.getUid()).getEffectiveROP());
             wellCoordinatesResponse.setCost(costByWellUidMap.get(well.getUid()));
-            wellCoordinatesResponse.setBhaCount(bhaSectionCountByWellUidMap.get(well.getUid()));
+            wellCoordinatesResponse.setBhaCount(bhaCountByUidMap.get(well.getUid()));
             wellCoordinatesResponse.setTotalDays(wellMap.getOrDefault(well.getUid(), new WellData()).getTotalDays());
             wellCoordinatesResponse.setFootagePerDay(wellMap.getOrDefault(well.getUid(), new WellData()).getFootagePerDay());
             wellCoordinatesResponse.setSlidingPercentage(wellMap.getOrDefault(well.getUid(), new WellData()).getSlidingPercentage());
@@ -130,7 +136,7 @@ public class WellsCoordinatesService {
         HashMap<String, Float> drilledWellDepth = new HashMap<>();
         List<WellSurveyPlannedLatLong> wellSurveyDetail = wellsCoordinatesDao.getWellCoordinates();
         wellSurveyDetail.forEach(wellSurvey -> {
-            WellCoordinatesResponse wellCoordinatesResponse = latLngMap.getOrDefault(wellSurvey.getUid(), new WellCoordinatesResponse());
+            WellCoordinatesResponseV2 wellCoordinatesResponse = latLngMap.getOrDefault(wellSurvey.getUid(), new WellCoordinatesResponseV2());
             if (wellCoordinatesResponse.getUid() == null) {
                 wellCoordinatesResponse.setUid(wellSurvey.getUid());
             }
@@ -160,6 +166,45 @@ public class WellsCoordinatesService {
 
 
         return latLngMap.values();
+    }
+
+    private Map<String, WellData> getWellDataMap() {
+        final List<PerformanceWell> wellList = wellRepository.findAll();
+
+        return wellList.stream()
+            .collect(Collectors.toMap(
+                PerformanceWell::getUid,
+                WellsCoordinatesService::performanceWellToDto,
+                (k1, k2) -> k1));
+    }
+
+    private Map<String, BHACount> getWellBHACountMap() {
+        final List<PerformanceBHA> bhaList = bhaRepository.findAll();
+
+        return bhaList.stream().filter(obj -> null != obj.getUid())
+            .collect(Collectors.toMap(
+                PerformanceBHA::getUid,
+                WellsCoordinatesService::bhaSectionCountToDto,
+                (k1, k2) -> k1));
+    }
+
+    private Map<String, Cost> getWellCostMap() {
+        final List<PerformanceCost> costList = costRepository.findAll();
+        return costList.stream()
+            .collect(
+                Collectors.toMap(
+                    PerformanceCost::getUid,
+                    WellsCoordinatesService::costToDto,
+                    (k1, k2) -> k1));
+    }
+
+    private Map<String, ROPs> getWellROPsMap() {
+        final List<PerformanceROP> ropList = ropRepository.findAll();
+        return ropList.stream()
+            .collect(Collectors.toMap(
+                PerformanceROP::getUid,
+                WellsCoordinatesService::ropDomainToDto,
+                (k1, k2) -> k1));
     }
 
     public String loadScript() {
@@ -327,7 +372,7 @@ public class WellsCoordinatesService {
                         bhaMongo.getEffectiveROP().getSection().getCurve(),
                         bhaMongo.getEffectiveROP().getSection().getLateral()
                     )));
-               bha.setSlidePercentage(new BHA.RopType(
+                bha.setSlidePercentage(new BHA.RopType(
                     new BHA.Section(
                         bhaMongo.getSlidePercentage().getSection().getAll(),
                         bhaMongo.getSlidePercentage().getSection().getSurface(),
@@ -388,7 +433,7 @@ public class WellsCoordinatesService {
         return new WellData(performanceWell.getUid(), totalDays, footagePerDay, slidingPercentage, holeSectionRange);
     }
 
-    private static  String getSectionKey(String sectionName) {
+    private static String getSectionKey(String sectionName) {
         String key = "";
         switch (sectionName) {
             case "surface":

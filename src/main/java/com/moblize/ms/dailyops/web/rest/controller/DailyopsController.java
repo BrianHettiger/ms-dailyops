@@ -41,6 +41,17 @@ public class DailyopsController {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return ResponseDTO.invalid("Customer cannot be null.");
         } else {
+            return ResponseDTO.complete(wellsCoordinatesService.getWellCoordinatesV1(customer));
+        }
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v2/getWellCoordinates")
+    public ResponseDTO getWellCoordinatesV2(@RequestParam("customer") String customer, HttpServletResponse response) {
+        if (customer == null || customer == "") {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return ResponseDTO.invalid("Customer cannot be null.");
+        } else {
             return ResponseDTO.complete(wellsCoordinatesService.getWellCoordinates(customer));
         }
     }
