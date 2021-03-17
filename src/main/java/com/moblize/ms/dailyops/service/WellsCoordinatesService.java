@@ -117,7 +117,7 @@ public class WellsCoordinatesService {
             wellCoordinatesResponse.setBhaCount(bhaCountByUidMap.get(well.getUid()));
             wellCoordinatesResponse.setTotalDays(wellMap.getOrDefault(well.getUid(), new WellData()).getTotalDays());
             wellCoordinatesResponse.setFootagePerDay(wellMap.getOrDefault(well.getUid(), new WellData()).getFootagePerDay());
-            wellCoordinatesResponse.setSlidingPercentage(wellMap.getOrDefault(well.getUid(), new WellData()).getSlidingPercentage());
+            wellCoordinatesResponse.setSlidingPercentage(ropByWellUidMap.get(well.getUid()).getSlidingPercentage());
             wellCoordinatesResponse.setHoleSectionRange(wellMap.getOrDefault(well.getUid(), new WellData()).getHoleSectionRange());
             latLngMap.put(well.getUid(), wellCoordinatesResponse);
         });
@@ -299,6 +299,17 @@ public class WellsCoordinatesService {
             effectiveROP.setSection(effectiveROPSection);
             ropDto.setEffectiveROP(effectiveROP);
         }
+        if (null != ropDomain.getSlidePercentage()&& null != ropDomain.getSlidePercentage().getSection()) {
+            final Section slidePercentageSection = new Section();
+            slidePercentageSection.setAll(dataConvert(ropDomain.getSlidePercentage().getSection().getAll()));
+            slidePercentageSection.setSurface(dataConvert(ropDomain.getSlidePercentage().getSection().getSurface()));
+            slidePercentageSection.setIntermediate(dataConvert(ropDomain.getSlidePercentage().getSection().getIntermediate()));
+            slidePercentageSection.setCurve(dataConvert(ropDomain.getSlidePercentage().getSection().getCurve()));
+            slidePercentageSection.setLateral(dataConvert(ropDomain.getSlidePercentage().getSection().getLateral()));
+            ROPs.ROP sliderPercentage = new ROPs.ROP();
+            sliderPercentage.setSection(slidePercentageSection);
+            ropDto.setSlidingPercentage(sliderPercentage);
+        }
         return ropDto;
     }
 
@@ -413,17 +424,11 @@ public class WellsCoordinatesService {
             dataConvert(performanceWell.getFootagePerDay().getSection().getIntermediate()),
             dataConvert(performanceWell.getFootagePerDay().getSection().getCurve()),
             dataConvert(performanceWell.getFootagePerDay().getSection().getLateral())));
-        WellData.SectionData slidingPercentage = new WellData.SectionData();
-        slidingPercentage.setSection(new WellData.Section(dataConvert(performanceWell.getSlidingPercentage().getSection().getAll()),
-            dataConvert(performanceWell.getSlidingPercentage().getSection().getSurface()),
-            dataConvert(performanceWell.getSlidingPercentage().getSection().getIntermediate()),
-            dataConvert(performanceWell.getSlidingPercentage().getSection().getCurve()),
-            dataConvert(performanceWell.getSlidingPercentage().getSection().getLateral())));
         Map<String, WellData.RangeData> holeSectionRange = new HashMap<>();
         performanceWell.getHoleSectionRange().entrySet().forEach(sec -> {
             holeSectionRange.put(getSectionKey(sec.getKey()), new WellData.RangeData(sec.getValue().getStart(), sec.getValue().getEnd(), sec.getValue().getDiff()));
         });
-        return new WellData(performanceWell.getUid(), totalDays, footagePerDay, slidingPercentage, holeSectionRange);
+        return new WellData(performanceWell.getUid(), totalDays, footagePerDay, holeSectionRange);
     }
 
     private static String getSectionKey(String sectionName) {

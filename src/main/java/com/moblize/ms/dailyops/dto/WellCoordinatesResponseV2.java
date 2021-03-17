@@ -40,7 +40,7 @@ public class WellCoordinatesResponseV2 {
     @JsonProperty("fpday")
     private WellData.SectionData footagePerDay;
     @JsonProperty("sp")
-    private WellData.SectionData slidingPercentage;
+    private ROPs.ROP slidingPercentage;
     @JsonProperty("hs")
     private Map<String, WellData.RangeData> holeSectionRange;
     private Cost cost;

@@ -29,6 +29,8 @@ public class ROPs {
     public ROP rotatingROP;
     @JsonProperty("eRop")
     public ROP effectiveROP;
+    @JsonProperty("sp")
+    private ROP slidingPercentage;
 
 
     @Getter

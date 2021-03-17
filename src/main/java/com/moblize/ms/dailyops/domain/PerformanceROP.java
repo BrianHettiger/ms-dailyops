@@ -22,6 +22,7 @@ public class PerformanceROP {
     public RopType rotatingROP = new RopType();
     public RopType slidingROP = new RopType();
     public RopType effectiveROP = new RopType();
+    public RopType slidePercentage = new RopType();
 
     @Getter
     @Setter

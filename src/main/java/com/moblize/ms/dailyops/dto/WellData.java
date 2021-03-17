@@ -20,8 +20,6 @@ public class WellData {
     private SectionData totalDays = new SectionData();
     @JsonProperty("fpday")
     private SectionData footagePerDay = new SectionData();
-    @JsonProperty("sp")
-    private SectionData slidingPercentage = new SectionData();
     @JsonProperty("hs")
     private Map<String, RangeData> holeSectionRange = new HashMap<>();
 
