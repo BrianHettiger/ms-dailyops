@@ -27,12 +27,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Cost {
 
     @JsonProperty("afe")
-    public Integer afe;
+    public Double afe;
     @JsonProperty("perFt")
-    public Integer perFt;
+    public Double perFt;
     @JsonProperty("perLatFt")
-    public Integer perLatFt;
+    public Double perLatFt;
     @JsonProperty("total")
-    public Integer total;
+    public Double total;
 
 }

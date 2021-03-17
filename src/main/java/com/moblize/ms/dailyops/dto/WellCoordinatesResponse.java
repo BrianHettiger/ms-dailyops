@@ -54,10 +54,10 @@ public class WellCoordinatesResponse {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Section {
-        public Integer all;
-        public Integer surface;
-        public Integer intermediate;
-        public Integer curve;
-        public Integer lateral;
+        public Double all;
+        public Double surface;
+        public Double intermediate;
+        public Double curve;
+        public Double lateral;
     }
 }
