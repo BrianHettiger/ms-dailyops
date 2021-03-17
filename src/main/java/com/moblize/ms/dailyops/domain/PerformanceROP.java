@@ -18,21 +18,24 @@ public class PerformanceROP {
 
     private ObjectId _id;
     public String uid;
-    public AvgROP avgROP;
+    public RopType avgROP = new RopType();
+    public RopType rotatingROP = new RopType();
+    public RopType slidingROP = new RopType();
+    public RopType effectiveROP = new RopType();
 
     @Getter
     @Setter
-    public static class AvgROP implements Serializable {
-        public Section section;
+    public static class RopType implements Serializable {
+        public Section section = new Section();
     }
 
     @Getter
     @Setter
     public static class Section implements Serializable {
-        public Double all;
-        public Double surface;
-        public Double intermediate;
-        public Double curve;
-        public Double lateral;
+        public double all;
+        public double surface;
+        public double intermediate;
+        public double curve;
+        public double lateral;
     }
 }

@@ -2,9 +2,12 @@ package com.moblize.ms.dailyops.web.rest.controller;
 
 import com.moblize.ms.dailyops.domain.PerformanceROP;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
+import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
+import com.moblize.ms.dailyops.dto.BHA;
 import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
 import com.moblize.ms.dailyops.dto.ResponseDTO;
+import com.moblize.ms.dailyops.service.PerformanceBHAService;
 import com.moblize.ms.dailyops.service.PerformanceCostService;
 import com.moblize.ms.dailyops.service.PerformanceROPService;
 import com.moblize.ms.dailyops.service.WellsCoordinatesService;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class DailyopsController {
@@ -32,6 +36,8 @@ public class DailyopsController {
     private PerformanceROPService performanceROPService;
     @Autowired
     private PerformanceCostService performanceCostService;
+    @Autowired
+    private PerformanceBHAService performanceBHAService;
 
 
     @Transactional(readOnly = true)
@@ -43,6 +49,14 @@ public class DailyopsController {
         } else {
             return ResponseDTO.complete(wellsCoordinatesService.getWellCoordinates(customer));
         }
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/getWellBHAs")
+    public Map<String, List<BHA>> getWellBHAs(HttpServletResponse response) {
+
+            return wellsCoordinatesService.getWellBHAs();
+
     }
 
 
@@ -201,5 +215,44 @@ public class DailyopsController {
     @PutMapping("/api/v1/performanceCost/update")
     public ResponseDTO updatePerformanceCost(@Valid @RequestBody PerformanceCost performanceCost) {
         return ResponseDTO.complete(performanceCostService.updatePerformanceCost(performanceCost));
+    }
+
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/performanceBHA/read")
+    public ResponseDTO findPerformanceBHA(@RequestParam String uid, HttpServletResponse response) {
+        if (uid == null || uid.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return ResponseDTO.invalid("UID cannot be empty.");
+        } else {
+            return ResponseDTO.complete(performanceBHAService.findPerformanceBHA(uid));
+        }
+    }
+
+
+    @Transactional
+    @PostMapping("/api/v1/performanceBHA/create")
+    public ResponseDTO savePerformanceBHA(@Valid @RequestBody PerformanceBHA performanceBHA) {
+        return ResponseDTO.complete(performanceBHAService.savePerformanceBHA(performanceBHA));
+    }
+
+
+    @Transactional
+    @DeleteMapping("/api/v1/performanceBHA/remove")
+    public ResponseDTO deletePerformanceBHA(@Valid @RequestParam String uid, HttpServletResponse response) {
+        if (uid == null || uid.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return ResponseDTO.invalid("UID cannot be empty.");
+        } else {
+            performanceBHAService.deletePerformanceBHA(uid);
+            return ResponseDTO.complete("Well PerformanceBHA data has deleted successfully", uid);
+        }
+    }
+
+
+    @Transactional
+    @PutMapping("/api/v1/performanceBHA/update")
+    public ResponseDTO updatePerformanceBHA(@Valid @RequestBody PerformanceBHA performanceBHA) {
+        return ResponseDTO.complete(performanceBHAService.updatePerformanceBHA(performanceBHA));
     }
 }
