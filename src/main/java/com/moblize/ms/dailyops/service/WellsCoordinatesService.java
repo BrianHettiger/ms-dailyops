@@ -69,7 +69,6 @@ public class WellsCoordinatesService {
             res.setName(v2.getName());
             res.setActiveRigName(v2.getActiveRigName());
             res.setDistinctBHAsUsedCount(v2.getDistinctBHAsUsedCount());
-            System.out.println(v2.getUid());
             if(null != v2.getLocation() ){
                 res.setLocation(new WellCoordinatesResponse.Location(v2.getLocation().getLng(), v2.getLocation().getLat()));
             }
