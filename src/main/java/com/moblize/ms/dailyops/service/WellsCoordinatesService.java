@@ -445,7 +445,6 @@ public class WellsCoordinatesService {
             dataConvert(performanceWell.getFootagePerDay().getSection().getLateral())));
         Map<String, WellData.RangeData> holeSectionRange = new HashMap<>();
         performanceWell.getHoleSectionRange().entrySet().forEach(sec -> {
-            System.out.println(performanceWell.getUid()+" "+ sec.getKey()+" "+sec.getValue().getStart()+" "+ sec.getValue().getEnd()+" "+ sec.getValue().getDiff());
             holeSectionRange.put(getSectionKey(sec.getKey()), new WellData.RangeData(Math.round(sec.getValue().getStart()), Math.round(sec.getValue().getEnd()), Math.round(sec.getValue().getDiff())));
         });
         return new WellData(performanceWell.getUid(), totalDays, footagePerDay, holeSectionRange);
