@@ -106,68 +106,76 @@ public class WellsCoordinatesService {
         final Map<String, WellData> wellMap = getWellDataMap();
 
         mongoWell.forEach(well -> {
-            WellCoordinatesResponseV2 wellCoordinatesResponse = latLngMap.getOrDefault(well.getUid(), new WellCoordinatesResponseV2());
-            wellCoordinatesResponse.setUid(well.getUid());
-            wellCoordinatesResponse.setName(well.getName());
-            wellCoordinatesResponse.setStatusWell(well.getStatusWell());
-            if (null != well.getDaysVsDepthAdjustmentDates()) {
-                wellCoordinatesResponse.setSpudDate(well.getDaysVsDepthAdjustmentDates().getSpudDate());
-            } else {
-                wellCoordinatesResponse.setSpudDate(0f);
-            }
+            try {
+                WellCoordinatesResponseV2 wellCoordinatesResponse = latLngMap.getOrDefault(well.getUid(), new WellCoordinatesResponseV2());
+                wellCoordinatesResponse.setUid(well.getUid());
+                wellCoordinatesResponse.setName(well.getName());
+                wellCoordinatesResponse.setStatusWell(well.getStatusWell());
+                if (null != well.getDaysVsDepthAdjustmentDates()) {
+                    wellCoordinatesResponse.setSpudDate(well.getDaysVsDepthAdjustmentDates().getSpudDate());
+                } else {
+                    wellCoordinatesResponse.setSpudDate(0f);
+                }
 
-            if (well.getLocation() != null) {
-                WellCoordinatesResponseV2.Location location = new WellCoordinatesResponseV2.Location(well.getLocation().getLng(), well.getLocation().getLat());
-                wellCoordinatesResponse.setLocation(location);
-            } else {
-                wellCoordinatesResponse.getLocation().setLat(0f);
-                wellCoordinatesResponse.getLocation().setLng(0f);
+                if (well.getLocation() != null) {
+                    WellCoordinatesResponseV2.Location location = new WellCoordinatesResponseV2.Location(well.getLocation().getLng(), well.getLocation().getLat());
+                    wellCoordinatesResponse.setLocation(location);
+                } else {
+                    wellCoordinatesResponse.getLocation().setLat(0f);
+                    wellCoordinatesResponse.getLocation().setLng(0f);
+                }
+                wellCoordinatesResponse.setDrilledData(Collections.emptyList());
+                wellCoordinatesResponse.setPlannedData(Collections.emptyList());
+                // set avgROP
+                wellCoordinatesResponse.setAvgROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getAvgROP());
+                wellCoordinatesResponse.setSlidingROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getSlidingROP());
+                wellCoordinatesResponse.setRotatingROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getRotatingROP());
+                wellCoordinatesResponse.setEffectiveROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getEffectiveROP());
+                wellCoordinatesResponse.setCost(costByWellUidMap.get(well.getUid()));
+                wellCoordinatesResponse.setBhaCount(bhaCountByUidMap.get(well.getUid()));
+                wellCoordinatesResponse.setTotalDays(wellMap.getOrDefault(well.getUid(), new WellData()).getTotalDays());
+                wellCoordinatesResponse.setFootagePerDay(wellMap.getOrDefault(well.getUid(), new WellData()).getFootagePerDay());
+                wellCoordinatesResponse.setSlidingPercentage(ropByWellUidMap.get(well.getUid()).getSlidingPercentage());
+                wellCoordinatesResponse.setHoleSectionRange(wellMap.getOrDefault(well.getUid(), new WellData()).getHoleSectionRange());
+                latLngMap.put(well.getUid(), wellCoordinatesResponse);
+            }catch (Exception exp){
+                log.error("Error occurred while processing well: {}", well.getUid(), exp);
             }
-            wellCoordinatesResponse.setDrilledData(Collections.emptyList());
-            wellCoordinatesResponse.setPlannedData(Collections.emptyList());
-            // set avgROP
-            wellCoordinatesResponse.setAvgROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getAvgROP());
-            wellCoordinatesResponse.setSlidingROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getSlidingROP());
-            wellCoordinatesResponse.setRotatingROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getRotatingROP());
-            wellCoordinatesResponse.setEffectiveROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getEffectiveROP());
-            wellCoordinatesResponse.setCost(costByWellUidMap.get(well.getUid()));
-            wellCoordinatesResponse.setBhaCount(bhaCountByUidMap.get(well.getUid()));
-            wellCoordinatesResponse.setTotalDays(wellMap.getOrDefault(well.getUid(), new WellData()).getTotalDays());
-            wellCoordinatesResponse.setFootagePerDay(wellMap.getOrDefault(well.getUid(), new WellData()).getFootagePerDay());
-            wellCoordinatesResponse.setSlidingPercentage(ropByWellUidMap.get(well.getUid()).getSlidingPercentage());
-            wellCoordinatesResponse.setHoleSectionRange(wellMap.getOrDefault(well.getUid(), new WellData()).getHoleSectionRange());
-            latLngMap.put(well.getUid(), wellCoordinatesResponse);
         });
 
         HashMap<String, Float> drilledWellDepth = new HashMap<>();
         List<WellSurveyPlannedLatLong> wellSurveyDetail = wellsCoordinatesDao.getWellCoordinates();
         wellSurveyDetail.forEach(wellSurvey -> {
-            WellCoordinatesResponseV2 wellCoordinatesResponse = latLngMap.getOrDefault(wellSurvey.getUid(), new WellCoordinatesResponseV2());
-            if (wellCoordinatesResponse.getUid() == null) {
-                wellCoordinatesResponse.setUid(wellSurvey.getUid());
+            try {
+                WellCoordinatesResponseV2 wellCoordinatesResponse = latLngMap.getOrDefault(wellSurvey.getUid(), new WellCoordinatesResponseV2());
+                if (wellCoordinatesResponse.getUid() == null) {
+                    wellCoordinatesResponse.setUid(wellSurvey.getUid());
+                }
+                if (wellSurvey.getDrilledData() != null && !wellSurvey.getDrilledData().isEmpty()) {
+                    drilledWellDepth.put(wellSurvey.getUid(), Float.valueOf(wellSurvey.getDrilledData().get(wellSurvey.getDrilledData().size() - 1).get("depth").toString()));
+                    wellCoordinatesResponse.setDrilledData(wellSurvey.getDrilledData().stream().map(drill -> ((ArrayList) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
+                } else {
+                    wellCoordinatesResponse.setDrilledData(Collections.emptyList());
+                }
+                if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty() && !wellCoordinatesResponse.getStatusWell().equalsIgnoreCase("completed") && wellSurvey.getDrilledData() != null && !wellSurvey.getDrilledData().isEmpty()) {
+                    wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData().stream()
+                        .filter(planned -> {
+                            return planned != null && drilledWellDepth.get(wellSurvey.getUid()) != null && planned.get("depth") != null && planned.get("coordinates") != null ? Float.valueOf(planned.get("depth").toString()) >= drilledWellDepth.get(wellSurvey.getUid()) : false;
+                        })
+                        .map(drill -> ((ArrayList) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
+                } else if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty() && (wellSurvey.getDrilledData() == null || wellSurvey.getDrilledData().isEmpty())) {
+                    wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData().stream().map(drill -> ((ArrayList) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
+                } else {
+                    wellCoordinatesResponse.setPlannedData(Collections.emptyList());
+                }
+                // set BHAs used count
+                wellCoordinatesResponse.setDistinctBHAsUsedCount(wellSurvey.getDistinctBHAsUsedCount());
+                // Set Active rig name
+                wellCoordinatesResponse.setActiveRigName(wellSurvey.getActiveRigName());
+                latLngMap.putIfAbsent(wellSurvey.getUid(), wellCoordinatesResponse);
+            }catch (Exception exp){
+                log.error("Error occurred while processing wellborestick data for well: {}", wellSurvey.getUid(), exp);
             }
-            if (wellSurvey.getDrilledData() != null && !wellSurvey.getDrilledData().isEmpty()) {
-                drilledWellDepth.put(wellSurvey.getUid(), Float.valueOf(wellSurvey.getDrilledData().get(wellSurvey.getDrilledData().size() - 1).get("depth").toString()));
-                wellCoordinatesResponse.setDrilledData(wellSurvey.getDrilledData().stream().map(drill -> ((ArrayList) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
-            } else {
-                wellCoordinatesResponse.setDrilledData(Collections.emptyList());
-            }
-            if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty() && !wellCoordinatesResponse.getStatusWell().equalsIgnoreCase("completed") && wellSurvey.getDrilledData() != null && !wellSurvey.getDrilledData().isEmpty()) {
-                wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData().stream()
-                    .filter(planned -> {
-                        return planned != null && drilledWellDepth.get(wellSurvey.getUid()) != null && planned.get("depth") != null && planned.get("coordinates") != null ? Float.valueOf(planned.get("depth").toString()) >= drilledWellDepth.get(wellSurvey.getUid()) : false;
-                    })
-                    .map(drill -> ((ArrayList) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
-            } else if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty() && (wellSurvey.getDrilledData() == null || wellSurvey.getDrilledData().isEmpty())) {
-                wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData().stream().map(drill -> ((ArrayList) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
-            } else {
-                wellCoordinatesResponse.setPlannedData(Collections.emptyList());
-            }
-            // set BHAs used count
-            wellCoordinatesResponse.setDistinctBHAsUsedCount(wellSurvey.getDistinctBHAsUsedCount());
-            // Set Active rig name
-            wellCoordinatesResponse.setActiveRigName(wellSurvey.getActiveRigName());
-            latLngMap.putIfAbsent(wellSurvey.getUid(), wellCoordinatesResponse);
         });
 
 
