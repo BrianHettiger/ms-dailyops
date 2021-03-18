@@ -7,7 +7,14 @@ import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
-import com.moblize.ms.dailyops.dto.*;
+import com.moblize.ms.dailyops.dto.BHA;
+import com.moblize.ms.dailyops.dto.BHACount;
+import com.moblize.ms.dailyops.dto.Cost;
+import com.moblize.ms.dailyops.dto.ROPs;
+import com.moblize.ms.dailyops.dto.Section;
+import com.moblize.ms.dailyops.dto.WellCoordinatesResponse;
+import com.moblize.ms.dailyops.dto.WellCoordinatesResponseV2;
+import com.moblize.ms.dailyops.dto.WellData;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceBHARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceCostRepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceROPRepository;
@@ -18,11 +25,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -111,10 +126,10 @@ public class WellsCoordinatesService {
             wellCoordinatesResponse.setDrilledData(Collections.emptyList());
             wellCoordinatesResponse.setPlannedData(Collections.emptyList());
             // set avgROP
-            wellCoordinatesResponse.setAvgROP(ropByWellUidMap.get(well.getUid()).getAvgROP());
-            wellCoordinatesResponse.setSlidingROP(ropByWellUidMap.get(well.getUid()).getSlidingROP());
-            wellCoordinatesResponse.setRotatingROP(ropByWellUidMap.get(well.getUid()).getRotatingROP());
-            wellCoordinatesResponse.setEffectiveROP(ropByWellUidMap.get(well.getUid()).getEffectiveROP());
+            wellCoordinatesResponse.setAvgROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getAvgROP());
+            wellCoordinatesResponse.setSlidingROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getSlidingROP());
+            wellCoordinatesResponse.setRotatingROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getRotatingROP());
+            wellCoordinatesResponse.setEffectiveROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getEffectiveROP());
             wellCoordinatesResponse.setCost(costByWellUidMap.get(well.getUid()));
             wellCoordinatesResponse.setBhaCount(bhaCountByUidMap.get(well.getUid()));
             wellCoordinatesResponse.setTotalDays(wellMap.getOrDefault(well.getUid(), new WellData()).getTotalDays());
