@@ -13,7 +13,7 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @Document(collection = "performanceROP")
-@JsonIgnoreProperties(value = { "_id" })
+@JsonIgnoreProperties(value = {"_id"})
 public class PerformanceROP {
 
     private ObjectId _id;
@@ -33,10 +33,10 @@ public class PerformanceROP {
     @Getter
     @Setter
     public static class Section implements Serializable {
-        public double all =0d;
-        public double surface=0d;
-        public double intermediate=0d;
-        public double curve=0d;
-        public double lateral=0d;
+        public double all = 0d;
+        public double surface = 0d;
+        public double intermediate = 0d;
+        public double curve = 0d;
+        public double lateral = 0d;
     }
 }

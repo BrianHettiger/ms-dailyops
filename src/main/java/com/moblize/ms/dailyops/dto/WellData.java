@@ -29,7 +29,7 @@ public class WellData {
     @ToString
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class SectionData{
+    public static class SectionData {
         @JsonProperty("sec")
         private Section section = new Section();
     }
@@ -40,7 +40,7 @@ public class WellData {
     @ToString
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class Section{
+    public static class Section {
         @JsonProperty("a")
         private Double all = 0D;
         @JsonProperty("s")
@@ -59,14 +59,13 @@ public class WellData {
     @ToString
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class RangeData{
+    public static class RangeData {
         @JsonProperty("mds")
-        public int mdStart;
+        public int mdStart = 0;
         @JsonProperty("mde")
-        public int mdEnd;
+        public int mdEnd = 0;
         @JsonProperty("fd")
-        public int footageDrilled;
-
+        public int footageDrilled = 0;
 
 
     }
