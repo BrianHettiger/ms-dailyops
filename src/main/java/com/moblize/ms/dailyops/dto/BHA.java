@@ -19,11 +19,11 @@ public class BHA {
     public long id;
     public String name;
     @JsonProperty("mds")
-    public float mdStart;
+    public int mdStart;
     @JsonProperty("mde")
-    public float mdEnd;
+    public int mdEnd;
     @JsonProperty("fd")
-    public float footageDrilled;
+    public int footageDrilled;
     @JsonProperty("ds")
     public String motorType;
     @JsonProperty("sec")
