@@ -16,8 +16,10 @@
 logging:
   level:
     ROOT: DEBUG
-    io.github.jhipster: DEBUG
+    io.github.jhipster: INFO
     com.moblize.ms: DEBUG
+    org.mongodb.driver: WARN
+    com.netflix.discovery: WARN
 
 eureka:
   instance:
