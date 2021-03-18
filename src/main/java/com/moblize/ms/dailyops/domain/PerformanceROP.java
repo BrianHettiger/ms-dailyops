@@ -13,7 +13,7 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @Document(collection = "performanceROP")
-@JsonIgnoreProperties(value = { "_id" })
+@JsonIgnoreProperties(value = {"_id"})
 public class PerformanceROP {
 
     private ObjectId _id;

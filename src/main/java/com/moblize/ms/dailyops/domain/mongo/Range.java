@@ -10,7 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Range {
-    private Float start;
-    private Float end;
-    private Float diff;
+    private Float start = 0f;
+    private Float end = 0f;
+    private Float diff = 0f;
 }
