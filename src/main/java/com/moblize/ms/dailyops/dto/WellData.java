@@ -61,11 +61,11 @@ public class WellData {
     @NoArgsConstructor
     public static class RangeData{
         @JsonProperty("mds")
-        public float mdStart;
+        public int mdStart;
         @JsonProperty("mde")
-        public float mdEnd;
+        public int mdEnd;
         @JsonProperty("fd")
-        public float footageDrilled;
+        public int footageDrilled;
 
 
 
