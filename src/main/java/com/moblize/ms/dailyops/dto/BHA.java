@@ -3,11 +3,11 @@ package com.moblize.ms.dailyops.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.moblize.ms.dailyops.domain.PerformanceROP;
 import lombok.*;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
@@ -15,18 +15,17 @@ import java.io.Serializable;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@Document
 public class BHA {
     public long id;
     public String name;
     @JsonProperty("mds")
-    public float mdStart;
+    public int mdStart;
     @JsonProperty("mde")
-    public float mdEnd;
-    @JsonProperty("fd")
-    public float footageDrilled;
+    public int mdEnd;
     @JsonProperty("ds")
     public String motorType;
+    @JsonProperty("sec")
+    public List<String> sections = new ArrayList<>();
     @JsonProperty("aRop")
     public RopType avgRop ;
     @JsonProperty("sRop")
@@ -36,7 +35,9 @@ public class BHA {
     @JsonProperty("eRop")
     public RopType effectiveROP;
     @JsonProperty("sp")
-    public Double slidePercentage;
+    public RopType slidePercentage;
+    @JsonProperty("fd")
+    public RopType footageDrilled;
     @JsonProperty("dls")
     public String avgDLS;
     @JsonProperty("angle")
@@ -50,7 +51,7 @@ public class BHA {
     @Setter
     @AllArgsConstructor
     public static class RopType implements Serializable {
-        @JsonProperty("s")
+        @JsonProperty("sec")
         public Section section;
     }
 

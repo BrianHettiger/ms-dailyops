@@ -29,13 +29,17 @@ public class ROPs {
     public ROP rotatingROP;
     @JsonProperty("eRop")
     public ROP effectiveROP;
+    @JsonProperty("sp")
+    private ROP slidingPercentage;
+    @JsonProperty("fd")
+    private ROP footageDrilled;
 
 
     @Getter
     @Setter
     public static class ROP implements Serializable {
         @JsonProperty("sec")
-        public Section section;
+        public Section section = new Section();
     }
 
 

@@ -8,7 +8,6 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
 @Getter
@@ -19,40 +18,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class PerformanceBHADao {
 
-
-    @Autowired
-    private MongoTemplate mongoTemplate;
     @Autowired
     private PerformanceBHARepository performanceBHARepository;
 
-    public PerformanceBHA savePerformanceBHA(PerformanceBHA performanceBHADTO){
+    public PerformanceBHA saveUpdatePerformanceBHA(PerformanceBHA performanceBHADTO){
         PerformanceBHA dbObj =  performanceBHARepository.findFirstByUid(performanceBHADTO.getUid());
         if (null != dbObj) {
-            return updatePerformanceBHA(performanceBHADTO, dbObj);
-        } else {
+            performanceBHADTO.setId(dbObj.getId());
+            performanceBHADTO.setAddedAt(dbObj.getAddedAt());
+        }
             return performanceBHARepository.save(performanceBHADTO);
-        }
     }
 
-    public PerformanceBHA updatePerformanceBHA(PerformanceBHA performanceBHADTO){
-        return updatePerformanceBHA(performanceBHADTO, null);
-    }
-
-    public PerformanceBHA updatePerformanceBHA(PerformanceBHA performanceBHADTO, PerformanceBHA existingObj){
-        PerformanceBHA dbObj;
-        if (null == existingObj) {
-            dbObj = performanceBHARepository.findFirstByUid(performanceBHADTO.getUid());
-        } else {
-            dbObj = existingObj;
-        }
-
-        if(null != performanceBHADTO.getBha() && !performanceBHADTO.getBha().isEmpty() ) {
-            dbObj.getBha().clear();
-            dbObj.setBha(performanceBHADTO.getBha());
-            return performanceBHARepository.save(dbObj);
-        }
-        return existingObj;
-    }
 
     public PerformanceBHA findPerformanceBHA(String uid) {
         return performanceBHARepository.findFirstByUid(uid);

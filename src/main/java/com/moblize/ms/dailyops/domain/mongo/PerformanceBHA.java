@@ -12,6 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -24,8 +25,8 @@ public class PerformanceBHA {
     @Id
     private String id;
     public String uid;
-    public BHACount bhaCount;
-    public List<Bha> bha = null;
+    public BHACount bhaCount = new BHACount();
+    public List<Bha> bha = new ArrayList<>();
     @CreatedDate
     private LocalDateTime addedAt;
     @LastModifiedDate
@@ -34,17 +35,17 @@ public class PerformanceBHA {
     @Getter
     @Setter
     public static class BHACount implements Serializable {
-        public Section section;
+        public Section section = new Section();
     }
 
     @Getter
     @Setter
     public static class Section implements Serializable {
-        public int all;
-        public int surface;
-        public int intermediate;
-        public int curve;
-        public int lateral;
+        public int all = 0;
+        public int surface = 0;
+        public int intermediate = 0;
+        public int curve = 0;
+        public int lateral = 0;
     }
 
     @Getter
@@ -52,20 +53,21 @@ public class PerformanceBHA {
     public static class Bha implements Serializable {
 
         public long id;
-        public String name;
-        public float mdStart;
-        public float mdEnd;
-        public float footageDrilled;
-        public String motorType;
+        public String name = "";
+        public float mdStart = 0f;
+        public float mdEnd = 0f;
+        public String motorType = "";
+        public List<String> sections = new ArrayList<>();
         public PerformanceROP.RopType avgRop = new PerformanceROP.RopType();
         public PerformanceROP.RopType rotatingROP = new PerformanceROP.RopType();
         public PerformanceROP.RopType slidingROP = new PerformanceROP.RopType();
         public PerformanceROP.RopType effectiveROP = new PerformanceROP.RopType();
-        public Double slidePercentage;
-        public String avgDLS;
-        public Double buildWalkAngle;
-        public Double buildWalkCompassAngle;
-        public String buildWalkCompassDirection;
+        public PerformanceROP.RopType slidePercentage = new PerformanceROP.RopType();
+        public PerformanceROP.RopType footageDrilled = new PerformanceROP.RopType();
+        public String avgDLS = "";
+        public Double buildWalkAngle = 0d;
+        public Double buildWalkCompassAngle = 0d;
+        public String buildWalkCompassDirection = "";
 
 
     }

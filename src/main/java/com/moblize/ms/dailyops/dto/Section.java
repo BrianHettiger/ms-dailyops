@@ -26,14 +26,14 @@ import lombok.ToString;
 public class Section {
 
     @JsonProperty("a")
-    public Integer all;
+    public Double all;
     @JsonProperty("s")
-    public Integer surface;
+    public Double surface;
     @JsonProperty("i")
-    public Integer intermediate;
+    public Double intermediate;
     @JsonProperty("c")
-    public Integer curve;
+    public Double curve;
     @JsonProperty("l")
-    public Integer lateral;
+    public Double lateral;
 
 }
