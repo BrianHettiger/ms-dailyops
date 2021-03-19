@@ -22,8 +22,6 @@ public class BHA {
     public int mdStart;
     @JsonProperty("mde")
     public int mdEnd;
-    @JsonProperty("fd")
-    public int footageDrilled;
     @JsonProperty("ds")
     public String motorType;
     @JsonProperty("sec")
@@ -38,6 +36,8 @@ public class BHA {
     public RopType effectiveROP;
     @JsonProperty("sp")
     public RopType slidePercentage;
+    @JsonProperty("fd")
+    public RopType footageDrilled;
     @JsonProperty("dls")
     public String avgDLS;
     @JsonProperty("angle")
