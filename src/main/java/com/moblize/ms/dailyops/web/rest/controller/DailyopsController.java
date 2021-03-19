@@ -2,25 +2,21 @@ package com.moblize.ms.dailyops.web.rest.controller;
 
 import com.moblize.ms.dailyops.domain.PerformanceROP;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
+import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
+import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
+import com.moblize.ms.dailyops.dto.BHA;
 import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
 import com.moblize.ms.dailyops.dto.ResponseDTO;
-import com.moblize.ms.dailyops.service.PerformanceCostService;
-import com.moblize.ms.dailyops.service.PerformanceROPService;
-import com.moblize.ms.dailyops.service.WellsCoordinatesService;
+import com.moblize.ms.dailyops.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class DailyopsController {
@@ -32,6 +28,10 @@ public class DailyopsController {
     private PerformanceROPService performanceROPService;
     @Autowired
     private PerformanceCostService performanceCostService;
+    @Autowired
+    private PerformanceBHAService performanceBHAService;
+    @Autowired
+    private PerformanceWellService performanceWellService;
 
 
     @Transactional(readOnly = true)
@@ -41,8 +41,27 @@ public class DailyopsController {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return ResponseDTO.invalid("Customer cannot be null.");
         } else {
+            return ResponseDTO.complete(wellsCoordinatesService.getWellCoordinatesV1(customer));
+        }
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v2/getWellCoordinates")
+    public ResponseDTO getWellCoordinatesV2(@RequestParam("customer") String customer, HttpServletResponse response) {
+        if (customer == null || customer == "") {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return ResponseDTO.invalid("Customer cannot be null.");
+        } else {
             return ResponseDTO.complete(wellsCoordinatesService.getWellCoordinates(customer));
         }
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/getWellBHAs")
+    public Map<String, List<BHA>> getWellBHAs(HttpServletResponse response) {
+
+            return wellsCoordinatesService.getWellBHAs();
+
     }
 
 
@@ -201,5 +220,83 @@ public class DailyopsController {
     @PutMapping("/api/v1/performanceCost/update")
     public ResponseDTO updatePerformanceCost(@Valid @RequestBody PerformanceCost performanceCost) {
         return ResponseDTO.complete(performanceCostService.updatePerformanceCost(performanceCost));
+    }
+
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/performanceBHA/read")
+    public ResponseDTO findPerformanceBHA(@RequestParam String uid, HttpServletResponse response) {
+        if (uid == null || uid.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return ResponseDTO.invalid("UID cannot be empty.");
+        } else {
+            return ResponseDTO.complete(performanceBHAService.findPerformanceBHA(uid));
+        }
+    }
+
+
+    @Transactional
+    @PostMapping("/api/v1/performanceBHA/create")
+    public ResponseDTO savePerformanceBHA(@Valid @RequestBody PerformanceBHA performanceBHA) {
+        return ResponseDTO.complete(performanceBHAService.savePerformanceBHA(performanceBHA));
+    }
+
+
+    @Transactional
+    @DeleteMapping("/api/v1/performanceBHA/remove")
+    public ResponseDTO deletePerformanceBHA(@Valid @RequestParam String uid, HttpServletResponse response) {
+        if (uid == null || uid.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return ResponseDTO.invalid("UID cannot be empty.");
+        } else {
+            performanceBHAService.deletePerformanceBHA(uid);
+            return ResponseDTO.complete("Well PerformanceBHA data has deleted successfully", uid);
+        }
+    }
+
+
+    @Transactional
+    @PutMapping("/api/v1/performanceBHA/update")
+    public ResponseDTO updatePerformanceBHA(@Valid @RequestBody PerformanceBHA performanceWell) {
+        return ResponseDTO.complete(performanceBHAService.updatePerformanceBHA(performanceWell));
+    }
+
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/performanceWell/read")
+    public ResponseDTO findPerformanceWell(@RequestParam String uid, HttpServletResponse response) {
+        if (uid == null || uid.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return ResponseDTO.invalid("UID cannot be empty.");
+        } else {
+            return ResponseDTO.complete(performanceWellService.findPerformanceWell(uid));
+        }
+    }
+
+
+    @Transactional
+    @PostMapping("/api/v1/performanceWell/create")
+    public ResponseDTO savePerformanceWell(@Valid @RequestBody PerformanceWell performanceWell) {
+        return ResponseDTO.complete(performanceWellService.savePerformanceWell(performanceWell));
+    }
+
+
+    @Transactional
+    @DeleteMapping("/api/v1/performanceWell/remove")
+    public ResponseDTO deletePerformanceWell(@Valid @RequestParam String uid, HttpServletResponse response) {
+        if (uid == null || uid.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return ResponseDTO.invalid("UID cannot be empty.");
+        } else {
+            performanceWellService.deletePerformanceWell(uid);
+            return ResponseDTO.complete("Well PerformanceWell data has deleted successfully", uid);
+        }
+    }
+
+
+    @Transactional
+    @PutMapping("/api/v1/performanceWell/update")
+    public ResponseDTO updatePerformanceWell(@Valid @RequestBody PerformanceWell performanceWell) {
+        return ResponseDTO.complete(performanceWellService.updatePerformanceWell(performanceWell));
     }
 }

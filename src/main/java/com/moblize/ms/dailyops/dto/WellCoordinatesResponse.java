@@ -2,11 +2,7 @@ package com.moblize.ms.dailyops.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -23,14 +19,15 @@ public class WellCoordinatesResponse {
     private String uid;
     private String name;
     private Location location;
-    @JsonIgnore
-    private String statusWell;
-    private AvgROP avgROP;
+    private ROP avgROP;
     private Cost cost;
     private List<Object> drilledData = new ArrayList<>();
     private List<Object> plannedData = new ArrayList<>();
     private Integer distinctBHAsUsedCount = 0;
     private String activeRigName;
+    @JsonIgnore
+    private String statusWell;
+
 
     @Getter
     @Setter
@@ -41,5 +38,26 @@ public class WellCoordinatesResponse {
 
         private Float lat = 0.0f;
 
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ROP implements Serializable {
+        public Section section = new Section();
+    }
+
+    @Getter
+    @Setter
+    @ToString
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Section {
+        public Double all;
+        public Double surface;
+        public Double intermediate;
+        public Double curve;
+        public Double lateral;
     }
 }
