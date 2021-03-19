@@ -134,7 +134,8 @@ public class WellsCoordinatesService {
             wellCoordinatesResponse.setBhaCount(bhaCountByUidMap.get(well.getUid()));
             wellCoordinatesResponse.setTotalDays(wellMap.getOrDefault(well.getUid(), new WellData()).getTotalDays());
             wellCoordinatesResponse.setFootagePerDay(wellMap.getOrDefault(well.getUid(), new WellData()).getFootagePerDay());
-            wellCoordinatesResponse.setSlidingPercentage(ropByWellUidMap.get(well.getUid()).getSlidingPercentage());
+            wellCoordinatesResponse.setSlidingPercentage(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getSlidingPercentage());
+            wellCoordinatesResponse.setFootageDrilled(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getFootageDrilled());
             wellCoordinatesResponse.setHoleSectionRange(wellMap.getOrDefault(well.getUid(), new WellData()).getHoleSectionRange());
             latLngMap.put(well.getUid(), wellCoordinatesResponse);
         });
@@ -269,7 +270,7 @@ public class WellsCoordinatesService {
         return BigDecimal.valueOf(value == null ? 0 : value).setScale(1, RoundingMode.HALF_UP).doubleValue();
     }
     private static Double dataConvertTwoDecimal(Double value){
-        return BigDecimal.valueOf(value == null ? 0 : value).setScale(2, RoundingMode.HALF_UP).doubleValue();
+        return  Math.round(value * 100.0) / 100.0;
     }
 
     private static ROPs ropDomainToDto(final PerformanceROP ropDomain) {
@@ -329,6 +330,17 @@ public class WellsCoordinatesService {
             sliderPercentage.setSection(slidePercentageSection);
             ropDto.setSlidingPercentage(sliderPercentage);
         }
+        if (null != ropDomain.getFootageDrilled()&& null != ropDomain.getFootageDrilled().getSection()) {
+            final Section footageDrilledSection = new Section();
+            footageDrilledSection.setAll(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getAll()));
+            footageDrilledSection.setSurface(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getSurface()));
+            footageDrilledSection.setIntermediate(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getIntermediate()));
+            footageDrilledSection.setCurve(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getCurve()));
+            footageDrilledSection.setLateral(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getLateral()));
+            ROPs.ROP footageDrilled = new ROPs.ROP();
+            footageDrilled.setSection(footageDrilledSection);
+            ropDto.setFootageDrilled(footageDrilled);
+        }
         return ropDto;
     }
 
@@ -360,7 +372,6 @@ public class WellsCoordinatesService {
                 bha.setName(bhaMongo.getName());
                 bha.setMdStart(Math.round(bhaMongo.getMdStart()));
                 bha.setMdEnd(Math.round(bhaMongo.getMdEnd()));
-                bha.setFootageDrilled(Math.round(bhaMongo.getFootageDrilled()));
                 bha.setMotorType(bhaMongo.getMotorType());
                 bha.setSections(bhaMongo.getSections());
                 bha.setAvgRop(new BHA.RopType(
@@ -402,6 +413,14 @@ public class WellsCoordinatesService {
                         dataConvertTwoDecimal(bhaMongo.getSlidePercentage().getSection().getIntermediate()),
                         dataConvertTwoDecimal(bhaMongo.getSlidePercentage().getSection().getCurve()),
                         dataConvertTwoDecimal(bhaMongo.getSlidePercentage().getSection().getLateral())
+                    )));
+                bha.setFootageDrilled(new BHA.RopType(
+                    new BHA.Section(
+                        dataConvertTwoDecimal(bhaMongo.getFootageDrilled().getSection().getAll()),
+                        dataConvertTwoDecimal(bhaMongo.getFootageDrilled().getSection().getSurface()),
+                        dataConvertTwoDecimal(bhaMongo.getFootageDrilled().getSection().getIntermediate()),
+                        dataConvertTwoDecimal(bhaMongo.getFootageDrilled().getSection().getCurve()),
+                        dataConvertTwoDecimal(bhaMongo.getFootageDrilled().getSection().getLateral())
                     )));
                 bha.setAvgDLS(bhaMongo.getAvgDLS());
                 bha.setBuildWalkAngle(bhaMongo.getBuildWalkAngle());

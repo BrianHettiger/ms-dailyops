@@ -41,6 +41,8 @@ public class WellCoordinatesResponseV2 {
     private WellData.SectionData footagePerDay;
     @JsonProperty("sp")
     private ROPs.ROP slidingPercentage;
+    @JsonProperty("fd")
+    private ROPs.ROP footageDrilled;
     @JsonProperty("hs")
     private Map<String, WellData.RangeData> holeSectionRange;
     private Cost cost;

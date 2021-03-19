@@ -56,7 +56,6 @@ public class PerformanceBHA {
         public String name = "";
         public float mdStart = 0f;
         public float mdEnd = 0f;
-        public float footageDrilled = 0f;
         public String motorType = "";
         public List<String> sections = new ArrayList<>();
         public PerformanceROP.RopType avgRop = new PerformanceROP.RopType();
@@ -64,6 +63,7 @@ public class PerformanceBHA {
         public PerformanceROP.RopType slidingROP = new PerformanceROP.RopType();
         public PerformanceROP.RopType effectiveROP = new PerformanceROP.RopType();
         public PerformanceROP.RopType slidePercentage = new PerformanceROP.RopType();
+        public PerformanceROP.RopType footageDrilled = new PerformanceROP.RopType();
         public String avgDLS = "";
         public Double buildWalkAngle = 0d;
         public Double buildWalkCompassAngle = 0d;

@@ -23,6 +23,7 @@ public class PerformanceROP {
     private RopType slidingROP = new RopType();
     private RopType effectiveROP = new RopType();
     private RopType slidePercentage = new RopType();
+    private RopType footageDrilled = new RopType();
 
     @Getter
     @Setter
