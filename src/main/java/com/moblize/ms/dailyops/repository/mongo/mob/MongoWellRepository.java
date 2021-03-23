@@ -12,5 +12,7 @@ public interface MongoWellRepository extends MongoRepository<MongoWell, String> 
 
     public List<MongoWell> findAllByCustomer(String customer);
 
+    public List<MongoWell> findAllByCustomerAndIsHidden(String customer, Boolean isHidden);
+
     MongoWell findByUid(String uid);
 }

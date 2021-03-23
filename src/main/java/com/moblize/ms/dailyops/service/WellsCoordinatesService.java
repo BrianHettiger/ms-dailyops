@@ -99,7 +99,7 @@ public class WellsCoordinatesService {
 
         Map<String, WellCoordinatesResponseV2> latLngMap = new HashMap<>();
 
-        List<MongoWell> mongoWell = mongoWellRepository.findAllByCustomer(customer);
+        List<MongoWell> mongoWell = mongoWellRepository.findAllByCustomerAndIsHidden(customer, false);
         final Map<String, ROPs> ropByWellUidMap = getWellROPsMap();
         final Map<String, Cost> costByWellUidMap = getWellCostMap();
         final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap();
@@ -171,7 +171,11 @@ public class WellsCoordinatesService {
                     wellCoordinatesResponse.setPlannedData(Collections.emptyList());
                 }
                 // set BHAs used count
-                wellCoordinatesResponse.setDistinctBHAsUsedCount(wellSurvey.getDistinctBHAsUsedCount());
+                if(null != wellSurvey.getDistinctBHAsUsedCount()) {
+                    wellCoordinatesResponse.setDistinctBHAsUsedCount(wellSurvey.getDistinctBHAsUsedCount());
+                } else{
+                    wellCoordinatesResponse.setDistinctBHAsUsedCount(0);
+                }
                 // Set Active rig name
                 wellCoordinatesResponse.setActiveRigName(wellSurvey.getActiveRigName());
                 latLngMap.putIfAbsent(wellSurvey.getUid(), wellCoordinatesResponse);
