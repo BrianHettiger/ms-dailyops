@@ -103,7 +103,7 @@ public class WellsCoordinatesDao {
                 existingObj.setDrilledData(wellSurveyPlannedLatLong.getDrilledData());
             }
         }
-        if(wellSurveyPlannedLatLong.getDistinctBHAsUsedCount() > 0){
+        if(null != wellSurveyPlannedLatLong.getDistinctBHAsUsedCount() && wellSurveyPlannedLatLong.getDistinctBHAsUsedCount() > 0){
             existingObj.setDistinctBHAsUsedCount(wellSurveyPlannedLatLong.getDistinctBHAsUsedCount());
         }
         if(null != wellSurveyPlannedLatLong.getActiveRigName() && !wellSurveyPlannedLatLong.getActiveRigName().isEmpty()){
