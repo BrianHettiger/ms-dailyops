@@ -38,14 +38,12 @@ public class BHA {
     public RopType slidePercentage;
     @JsonProperty("fd")
     public RopType footageDrilled;
-    @JsonProperty("dls")
-    public String avgDLS;
-    @JsonProperty("angle")
-    public Double buildWalkAngle;
-    @JsonProperty("c_angle")
-    public Double buildWalkCompassAngle;
-    @JsonProperty("c_dir")
-    public String buildWalkCompassDirection;
+    @JsonProperty("aDls")
+    public RopType avgDLS;
+    @JsonProperty("aDirAng")
+    public RopType buildWalkCompassAngle;
+    @JsonProperty("aDir")
+    public DirectionType buildWalkCompassDirection;
 
     @Getter
     @Setter
@@ -69,6 +67,30 @@ public class BHA {
         public double curve;
         @JsonProperty("l")
         public double lateral;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class DirectionType implements Serializable {
+        @JsonProperty("sec")
+        public SectionDirection section;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class SectionDirection implements Serializable {
+        @JsonProperty("a")
+        public String all;
+        @JsonProperty("s")
+        public String surface;
+        @JsonProperty("i")
+        public String intermediate;
+        @JsonProperty("c")
+        public String curve;
+        @JsonProperty("l")
+        public String lateral;
     }
 }
 

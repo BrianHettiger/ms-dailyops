@@ -27,8 +27,26 @@ public class PerformanceWell {
     private BySection footagePerDay = new BySection();
     private BySection slidingPercentage = new BySection();
     private Map<String, Range> holeSectionRange = new HashMap<>();
+    private BySection avgDLSBySection = new BySection();
+    private SectionDirection avgDirection = new SectionDirection();
+    private BySection avgDirectionAngle = new BySection();
     @CreatedDate
     private LocalDateTime addedAt;
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    @Getter
+    @Setter
+    public static class SectionDirection {
+        private Section section = new Section();
+    }
+    @Getter
+    @Setter
+    public static class Section  {
+        private String all = "";
+        private String surface = "";
+        private String intermediate = "";
+        private String curve = "";
+        private String lateral = "";
+    }
 }

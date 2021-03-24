@@ -43,6 +43,12 @@ public class WellCoordinatesResponseV2 {
     private ROPs.ROP slidingPercentage;
     @JsonProperty("fd")
     private ROPs.ROP footageDrilled;
+    @JsonProperty("aDls")
+    private WellData.SectionData avgDLSBySection;
+    @JsonProperty("aDirAng")
+    private WellData.SectionData avgDirectionAngle;
+    @JsonProperty("aDir")
+    private WellData.SectionDataDirection avgDirection;
     @JsonProperty("hs")
     private Map<String, WellData.RangeData> holeSectionRange;
     private Cost cost;

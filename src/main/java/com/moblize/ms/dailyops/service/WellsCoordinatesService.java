@@ -138,6 +138,9 @@ public class WellsCoordinatesService {
                 wellCoordinatesResponse.setSlidingPercentage(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getSlidingPercentage());
                 wellCoordinatesResponse.setFootageDrilled(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getFootageDrilled());
                 wellCoordinatesResponse.setHoleSectionRange(wellMap.getOrDefault(well.getUid(), new WellData()).getHoleSectionRange());
+                wellCoordinatesResponse.setAvgDLSBySection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDLSBySection());
+                wellCoordinatesResponse.setAvgDirectionAngle(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDirectionAngle());
+                wellCoordinatesResponse.setAvgDirection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDirection());
                 latLngMap.put(well.getUid(), wellCoordinatesResponse);
             }catch (Exception exp){
                 log.error("Error occurred while processing well: {}", well.getUid(), exp);
@@ -453,10 +456,30 @@ public class WellsCoordinatesService {
                                 dataConvertTwoDecimal(bhaMongo.getFootageDrilled().getSection().getCurve()),
                                 dataConvertTwoDecimal(bhaMongo.getFootageDrilled().getSection().getLateral())
                             )));
-                        bha.setAvgDLS(bhaMongo.getAvgDLS());
-                        bha.setBuildWalkAngle(bhaMongo.getBuildWalkAngle());
-                        bha.setBuildWalkCompassAngle(bhaMongo.getBuildWalkCompassAngle());
-                        bha.setBuildWalkCompassDirection(bhaMongo.getBuildWalkCompassDirection());
+                        bha.setAvgDLS(new BHA.RopType(
+                            new BHA.Section(
+                                dataConvertTwoDecimal(bhaMongo.getAvgDLSBySection().getSection().getAll()),
+                                dataConvertTwoDecimal(bhaMongo.getAvgDLSBySection().getSection().getSurface()),
+                                dataConvertTwoDecimal(bhaMongo.getAvgDLSBySection().getSection().getIntermediate()),
+                                dataConvertTwoDecimal(bhaMongo.getAvgDLSBySection().getSection().getCurve()),
+                                dataConvertTwoDecimal(bhaMongo.getAvgDLSBySection().getSection().getLateral())
+                            )));
+                        bha.setBuildWalkCompassAngle(new BHA.RopType(
+                            new BHA.Section(
+                                dataConvertTwoDecimal(bhaMongo.getAvgDirectionAngle().getSection().getAll()),
+                                dataConvertTwoDecimal(bhaMongo.getAvgDirectionAngle().getSection().getSurface()),
+                                dataConvertTwoDecimal(bhaMongo.getAvgDirectionAngle().getSection().getIntermediate()),
+                                dataConvertTwoDecimal(bhaMongo.getAvgDirectionAngle().getSection().getCurve()),
+                                dataConvertTwoDecimal(bhaMongo.getAvgDirectionAngle().getSection().getLateral())
+                            )));
+                        bha.setBuildWalkCompassDirection(new BHA.DirectionType(
+                            new BHA.SectionDirection(
+                                bhaMongo.getAvgDirection().getSection().getAll(),
+                                bhaMongo.getAvgDirection().getSection().getSurface(),
+                                bhaMongo.getAvgDirection().getSection().getIntermediate(),
+                                bhaMongo.getAvgDirection().getSection().getCurve(),
+                                bhaMongo.getAvgDirection().getSection().getLateral()
+                            )));
                         bhaList.add(bha);
 
                     });
@@ -502,11 +525,31 @@ public class WellsCoordinatesService {
                 dataConvert(performanceWell.getFootagePerDay().getSection().getIntermediate()),
                 dataConvert(performanceWell.getFootagePerDay().getSection().getCurve()),
                 dataConvert(performanceWell.getFootagePerDay().getSection().getLateral())));
+
+            WellData.SectionData avgDLSBySection = new WellData.SectionData();
+            avgDLSBySection.setSection(new WellData.Section(dataConvert(performanceWell.getAvgDLSBySection().getSection().getAll()),
+                dataConvert(performanceWell.getAvgDLSBySection().getSection().getSurface()),
+                dataConvert(performanceWell.getAvgDLSBySection().getSection().getIntermediate()),
+                dataConvert(performanceWell.getAvgDLSBySection().getSection().getCurve()),
+                dataConvert(performanceWell.getAvgDLSBySection().getSection().getLateral())));
+            WellData.SectionData avgDirectionAngle = new WellData.SectionData();
+            avgDirectionAngle.setSection(new WellData.Section(dataConvert(performanceWell.getAvgDirectionAngle().getSection().getAll()),
+                dataConvert(performanceWell.getAvgDirectionAngle().getSection().getSurface()),
+                dataConvert(performanceWell.getAvgDirectionAngle().getSection().getIntermediate()),
+                dataConvert(performanceWell.getAvgDirectionAngle().getSection().getCurve()),
+                dataConvert(performanceWell.getAvgDirectionAngle().getSection().getLateral())));
+            WellData.SectionDataDirection avgDirection = new WellData.SectionDataDirection();
+            avgDirection.setSection(new WellData.SectionDirection(performanceWell.getAvgDirection().getSection().getAll(),
+                performanceWell.getAvgDirection().getSection().getSurface(),
+                performanceWell.getAvgDirection().getSection().getIntermediate(),
+                performanceWell.getAvgDirection().getSection().getCurve(),
+                performanceWell.getAvgDirection().getSection().getLateral()));
+
             Map<String, WellData.RangeData> holeSectionRange = new HashMap<>();
             performanceWell.getHoleSectionRange().entrySet().forEach(sec -> {
                 holeSectionRange.put(getSectionKey(sec.getKey()), new WellData.RangeData(Math.round(sec.getValue().getStart()), Math.round(sec.getValue().getEnd()), Math.round(sec.getValue().getDiff())));
             });
-            wellData = new WellData(performanceWell.getUid(), totalDays, footagePerDay, holeSectionRange);
+            wellData = new WellData(performanceWell.getUid(), totalDays, footagePerDay, avgDLSBySection, avgDirectionAngle, avgDirection, holeSectionRange);
         } catch (Exception e) {
            log.error("Error in performanceWellToDto for UID: {}",performanceWell.getUid());
         }

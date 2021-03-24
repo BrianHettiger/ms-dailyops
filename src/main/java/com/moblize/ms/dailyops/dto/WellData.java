@@ -20,6 +20,12 @@ public class WellData {
     private SectionData totalDays = new SectionData();
     @JsonProperty("fpday")
     private SectionData footagePerDay = new SectionData();
+    @JsonProperty("aDls")
+    private WellData.SectionData avgDLSBySection;
+    @JsonProperty("aDirAng")
+    private WellData.SectionData avgDirectionAngle;
+    @JsonProperty("aDir")
+    private WellData.SectionDataDirection avgDirection;
     @JsonProperty("hs")
     private Map<String, RangeData> holeSectionRange = new HashMap<>();
 
@@ -66,7 +72,36 @@ public class WellData {
         public int mdEnd = 0;
         @JsonProperty("fd")
         public int footageDrilled = 0;
+    }
 
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Getter
+    @Setter
+    @ToString
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class SectionDataDirection {
+        @JsonProperty("sec")
+        private SectionDirection section = new SectionDirection();
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Getter
+    @Setter
+    @ToString
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class SectionDirection {
+        @JsonProperty("a")
+        private String all = "";
+        @JsonProperty("s")
+        private String surface = "";
+        @JsonProperty("i")
+        private String intermediate = "";
+        @JsonProperty("c")
+        private String curve = "";
+        @JsonProperty("l")
+        private String lateral = "";
     }
 }
