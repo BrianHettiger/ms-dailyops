@@ -66,7 +66,7 @@ public class WellData {
         public int mdStart = 0;
         @JsonProperty("mde")
         public int mdEnd = 0;
-        @JsonProperty("fd")
+        @JsonProperty("len")
         public int footageDrilled = 0;
     }
 
