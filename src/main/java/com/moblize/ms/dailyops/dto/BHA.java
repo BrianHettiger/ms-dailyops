@@ -9,7 +9,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
 @Setter
 @ToString
@@ -58,15 +57,15 @@ public class BHA {
     @AllArgsConstructor
     public static class Section implements Serializable {
         @JsonProperty("a")
-        public double all;
+        public Number all;
         @JsonProperty("s")
-        public double surface;
+        public Number surface;
         @JsonProperty("i")
-        public double intermediate;
+        public Number intermediate;
         @JsonProperty("c")
-        public double curve;
+        public Number curve;
         @JsonProperty("l")
-        public double lateral;
+        public Number lateral;
     }
 
     @Getter

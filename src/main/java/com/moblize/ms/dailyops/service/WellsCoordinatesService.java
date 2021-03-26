@@ -284,18 +284,27 @@ public class WellsCoordinatesService {
     }
     private static Double dataConvert(Double value){
         try {
-            return BigDecimal.valueOf(value == null ? 0 : value).setScale(1, RoundingMode.HALF_UP).doubleValue();
+            return BigDecimal.valueOf(value).setScale(1, RoundingMode.HALF_UP).doubleValue();
         } catch (Exception e) {
-            return 0d;
+            return null;
         }
     }
     private static Double dataConvertTwoDecimal(Double value){
         try {
             return  Math.round(value * 100.0) / 100.0;
         } catch (Exception e) {
-            return 0d;
+            return null;
         }
     }
+
+    private static Long dataRound(Double value){
+        try {
+            return  Math.round(value);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 
     private static ROPs ropDomainToDto(final PerformanceROP ropDomain) {
         final ROPs ropDto = new ROPs();
@@ -357,11 +366,11 @@ public class WellsCoordinatesService {
             }
             if (null != ropDomain.getFootageDrilled()&& null != ropDomain.getFootageDrilled().getSection()) {
                 final Section footageDrilledSection = new Section();
-                footageDrilledSection.setAll(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getAll()));
-                footageDrilledSection.setSurface(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getSurface()));
-                footageDrilledSection.setIntermediate(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getIntermediate()));
-                footageDrilledSection.setCurve(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getCurve()));
-                footageDrilledSection.setLateral(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getLateral()));
+                footageDrilledSection.setAll(dataRound(ropDomain.getFootageDrilled().getSection().getAll()));
+                footageDrilledSection.setSurface(dataRound(ropDomain.getFootageDrilled().getSection().getSurface()));
+                footageDrilledSection.setIntermediate(dataRound(ropDomain.getFootageDrilled().getSection().getIntermediate()));
+                footageDrilledSection.setCurve(dataRound(ropDomain.getFootageDrilled().getSection().getCurve()));
+                footageDrilledSection.setLateral(dataRound(ropDomain.getFootageDrilled().getSection().getLateral()));
                 ROPs.ROP footageDrilled = new ROPs.ROP();
                 footageDrilled.setSection(footageDrilledSection);
                 ropDto.setFootageDrilled(footageDrilled);
@@ -375,22 +384,12 @@ public class WellsCoordinatesService {
     private static Cost costToDto(final PerformanceCost domainCost) {
         final Cost cost = new Cost();
         try {
-            if (null != domainCost && null != domainCost.getCost()) {
-                if (null != domainCost.getCost().getAfe()) {
-                    cost.setAfe(dataConvert(domainCost.getCost().getAfe()));
-                }
-                if (null != domainCost.getCost().getPerFt()) {
-                    cost.setPerFt(dataConvert(domainCost.getCost().getPerFt()));
-                }
-                if (null != domainCost.getCost().getPerLatFt()) {
-                    cost.setPerLatFt(dataConvert(domainCost.getCost().getPerLatFt()));
-                }
-                if (null != domainCost.getCost().getTotal()) {
-                    cost.setTotal(dataConvert(domainCost.getCost().getTotal()));
-                }
-            }
+            cost.setAfe(dataConvert(domainCost.getCost().getAfe()));
+            cost.setPerFt(dataConvert(domainCost.getCost().getPerFt()));
+            cost.setPerLatFt(dataConvert(domainCost.getCost().getPerLatFt()));
+            cost.setTotal(dataConvert(domainCost.getCost().getTotal()));
         } catch (Exception e) {
-            log.error("Error in costToDto for UID: {}",domainCost.getUid());
+            log.error("Error in costToDto for UID: {}", domainCost.getUid());
         }
         return cost;
     }
@@ -466,11 +465,11 @@ public class WellsCoordinatesService {
                             )));
                         bha.setBuildWalkCompassAngle(new BHA.RopType(
                             new BHA.Section(
-                                dataConvertTwoDecimal(bhaMongo.getAvgDirectionAngle().getSection().getAll()),
-                                dataConvertTwoDecimal(bhaMongo.getAvgDirectionAngle().getSection().getSurface()),
-                                dataConvertTwoDecimal(bhaMongo.getAvgDirectionAngle().getSection().getIntermediate()),
-                                dataConvertTwoDecimal(bhaMongo.getAvgDirectionAngle().getSection().getCurve()),
-                                dataConvertTwoDecimal(bhaMongo.getAvgDirectionAngle().getSection().getLateral())
+                                dataRound(bhaMongo.getAvgDirectionAngle().getSection().getAll()),
+                                dataRound(bhaMongo.getAvgDirectionAngle().getSection().getSurface()),
+                                dataRound(bhaMongo.getAvgDirectionAngle().getSection().getIntermediate()),
+                                dataRound(bhaMongo.getAvgDirectionAngle().getSection().getCurve()),
+                                dataRound(bhaMongo.getAvgDirectionAngle().getSection().getLateral())
                             )));
                         bha.setBuildWalkCompassDirection(new BHA.DirectionType(
                             new BHA.SectionDirection(
@@ -528,16 +527,16 @@ public class WellsCoordinatesService {
 
             WellData.SectionData avgDLSBySection = new WellData.SectionData();
             avgDLSBySection.setSection(new WellData.Section(dataConvert(performanceWell.getAvgDLSBySection().getSection().getAll()),
-                dataConvert(performanceWell.getAvgDLSBySection().getSection().getSurface()),
-                dataConvert(performanceWell.getAvgDLSBySection().getSection().getIntermediate()),
-                dataConvert(performanceWell.getAvgDLSBySection().getSection().getCurve()),
-                dataConvert(performanceWell.getAvgDLSBySection().getSection().getLateral())));
+                dataConvertTwoDecimal(performanceWell.getAvgDLSBySection().getSection().getSurface()),
+                dataConvertTwoDecimal(performanceWell.getAvgDLSBySection().getSection().getIntermediate()),
+                dataConvertTwoDecimal(performanceWell.getAvgDLSBySection().getSection().getCurve()),
+                dataConvertTwoDecimal(performanceWell.getAvgDLSBySection().getSection().getLateral())));
             WellData.SectionData avgDirectionAngle = new WellData.SectionData();
-            avgDirectionAngle.setSection(new WellData.Section(dataConvert(performanceWell.getAvgDirectionAngle().getSection().getAll()),
-                dataConvert(performanceWell.getAvgDirectionAngle().getSection().getSurface()),
-                dataConvert(performanceWell.getAvgDirectionAngle().getSection().getIntermediate()),
-                dataConvert(performanceWell.getAvgDirectionAngle().getSection().getCurve()),
-                dataConvert(performanceWell.getAvgDirectionAngle().getSection().getLateral())));
+            avgDirectionAngle.setSection(new WellData.Section(dataRound(performanceWell.getAvgDirectionAngle().getSection().getAll()),
+                dataRound(performanceWell.getAvgDirectionAngle().getSection().getSurface()),
+                dataRound(performanceWell.getAvgDirectionAngle().getSection().getIntermediate()),
+                dataRound(performanceWell.getAvgDirectionAngle().getSection().getCurve()),
+                dataRound(performanceWell.getAvgDirectionAngle().getSection().getLateral())));
             WellData.SectionDataDirection avgDirection = new WellData.SectionDataDirection();
             avgDirection.setSection(new WellData.SectionDirection(performanceWell.getAvgDirection().getSection().getAll(),
                 performanceWell.getAvgDirection().getSection().getSurface(),

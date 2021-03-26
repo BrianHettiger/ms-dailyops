@@ -43,10 +43,10 @@ public class PerformanceWell {
     @Getter
     @Setter
     public static class Section  {
-        private String all = "";
-        private String surface = "";
-        private String intermediate = "";
-        private String curve = "";
-        private String lateral = "";
+        private String all = null;
+        private String surface = null;
+        private String intermediate = null;
+        private String curve = null;
+        private String lateral = null;
     }
 }

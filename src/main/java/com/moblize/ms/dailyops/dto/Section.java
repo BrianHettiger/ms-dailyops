@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "a",
     "s",
@@ -26,14 +25,14 @@ import lombok.ToString;
 public class Section {
 
     @JsonProperty("a")
-    public Double all;
+    public Number all = null;
     @JsonProperty("s")
-    public Double surface;
+    public Number surface = null;
     @JsonProperty("i")
-    public Double intermediate;
+    public Number intermediate = null;
     @JsonProperty("c")
-    public Double curve;
+    public Number curve = null;
     @JsonProperty("l")
-    public Double lateral;
+    public Number lateral = null;
 
 }

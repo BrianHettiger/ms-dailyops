@@ -9,7 +9,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "section"
 })

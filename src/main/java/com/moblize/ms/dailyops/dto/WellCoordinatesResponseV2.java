@@ -15,7 +15,6 @@ import java.util.Map;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class WellCoordinatesResponseV2 {
 
     private String uid;
