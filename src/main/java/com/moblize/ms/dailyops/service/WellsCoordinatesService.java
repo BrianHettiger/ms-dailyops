@@ -283,26 +283,14 @@ public class WellsCoordinatesService {
         }
     }
     private static Double dataConvert(Double value){
-        try {
-            return BigDecimal.valueOf(value).setScale(1, RoundingMode.HALF_UP).doubleValue();
-        } catch (Exception e) {
-            return null;
-        }
+            return null != value ? BigDecimal.valueOf(value).setScale(1, RoundingMode.HALF_UP).doubleValue() : 0;
     }
     private static Double dataConvertTwoDecimal(Double value){
-        try {
-            return  Math.round(value * 100.0) / 100.0;
-        } catch (Exception e) {
-            return null;
-        }
+            return  null != value && value >0 ?  Math.round(value * 100.0) / 100.0 : null;
     }
 
     private static Long dataRound(Double value){
-        try {
-            return  Math.round(value);
-        } catch (Exception e) {
-            return null;
-        }
+            return null != value ?  Math.round(value) : null;
     }
 
 
