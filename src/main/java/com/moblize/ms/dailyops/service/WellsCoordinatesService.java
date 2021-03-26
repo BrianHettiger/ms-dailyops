@@ -449,11 +449,11 @@ public class WellsCoordinatesService {
                             )));
                         bha.setFootageDrilled(new BHA.RopType(
                             new BHA.Section(
-                                dataConvertTwoDecimal(bhaMongo.getFootageDrilled().getSection().getAll()),
-                                dataConvertTwoDecimal(bhaMongo.getFootageDrilled().getSection().getSurface()),
-                                dataConvertTwoDecimal(bhaMongo.getFootageDrilled().getSection().getIntermediate()),
-                                dataConvertTwoDecimal(bhaMongo.getFootageDrilled().getSection().getCurve()),
-                                dataConvertTwoDecimal(bhaMongo.getFootageDrilled().getSection().getLateral())
+                                dataRound(bhaMongo.getFootageDrilled().getSection().getAll()),
+                                dataRound(bhaMongo.getFootageDrilled().getSection().getSurface()),
+                                dataRound(bhaMongo.getFootageDrilled().getSection().getIntermediate()),
+                                dataRound(bhaMongo.getFootageDrilled().getSection().getCurve()),
+                                dataRound(bhaMongo.getFootageDrilled().getSection().getLateral())
                             )));
                         bha.setAvgDLS(new BHA.RopType(
                             new BHA.Section(
