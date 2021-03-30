@@ -13,7 +13,6 @@ import java.util.List;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class WellCoordinatesResponse {
 
     private String uid;
@@ -54,10 +53,10 @@ public class WellCoordinatesResponse {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Section {
-        public Double all;
-        public Double surface;
-        public Double intermediate;
-        public Double curve;
-        public Double lateral;
+        public Number all = null;
+        public Number surface = null;
+        public Number intermediate = null;
+        public Number curve = null;
+        public Number lateral = null;
     }
 }

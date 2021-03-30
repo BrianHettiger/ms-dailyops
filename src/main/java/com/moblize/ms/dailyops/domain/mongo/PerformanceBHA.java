@@ -64,10 +64,15 @@ public class PerformanceBHA {
         public PerformanceROP.RopType effectiveROP = new PerformanceROP.RopType();
         public PerformanceROP.RopType slidePercentage = new PerformanceROP.RopType();
         public PerformanceROP.RopType footageDrilled = new PerformanceROP.RopType();
+        private BySection avgDLSBySection = new BySection();
+        private PerformanceWell.SectionDirection avgDirection = new PerformanceWell.SectionDirection();
+        private BySection avgDirectionAngle = new BySection();
+        //Below field will be deprecated
         public String avgDLS = "";
         public Double buildWalkAngle = 0d;
         public Double buildWalkCompassAngle = 0d;
         public String buildWalkCompassDirection = "";
+
 
 
     }

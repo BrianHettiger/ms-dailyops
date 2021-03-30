@@ -1,16 +1,10 @@
 
 package com.moblize.ms.dailyops.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "a",
     "s",
@@ -26,14 +20,14 @@ import lombok.ToString;
 public class Section {
 
     @JsonProperty("a")
-    public Double all;
+    public Number all = null;
     @JsonProperty("s")
-    public Double surface;
+    public Number surface = null;
     @JsonProperty("i")
-    public Double intermediate;
+    public Number intermediate = null;
     @JsonProperty("c")
-    public Double curve;
+    public Number curve = null;
     @JsonProperty("l")
-    public Double lateral;
+    public Number lateral = null;
 
 }
