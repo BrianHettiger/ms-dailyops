@@ -9,7 +9,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
 @Setter
 @ToString
@@ -38,14 +37,12 @@ public class BHA {
     public RopType slidePercentage;
     @JsonProperty("fd")
     public RopType footageDrilled;
-    @JsonProperty("dls")
-    public String avgDLS;
-    @JsonProperty("angle")
-    public Double buildWalkAngle;
-    @JsonProperty("c_angle")
-    public Double buildWalkCompassAngle;
-    @JsonProperty("c_dir")
-    public String buildWalkCompassDirection;
+    @JsonProperty("aDls")
+    public RopType avgDLS;
+    @JsonProperty("aDirAng")
+    public RopType buildWalkCompassAngle;
+    @JsonProperty("aDir")
+    public DirectionType buildWalkCompassDirection;
 
     @Getter
     @Setter
@@ -60,15 +57,39 @@ public class BHA {
     @AllArgsConstructor
     public static class Section implements Serializable {
         @JsonProperty("a")
-        public double all;
+        public Number all;
         @JsonProperty("s")
-        public double surface;
+        public Number surface;
         @JsonProperty("i")
-        public double intermediate;
+        public Number intermediate;
         @JsonProperty("c")
-        public double curve;
+        public Number curve;
         @JsonProperty("l")
-        public double lateral;
+        public Number lateral;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class DirectionType implements Serializable {
+        @JsonProperty("sec")
+        public SectionDirection section;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class SectionDirection implements Serializable {
+        @JsonProperty("a")
+        public String all;
+        @JsonProperty("s")
+        public String surface;
+        @JsonProperty("i")
+        public String intermediate;
+        @JsonProperty("c")
+        public String curve;
+        @JsonProperty("l")
+        public String lateral;
     }
 }
 

@@ -7,7 +7,6 @@ import lombok.*;
 import java.util.HashMap;
 import java.util.Map;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
 @Setter
 @ToString
@@ -20,10 +19,15 @@ public class WellData {
     private SectionData totalDays = new SectionData();
     @JsonProperty("fpday")
     private SectionData footagePerDay = new SectionData();
+    @JsonProperty("aDls")
+    private WellData.SectionData avgDLSBySection;
+    @JsonProperty("aDirAng")
+    private WellData.SectionData avgDirectionAngle;
+    @JsonProperty("aDir")
+    private WellData.SectionDataDirection avgDirection;
     @JsonProperty("hs")
     private Map<String, RangeData> holeSectionRange = new HashMap<>();
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Getter
     @Setter
     @ToString
@@ -34,7 +38,6 @@ public class WellData {
         private Section section = new Section();
     }
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Getter
     @Setter
     @ToString
@@ -42,18 +45,17 @@ public class WellData {
     @NoArgsConstructor
     public static class Section {
         @JsonProperty("a")
-        private Double all = 0D;
+        private Number all;
         @JsonProperty("s")
-        private Double surface = 0D;
+        private Number surface;
         @JsonProperty("i")
-        private Double intermediate = 0D;
+        private Number intermediate;
         @JsonProperty("c")
-        private Double curve = 0D;
+        private Number curve;
         @JsonProperty("l")
-        private Double lateral = 0D;
+        private Number lateral;
     }
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Getter
     @Setter
     @ToString
@@ -64,9 +66,36 @@ public class WellData {
         public int mdStart = 0;
         @JsonProperty("mde")
         public int mdEnd = 0;
-        @JsonProperty("fd")
+        @JsonProperty("len")
         public int footageDrilled = 0;
+    }
 
 
+    @Getter
+    @Setter
+    @ToString
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class SectionDataDirection {
+        @JsonProperty("sec")
+        private SectionDirection section = new SectionDirection();
+    }
+
+    @Getter
+    @Setter
+    @ToString
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class SectionDirection {
+        @JsonProperty("a")
+        private String all  = null;
+        @JsonProperty("s")
+        private String surface = null ;
+        @JsonProperty("i")
+        private String intermediate = null ;
+        @JsonProperty("c")
+        private String curve = null;
+        @JsonProperty("l")
+        private String lateral = null;
     }
 }
