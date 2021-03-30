@@ -152,7 +152,10 @@ public class WellsCoordinatesService {
         List<WellSurveyPlannedLatLong> wellSurveyDetail = wellsCoordinatesDao.getWellCoordinates();
         wellSurveyDetail.forEach(wellSurvey -> {
             try {
-                WellCoordinatesResponseV2 wellCoordinatesResponse = latLngMap.getOrDefault(wellSurvey.getUid(), new WellCoordinatesResponseV2());
+                WellCoordinatesResponseV2 wellCoordinatesResponse = latLngMap.get(wellSurvey.getUid());
+                if(null == wellCoordinatesResponse) {
+                    return;
+                }
                 if (wellCoordinatesResponse.getUid() == null) {
                     wellCoordinatesResponse.setUid(wellSurvey.getUid());
                 }
