@@ -286,7 +286,7 @@ public class WellsCoordinatesService {
         }
     }
     private static Double dataConvert(Double value){
-            return null != value ? BigDecimal.valueOf(value).setScale(1, RoundingMode.HALF_UP).doubleValue() : 0;
+            return null != value ? BigDecimal.valueOf(value).setScale(1, RoundingMode.HALF_UP).doubleValue() : null;
     }
     private static Double dataConvertTwoDecimal(Double value){
             return  null != value && value >0 ?  Math.round(value * 100.0) / 100.0 : null;
