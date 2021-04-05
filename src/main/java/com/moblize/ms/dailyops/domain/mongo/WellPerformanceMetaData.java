@@ -31,6 +31,7 @@ public class WellPerformanceMetaData implements Serializable {
     private Map<String, Number> ropMetaData = new HashMap<>();
     private Map<String, List<DayVsDepth>> dvdMetaBySection = new HashMap<>();
     private Long dayVsDepthFetchedUntilTime = 0L;
+    private Long dayVsDepthFetchedUntilTimeNew = 0L;
 
     @JsonIgnore
     private LocalDateTime addedAt;
