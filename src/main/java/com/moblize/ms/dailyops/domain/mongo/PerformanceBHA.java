@@ -65,6 +65,7 @@ public class PerformanceBHA {
         public PerformanceROP.RopType slidePercentage = new PerformanceROP.RopType();
         public PerformanceROP.RopType footageDrilled = new PerformanceROP.RopType();
         private BySection avgDLSBySection = new BySection();
+        private BySection avgMYBySection = new BySection();
         private PerformanceWell.SectionDirection avgDirection = new PerformanceWell.SectionDirection();
         private BySection avgDirectionAngle = new BySection();
         //Below field will be deprecated
