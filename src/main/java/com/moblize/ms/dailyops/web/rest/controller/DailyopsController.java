@@ -33,6 +33,12 @@ public class DailyopsController {
     @Autowired
     private PerformanceWellService performanceWellService;
 
+    @Autowired
+    private AnalyticsWellMetaDataService analyticsWellMetaDataService;
+
+    @Autowired
+    private TrueROPDataService trueROPDataService;
+
 
     @Transactional(readOnly = true)
     @GetMapping("/api/v1/getWellCoordinates")
@@ -299,4 +305,26 @@ public class DailyopsController {
     public ResponseDTO updatePerformanceWell(@Valid @RequestBody PerformanceWell performanceWell) {
         return ResponseDTO.complete(performanceWellService.updatePerformanceWell(performanceWell));
     }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/getLastProcessUpToTime/{wellUid}")
+    public Long getLastProcessUpTo(@PathVariable String wellUid, HttpServletResponse response) {
+        if (wellUid == null || wellUid.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return null;
+        }
+        return analyticsWellMetaDataService.getLastProcessUpTo(wellUid);
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/getLastProcessROPTime/{wellUid}")
+    public Long getLastProcessROPTime(@PathVariable String wellUid, HttpServletResponse response) {
+        if (wellUid == null || wellUid.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return null;
+        }
+        return trueROPDataService.getLastProcessUpTo(wellUid);
+    }
+
+
 }

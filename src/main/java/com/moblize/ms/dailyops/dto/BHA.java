@@ -27,9 +27,9 @@ public class BHA {
     public List<String> sections = new ArrayList<>();
     @JsonProperty("aRop")
     public RopType avgRop ;
-    @JsonProperty("sRop")
-    public RopType rotatingROP ;
     @JsonProperty("rRop")
+    public RopType rotatingROP ;
+    @JsonProperty("sRop")
     public RopType slidingROP ;
     @JsonProperty("eRop")
     public RopType effectiveROP;
