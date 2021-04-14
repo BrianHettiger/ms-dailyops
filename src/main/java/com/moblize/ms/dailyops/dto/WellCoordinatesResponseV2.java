@@ -44,6 +44,8 @@ public class WellCoordinatesResponseV2 {
     private ROPs.ROP footageDrilled;
     @JsonProperty("aDls")
     private WellData.SectionData avgDLSBySection;
+    @JsonProperty("mYld")
+    private WellData.SectionData avgMYBySection;
     @JsonProperty("aDirAng")
     private WellData.SectionData avgDirectionAngle;
     @JsonProperty("aDir")

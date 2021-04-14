@@ -28,6 +28,7 @@ public class PerformanceWell {
     private BySection slidingPercentage = new BySection();
     private Map<String, Range> holeSectionRange = new HashMap<>();
     private BySection avgDLSBySection = new BySection();
+    private BySection avgMYBySection = new BySection();
     private SectionDirection avgDirection = new SectionDirection();
     private BySection avgDirectionAngle = new BySection();
     @CreatedDate

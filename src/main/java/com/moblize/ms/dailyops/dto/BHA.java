@@ -39,6 +39,8 @@ public class BHA {
     public RopType footageDrilled;
     @JsonProperty("aDls")
     public RopType avgDLS;
+    @JsonProperty("mYld")
+    public RopType avgMotorYield;
     @JsonProperty("aDirAng")
     public RopType buildWalkCompassAngle;
     @JsonProperty("aDir")

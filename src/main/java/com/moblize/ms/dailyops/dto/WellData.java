@@ -21,6 +21,8 @@ public class WellData {
     private SectionData footagePerDay = new SectionData();
     @JsonProperty("aDls")
     private WellData.SectionData avgDLSBySection;
+    @JsonProperty("mYld")
+    private WellData.SectionData avgMYBySection;
     @JsonProperty("aDirAng")
     private WellData.SectionData avgDirectionAngle;
     @JsonProperty("aDir")
