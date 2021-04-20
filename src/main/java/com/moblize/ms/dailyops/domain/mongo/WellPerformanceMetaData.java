@@ -3,13 +3,16 @@ package com.moblize.ms.dailyops.domain.mongo;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.moblize.ms.dailyops.dto.DayVsDepth;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.persistence.Column;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Data
 @JsonAutoDetect
@@ -21,6 +24,14 @@ public class WellPerformanceMetaData implements Serializable {
 
     private String wellUid;
     private Double processedUntilDepth;
+    private Long ropCalculatedUntilTime = 0L;
+    private Long ropBHACalculatedUntilTime = 0L;
+    private Float bldWlkMeasureDepth = 0f;
+    private Map<String, Number> bldWlkMetaData = new HashMap<>();
+    private Map<String, Number> ropMetaData = new HashMap<>();
+    private Map<String, List<DayVsDepth>> dvdMetaBySection = new HashMap<>();
+    private Long dayVsDepthFetchedUntilTime = 0L;
+    private Long dayVsDepthFetchedUntilTimeNew = 0L;
 
     @JsonIgnore
     private LocalDateTime addedAt;

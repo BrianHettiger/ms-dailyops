@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @Document(collection = "performanceCost")
-@JsonIgnoreProperties(value = { "id", "addedAt", "updatedAt"})
+@JsonIgnoreProperties(value = {"id", "addedAt", "updatedAt"})
 public class PerformanceCost {
 
     @Id
@@ -31,9 +31,9 @@ public class PerformanceCost {
     @Getter
     @Setter
     public static class Cost implements Serializable {
-        public Double afe;
-        public Double perFt;
-        public Double perLatFt;
-        public Double total;
+        public Double afe = null;
+        public Double perFt = null;
+        public Double perLatFt = null;
+        public Double total = null;
     }
 }

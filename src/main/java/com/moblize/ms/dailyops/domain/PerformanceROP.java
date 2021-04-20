@@ -13,26 +13,31 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @Document(collection = "performanceROP")
-@JsonIgnoreProperties(value = { "_id" })
+@JsonIgnoreProperties(value = {"_id"})
 public class PerformanceROP {
 
     private ObjectId _id;
-    public String uid;
-    public AvgROP avgROP;
+    private String uid;
+    private RopType avgROP = new RopType();
+    private RopType rotatingROP = new RopType();
+    private RopType slidingROP = new RopType();
+    private RopType effectiveROP = new RopType();
+    private RopType slidePercentage = new RopType();
+    private RopType footageDrilled = new RopType();
 
     @Getter
     @Setter
-    public static class AvgROP implements Serializable {
-        public Section section;
+    public static class RopType implements Serializable {
+        private Section section = new Section();
     }
 
     @Getter
     @Setter
     public static class Section implements Serializable {
-        public Double all;
-        public Double surface;
-        public Double intermediate;
-        public Double curve;
-        public Double lateral;
+        private Double all = null;
+        private Double surface = null;
+        private Double intermediate = null;
+        private Double curve = null;
+        private Double lateral = null;
     }
 }
