@@ -230,3 +230,8 @@ jhipster:
 # ===================================================================
 
 # application:
+rest:
+  wellformationetl:
+    url: ${api.central.well.formation.base.url}
+    user: ${api.central.well.formation.user}
+    pwd: ${api.central.well.formation.pwd}
