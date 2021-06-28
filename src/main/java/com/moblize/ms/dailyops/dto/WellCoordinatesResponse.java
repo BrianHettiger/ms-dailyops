@@ -20,8 +20,8 @@ public class WellCoordinatesResponse {
     private Location location;
     private ROP avgROP;
     private Cost cost;
-    private List<String> drilledData = new ArrayList<>();
-    private List<String> plannedData = new ArrayList<>();
+    private List<DepthCoordinate> drilledData = new ArrayList<>();
+    private List<DepthCoordinate> plannedData = new ArrayList<>();
     private Integer distinctBHAsUsedCount = 0;
     private String activeRigName;
     @JsonIgnore

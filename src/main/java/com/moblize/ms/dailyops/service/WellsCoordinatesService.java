@@ -117,9 +117,7 @@ public class WellsCoordinatesService {
     public Collection<WellCoordinatesResponseV2> getWellCoordinates(String customer) {
         RemoteCache<String, WellCoordinatesResponseV2> remoteCache = cacheService.getWellCoordinatesCache();
         if(!remoteCache.isEmpty()) {
-            remoteCache.values().forEach(value ->{
-                value.setEntries();
-            });
+            remoteCache.values().forEach(WellCoordinatesResponseV2::setEntries);
             return remoteCache.values();
         }
 
@@ -131,30 +129,26 @@ public class WellsCoordinatesService {
         final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap();
         final Map<String, WellData> wellMap = getWellDataMap();
 
-        mongoWell.forEach(well -> {
-            populateForWell(
-                well,
-                ropByWellUidMap,
-                costByWellUidMap,
-                bhaCountByUidMap,
-                wellMap,
-                latLngMap
-            );
-        });
+        mongoWell.forEach(well -> populateForWell(
+            well,
+            ropByWellUidMap,
+            costByWellUidMap,
+            bhaCountByUidMap,
+            wellMap,
+            latLngMap
+        ));
 
         HashMap<String, Float> drilledWellDepth = new HashMap<>();
         List<WellSurveyPlannedLatLong> wellSurveyDetail = wellsCoordinatesDao.getWellCoordinates();
-        wellSurveyDetail.forEach(wellSurvey -> {
-            populateForSurvey(
-                wellSurvey,
-                drilledWellDepth,
-                latLngMap
-            );
-        });
+        wellSurveyDetail.forEach(wellSurvey -> populateForSurvey(
+            wellSurvey,
+            drilledWellDepth,
+            latLngMap
+        ));
         if(remoteCache.isEmpty()) {
-            latLngMap.values().forEach(value -> {
+            for (WellCoordinatesResponseV2 value : latLngMap.values()) {
                 value.setProtoData();
-            });
+            }
             remoteCache.putAll(latLngMap);
         }
         return latLngMap.values();
@@ -174,19 +168,17 @@ public class WellsCoordinatesService {
             }
             if (wellSurvey.getDrilledData() != null && !wellSurvey.getDrilledData().isEmpty()) {
                 drilledWellDepth.put(wellSurvey.getUid(), Float.valueOf(wellSurvey.getDrilledData().get(wellSurvey.getDrilledData().size() - 1).get("depth").toString()));
-                wellCoordinatesResponse.setDrilledData(wellSurvey.getDrilledData().stream().map(drill -> ((ArrayList<String>) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
+                wellCoordinatesResponse.setDrilledData(wellSurvey.getDrilledData().stream().map(drill -> ((ArrayList<DepthCoordinate>) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
             } else {
                 wellCoordinatesResponse.setDrilledData(Collections.emptyList());
             }
             if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty() && !wellCoordinatesResponse.getStatusWell().equalsIgnoreCase("completed") && wellSurvey.getDrilledData() != null && !wellSurvey.getDrilledData().isEmpty()) {
                 wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData().stream()
-                    .filter(planned -> {
-                        return planned != null && drilledWellDepth.get(wellSurvey.getUid()) != null && planned.get("depth") != null && planned.get("coordinates") != null ? Float.valueOf(planned.get("depth").toString()) >= drilledWellDepth.get(wellSurvey.getUid()) : false;
-                    })
-                    .map(drill -> ((ArrayList<String>) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
-            } else if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty() && (wellSurvey.getDrilledData() == null || wellSurvey.getDrilledData().isEmpty())) {
-                wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData().stream().map(drill -> ((ArrayList<String>) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
-            } else {
+                    .filter(planned -> planned != null && drilledWellDepth.get(wellSurvey.getUid()) != null && planned.get("depth") != null && planned.get("coordinates") != null ? Float.valueOf(planned.get("depth").toString()) >= drilledWellDepth.get(wellSurvey.getUid()) : false)
+                    .map(drill -> ((ArrayList<DepthCoordinate>) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
+            } else if (wellSurvey.getPlannedData() != null && !wellSurvey.getPlannedData().isEmpty() && (wellSurvey.getDrilledData() == null || wellSurvey.getDrilledData().isEmpty()))
+                wellCoordinatesResponse.setPlannedData(wellSurvey.getPlannedData().stream().map(drill -> ((ArrayList<DepthCoordinate>) drill.get("coordinates")).stream().findFirst().get()).collect(Collectors.toList()));
+            else {
                 wellCoordinatesResponse.setPlannedData(Collections.emptyList());
             }
             // set BHAs used count
@@ -223,7 +215,7 @@ public class WellsCoordinatesService {
             }
 
             if (well.getLocation() != null) {
-                Location location = new Location(well.getLocation().getLng().floatValue(), well.getLocation().getLat().floatValue());
+                Location location = new Location(well.getLocation().getLng(), well.getLocation().getLat());
                 wellCoordinatesResponse.setLocation(location);
             } else {
                 wellCoordinatesResponse.getLocation().setLat(0f);
@@ -293,7 +285,7 @@ public class WellsCoordinatesService {
     }
 
     public String loadScript() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         try {
             File file = ResourceUtils.getFile("classpath:mongoscript\\wellboreStickWithROPAndCost");
             FileInputStream fis = new FileInputStream(file);

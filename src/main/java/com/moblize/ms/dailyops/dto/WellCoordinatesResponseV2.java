@@ -73,13 +73,13 @@ public class WellCoordinatesResponseV2 {
     @ProtoField(number = 22)
     BHACount bhaCount;
     @ProtoField(number = 23)
-    List<String> drilledData = new ArrayList<>();
+    List<DepthCoordinate> drilledData = new ArrayList<>();
     @ProtoField(number = 24)
-    List<String> plannedData = new ArrayList<>();
-    @ProtoField(number = 20)
+    List<DepthCoordinate> plannedData = new ArrayList<>();
+    @ProtoField(number = 20, collectionImplementation = ArrayList.class)
     @JsonIgnore
     List<String> rangeDataKeys;
-    @ProtoField(number = 25)
+    @ProtoField(number = 25, collectionImplementation = ArrayList.class)
     @JsonIgnore
     List<RangeData> rangeDataValues;
     public void setProtoData() {
@@ -91,6 +91,8 @@ public class WellCoordinatesResponseV2 {
                 rangeDataValues.add(v);
             });
         }
+        drilledData.forEach(DepthCoordinate::setProtoData);
+        plannedData.forEach(DepthCoordinate::setProtoData);
     }
     public void setEntries() {
         if(holeSectionRange == null && rangeDataKeys != null) {
@@ -99,5 +101,7 @@ public class WellCoordinatesResponseV2 {
                 holeSectionRange.put(rangeDataKeys.get(i), rangeDataValues.get(i));
             }
         }
+        drilledData.forEach(DepthCoordinate::setEntries);
+        plannedData.forEach(DepthCoordinate::setEntries);
     }
 }

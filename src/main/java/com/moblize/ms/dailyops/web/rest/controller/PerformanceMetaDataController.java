@@ -26,8 +26,6 @@ public class PerformanceMetaDataController {
     @Autowired
     private WellsCoordinatesService wellsCoordinatesService;
 
-    @Autowired
-    SimpMessagingTemplate simpMessagingTemplate;
     @Transactional
     @PostMapping("/api/v1/metadata")
     public ResponseDTO save(@Valid @RequestBody WellPerformanceMetaData metaData, HttpServletResponse response) {
