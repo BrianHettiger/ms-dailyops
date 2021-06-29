@@ -15,9 +15,9 @@ import java.io.Serializable;
 public class Location implements Serializable {
 
     @ProtoField(number = 1)
-    Float lng = 0.0f;
+    Double lng = 0.0;
 
     @ProtoField(number = 2)
-    Float lat = 0.0f;
+    Double lat = 0.0;
 
 }

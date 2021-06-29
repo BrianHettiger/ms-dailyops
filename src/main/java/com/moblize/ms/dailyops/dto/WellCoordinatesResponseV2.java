@@ -72,10 +72,14 @@ public class WellCoordinatesResponseV2 {
     Cost cost;
     @ProtoField(number = 22)
     BHACount bhaCount;
+    List<List<Double>> drilledData = new ArrayList<>();
+    List<List<Double>> plannedData = new ArrayList<>();
+    @JsonIgnore
     @ProtoField(number = 23)
-    List<DepthCoordinate> drilledData = new ArrayList<>();
+    DepthCoordinate protoDrilledData = new DepthCoordinate();
+    @JsonIgnore
     @ProtoField(number = 24)
-    List<DepthCoordinate> plannedData = new ArrayList<>();
+    DepthCoordinate protoPlannedData = new DepthCoordinate();
     @ProtoField(number = 20, collectionImplementation = ArrayList.class)
     @JsonIgnore
     List<String> rangeDataKeys;
@@ -91,8 +95,8 @@ public class WellCoordinatesResponseV2 {
                 rangeDataValues.add(v);
             });
         }
-        drilledData.forEach(DepthCoordinate::setProtoData);
-        plannedData.forEach(DepthCoordinate::setProtoData);
+        setProtoCoordData(drilledData, protoDrilledData);
+        setProtoCoordData(plannedData, protoPlannedData);
     }
     public void setEntries() {
         if(holeSectionRange == null && rangeDataKeys != null) {
@@ -101,7 +105,29 @@ public class WellCoordinatesResponseV2 {
                 holeSectionRange.put(rangeDataKeys.get(i), rangeDataValues.get(i));
             }
         }
-        drilledData.forEach(DepthCoordinate::setEntries);
-        plannedData.forEach(DepthCoordinate::setEntries);
+        setEntriesCoord(protoDrilledData, drilledData);
+        setEntriesCoord(protoPlannedData, plannedData);
+    }
+    public void setProtoCoordData(List<List<Double>> input, DepthCoordinate output) {
+        if(output.getProtoCoordiantes().isEmpty() && !input.isEmpty()) {
+            input.forEach((values) -> {
+                if(!values.isEmpty()) {
+                    Location location = new Location();
+                    location.setLat(values.get(0));
+                    location.setLng(values.get(1));
+                    output.getProtoCoordiantes().add(location);
+                }
+            });
+        }
+    }
+    public void setEntriesCoord(DepthCoordinate input, List<List<Double>> output) {
+        if(output.isEmpty() && !input.getProtoCoordiantes().isEmpty()) {
+            input.getProtoCoordiantes().forEach(location ->{
+                List<Double> coordinate = new ArrayList<>();
+                coordinate.add(location.getLat());
+                coordinate.add(location.getLng());
+                output.add(coordinate);
+            });
+        }
     }
 }
