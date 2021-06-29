@@ -32,7 +32,6 @@ public class CacheService {
     @Value("${CODE}")
     String COMPANY_NAME;
     @EventListener(ApplicationReadyEvent.class)
-    @Async
     public void subscribe() {
         wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
