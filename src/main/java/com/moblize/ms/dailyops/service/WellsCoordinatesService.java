@@ -125,7 +125,7 @@ public class WellsCoordinatesService {
             return latLngMap.values();
         }
 
-        List<MongoWell> mongoWell = mongoWellRepository.findAllByCustomerAndIsHidden(customer, false);
+        List<MongoWell> mongoWell = cacheService.getMongoWellCache().values().stream().collect(Collectors.toList());
         final Map<String, ROPs> ropByWellUidMap = getWellROPsMap();
         final Map<String, Cost> costByWellUidMap = getWellCostMap();
         final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap();
