@@ -20,8 +20,6 @@ public class TrueRopCacheListener {
     private MongoWellRepository mongoWellRepository;
     @Autowired
     RestClientService restClientService;
-    @Autowired
-    private ApplicationEventPublisher applicationEventPublisher;
     @ClientCacheEntryCreated
     public void entryCreated(ClientCacheEntryCreatedEvent<String> event) {
         updateData(event.getKey());
