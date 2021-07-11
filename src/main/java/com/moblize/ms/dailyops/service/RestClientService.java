@@ -32,7 +32,7 @@ public class RestClientService {
         final Long startIndex = System.currentTimeMillis();
         final String resetUrl = wellformationetlUrl + processPerformanceMapPath;
         final HttpEntity<MongoWell> request = new HttpEntity<MongoWell>(well, createHeaders(wellformationetlUser, wellformationetlPassword));
-        return restTemplate.exchange(resetUrl, HttpMethod.POST, request, String.class);
+        return restTemplate.exchange(resetUrl, HttpMethod.POST, request, MongoWell.class);
     }
 
     private HttpHeaders createHeaders(String username, String password) {
