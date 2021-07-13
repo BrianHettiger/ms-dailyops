@@ -110,6 +110,7 @@ public class WellsCoordinatesService {
             drilledWellDepth,
             latLngMap
         );
+        latLngMap.get(well.getUid()).setProtoData();
         cacheService.getWellCoordinatesCache()
             .put(well.getUid(),latLngMap.get(well.getUid()));
         return latLngMap.values();
