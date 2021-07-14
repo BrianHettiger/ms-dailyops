@@ -2,12 +2,11 @@ package com.moblize.ms.dailyops.web.rest.controller;
 
 import com.moblize.ms.dailyops.domain.PerformanceROP;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
+import com.moblize.ms.dailyops.domain.mongo.BCWDepthLog;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
-import com.moblize.ms.dailyops.dto.BHA;
-import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
-import com.moblize.ms.dailyops.dto.ResponseDTO;
+import com.moblize.ms.dailyops.dto.*;
 import com.moblize.ms.dailyops.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +38,9 @@ public class DailyopsController {
 
     @Autowired
     private TrueROPDataService trueROPDataService;
+
+    @Autowired
+    private BCWDepthLogPlotService bcwDepthLogPlotService;
 
 
     @Transactional(readOnly = true)
@@ -325,6 +328,20 @@ public class DailyopsController {
         }
         return trueROPDataService.getLastProcessUpTo(wellUid);
     }
+
+
+    @Transactional(readOnly = true)
+    @PostMapping("/api/v1/getBCWDepthPlotLog")
+    public List<DepthLogReponse> getBCWDepthPlotLog(@RequestBody BCWDepthPlotDTO bcwDepthPlotDTO, HttpServletResponse response) {
+        if (bcwDepthPlotDTO == null || bcwDepthPlotDTO.getPrimaryWellUid() == null
+            || bcwDepthPlotDTO.getOffsetWellUids() == null || bcwDepthPlotDTO.getOffsetWellUids().isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+        } else {
+            return bcwDepthLogPlotService.getBCWDepthLog(bcwDepthPlotDTO);
+        }
+            return Collections.emptyList();
+        }
 
 
 }

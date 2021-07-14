@@ -230,3 +230,16 @@ jhipster:
 # ===================================================================
 
 # application:
+api:
+  central:
+    nodedrilling:
+      base:
+        url: http://172.31.3.63:5006/api/v1/log
+      pwd: api123!@#
+      user: api@moblize.com
+  defaulttenant:
+    nodedrilling:
+      base:
+        url: http://172.31.3.63:5006/api/v1/
+      pwd: api123!@#
+      user: api@moblize.com
