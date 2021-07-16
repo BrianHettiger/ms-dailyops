@@ -2,14 +2,13 @@ package com.moblize.ms.dailyops.web.rest.controller;
 
 import com.moblize.ms.dailyops.domain.PerformanceROP;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
-import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
-import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
-import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
+import com.moblize.ms.dailyops.domain.mongo.*;
 import com.moblize.ms.dailyops.dto.BHA;
 import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
 import com.moblize.ms.dailyops.dto.ResponseDTO;
 import com.moblize.ms.dailyops.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,6 +37,9 @@ public class DailyopsController {
 
     @Autowired
     private TrueROPDataService trueROPDataService;
+
+    @Autowired
+    private TargetWindowDPVAService targetWindowDPVAService;
 
 
     @Transactional(readOnly = true)
@@ -327,4 +329,15 @@ public class DailyopsController {
     }
 
 
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/getTargetWindow/{wellUid}")
+    public TargetWindowDPVA getTargetWindow(@PathVariable String wellUid) {
+        return targetWindowDPVAService.getTargetWindowDetail(wellUid);
+    }
+
+    @Transactional(readOnly = true)
+    @PostMapping("/api/v1/saveTargetWindow")
+    public TargetWindowDPVA saveTargetWindow(@RequestBody TargetWindowDPVA targetWindowDPVA) {
+        return targetWindowDPVAService.saveTargetWindowDetail(targetWindowDPVA);
+    }
 }
