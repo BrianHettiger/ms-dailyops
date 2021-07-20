@@ -331,8 +331,13 @@ public class DailyopsController {
 
     @Transactional(readOnly = true)
     @GetMapping("/api/v1/getTargetWindow/{wellUid}")
-    public TargetWindowDPVA getTargetWindow(@PathVariable String wellUid) {
-        return targetWindowDPVAService.getTargetWindowDetail(wellUid);
+    public TargetWindowDPVA getTargetWindow(@PathVariable String wellUid, HttpServletResponse response) {
+        TargetWindowDPVA targetWindowDPVA =  targetWindowDPVAService.getTargetWindowDetail(wellUid);
+        if (targetWindowDPVA == null) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return null;
+        }
+        return targetWindowDPVA;
     }
 
     @Transactional(readOnly = true)

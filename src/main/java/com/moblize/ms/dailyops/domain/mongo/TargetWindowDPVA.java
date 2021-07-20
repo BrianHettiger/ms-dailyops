@@ -1,17 +1,19 @@
 
 package com.moblize.ms.dailyops.domain.mongo;
 
-import java.util.List;
-import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
@@ -21,6 +23,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @JsonIgnoreProperties(value = {"id", "addedAt", "updatedAt"})
 public class TargetWindowDPVA {
 
+    @Id
+    private String id;
     @JsonProperty("uid")
     public String uid;
     @JsonProperty("isEnable")
@@ -31,6 +35,10 @@ public class TargetWindowDPVA {
     public Basic basic;
     @JsonProperty("advance")
     public List<Advance> advance = null;
+    @CreatedDate
+    private LocalDateTime addedAt;
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 
 
     @Getter
