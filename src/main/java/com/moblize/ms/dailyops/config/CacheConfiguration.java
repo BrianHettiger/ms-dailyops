@@ -12,6 +12,7 @@ import org.infinispan.client.hotrod.marshall.MarshallerUtil;
 import org.infinispan.protostream.SerializationContext;
 import org.infinispan.protostream.annotations.ProtoSchemaBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
@@ -41,6 +42,15 @@ public class CacheConfiguration {
 
     private final DiscoveryClient discoveryClient;
 
+    @Value("${infinispan.server}")
+    private String server;
+    @Value("${infinispan.port}")
+    private Integer port;
+    @Value("${infinispan.username}")
+    private String username;
+    @Value("${infinispan.password}")
+    private String password;
+
     private Registration registration;
     public CacheConfiguration(Environment env, ServerProperties serverProperties, DiscoveryClient discoveryClient) {
         this.env = env;
@@ -56,8 +66,8 @@ public class CacheConfiguration {
     @Bean
     public RemoteCacheManager remoteCacheManager() throws IOException {
         ConfigurationBuilder builder = new ConfigurationBuilder();
-        builder.addServer().host("10.200.0.36").port(11222);
-        builder.security().authentication().saslMechanism("DIGEST-MD5").username("development1").password("moblize-development");
+        builder.addServer().host(server).port(port);
+        builder.security().authentication().saslMechanism("DIGEST-MD5").username(username).password(password);
         RemoteCacheManager cacheManager = new RemoteCacheManager(builder.build());
         SerializationContext ctx = MarshallerUtil.getSerializationContext(cacheManager);
         ProtoSchemaBuilder protoSchemaBuilder = new ProtoSchemaBuilder();
