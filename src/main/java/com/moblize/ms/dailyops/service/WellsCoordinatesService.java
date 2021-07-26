@@ -648,7 +648,9 @@ public class WellsCoordinatesService {
     public void sendWellUpdates(Set<String> wells) {
         Map<String, MongoWell> mongoWells =cacheService.getMongoWellCache().getAll(wells);
         mongoWells.forEach((uid, well) -> {
+            log.info("send update for: {}", uid);
             simpMessagingTemplate.convertAndSend("/topic/wellActivity", getWellCoordinates(well));
+            log.info("sent update for: {}", uid);
         });
     }
 }
