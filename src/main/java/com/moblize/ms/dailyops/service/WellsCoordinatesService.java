@@ -52,9 +52,14 @@ public class WellsCoordinatesService {
     @Autowired
     @Lazy
     private CacheService cacheService;
-    public Map<String, List<BHA>> getWellBHAs() {
+    public Map<String, List<BHA>> getWellBHAs(String wellUid) {
 
-        final List<PerformanceBHA> bhaList = bhaRepository.findAll();
+        List<PerformanceBHA> bhaList;
+        if(wellUid != null) {
+            bhaList = bhaRepository.findByUid(wellUid);
+        } else {
+            bhaList = bhaRepository.findAll();
+        }
         return bhaList.stream().filter(obj -> null != obj.getUid())
             .collect(Collectors.toMap(
                 PerformanceBHA::getUid,
