@@ -32,6 +32,7 @@ public class TrueRopCacheListener {
     public void updateData(String key) {
         String wellUid = key;
         MongoWell mongoWell = mongoWellRepository.findByUid(key);
+        log.info("processWell {}", wellUid);
         restClientService.
             processWell(mongoWell);
     }
