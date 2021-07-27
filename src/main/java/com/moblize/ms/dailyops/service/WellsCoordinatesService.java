@@ -117,7 +117,7 @@ public class WellsCoordinatesService {
         );
         latLngMap.get(well.getUid()).setProtoData();
         cacheService.getWellCoordinatesCache()
-            .put(well.getUid(),latLngMap.get(well.getUid()));
+            .replace(well.getUid(),latLngMap.get(well.getUid()));
         return latLngMap.values();
     }
     public Collection<WellCoordinatesResponseV2> getWellCoordinates(String customer) {
