@@ -1,13 +1,10 @@
 package com.moblize.ms.dailyops.web.rest.controller;
 
-import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.domain.mongo.WellPerformanceMetaData;
 import com.moblize.ms.dailyops.dto.ResponseDTO;
 import com.moblize.ms.dailyops.service.WellPerformanceMetaDataService;
 import com.moblize.ms.dailyops.service.WellsCoordinatesService;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
