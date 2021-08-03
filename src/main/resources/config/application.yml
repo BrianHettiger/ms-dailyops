@@ -230,3 +230,14 @@ jhipster:
 # ===================================================================
 
 # application:
+rest:
+  wellformationetl:
+    url: ${api.central.well.formation.base.url}
+    user: ${api.central.well.formation.user}
+    pwd: ${api.central.well.formation.pwd}
+
+infinispan:
+  server: ${app.infinispan.server}
+  port: ${app.infinispan.port}
+  username: ${customerconfig.${CODE}.infinispan.username}
+  password: ${customerconfig.${CODE}.infinispan.password}

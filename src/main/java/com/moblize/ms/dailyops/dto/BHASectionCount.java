@@ -1,39 +1,29 @@
-
 package com.moblize.ms.dailyops.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.infinispan.protostream.annotations.ProtoField;
 
-@JsonPropertyOrder({
-    "a",
-    "s",
-    "i",
-    "c",
-    "l"
-})
+import java.io.Serializable;
+
 @Getter
 @Setter
-@ToString
-@AllArgsConstructor
-@NoArgsConstructor
-public class Section {
+public class BHASectionCount implements Serializable {
 
     @ProtoField(number = 1)
     @JsonProperty("a")
-    public Double all = null;
+    Integer all;
     @ProtoField(number = 2)
     @JsonProperty("s")
-    public Double surface = null;
+    Integer surface;
     @ProtoField(number = 3)
     @JsonProperty("i")
-    public Double intermediate = null;
+    Integer intermediate;
     @ProtoField(number = 4)
     @JsonProperty("c")
-    public Double curve = null;
+    Integer curve;
     @ProtoField(number = 5)
     @JsonProperty("l")
-    public Double lateral = null;
-
+    public Integer lateral;
 }

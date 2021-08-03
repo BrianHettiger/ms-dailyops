@@ -70,9 +70,12 @@ public class DailyopsController {
 
     @Transactional(readOnly = true)
     @GetMapping("/api/v1/getWellBHAs")
-    public Map<String, List<BHA>> getWellBHAs(HttpServletResponse response) {
+    public Map<String, List<BHA>> getWellBHAs(
+        @RequestParam(required = false) String wellUid,
+        HttpServletResponse response
+    ) {
 
-            return wellsCoordinatesService.getWellBHAs();
+            return wellsCoordinatesService.getWellBHAs(wellUid);
 
     }
 
