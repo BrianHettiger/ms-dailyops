@@ -6,9 +6,10 @@ import com.moblize.ms.dailyops.domain.mongo.*;
 import com.moblize.ms.dailyops.dto.BHA;
 import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
 import com.moblize.ms.dailyops.dto.ResponseDTO;
+import com.moblize.ms.dailyops.dto.TortuosityRequestDTO;
 import com.moblize.ms.dailyops.service.*;
+import com.moblize.ms.dailyops.service.dto.SurveyRecord;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +41,9 @@ public class DailyopsController {
 
     @Autowired
     private TargetWindowDPVAService targetWindowDPVAService;
+
+    @Autowired
+    private TortuosityService tortuosityService;
 
 
     @Transactional(readOnly = true)
@@ -345,4 +349,12 @@ public class DailyopsController {
     public TargetWindowDPVA saveTargetWindow(@RequestBody TargetWindowDPVA targetWindowDPVA) {
         return targetWindowDPVAService.saveTargetWindowDetail(targetWindowDPVA);
     }
+
+    @Transactional(readOnly =true)
+    @PostMapping("/api/v1/getTortuosityIndex")
+    public List<SurveyRecord> getTortuosityIndex(@RequestBody TortuosityRequestDTO tortuosityRequestDTO){
+       return  tortuosityService.getTortuosityIndex(tortuosityRequestDTO);
+
+    }
+
 }
