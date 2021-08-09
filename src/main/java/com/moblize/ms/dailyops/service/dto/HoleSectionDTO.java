@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.infinispan.protostream.annotations.ProtoEnumValue;
 
 @Getter
 @Setter
@@ -19,6 +20,7 @@ public class HoleSectionDTO {
         LATERAL("LATERAL"),
         UNKNOWN("UNKNOWN");
 
+        @ProtoEnumValue(number = 1)
         private String holeSectionType;
 
         HoleSectionType(String type) {

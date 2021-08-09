@@ -3,6 +3,8 @@ package com.moblize.ms.dailyops.service;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.dto.TrueRopCache;
 import com.moblize.ms.dailyops.dto.WellCoordinatesResponseV2;
+import com.moblize.ms.dailyops.service.dto.SurveyCacheDTO;
+import com.moblize.ms.dailyops.service.dto.WellPlanCacheDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.infinispan.client.hotrod.DefaultTemplate;
 import org.infinispan.client.hotrod.RemoteCache;
@@ -15,18 +17,19 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 
 @Service
 @Slf4j
 public class CacheService {
     @Autowired
-    RemoteCacheManager cacheManager;
+    private RemoteCacheManager cacheManager;
     @Autowired
     @Lazy
-    WellsCoordinatesService wellsCoordinatesService;
+    private WellsCoordinatesService wellsCoordinatesService;
     @Autowired
-    TrueRopCacheListener trueRopCacheListener;
+    private TrueRopCacheListener trueRopCacheListener;
+    @Autowired
+    private SurveyDataCacheListener surveyDataCacheListener;
 
     @Value("${CODE}")
     String COMPANY_NAME;
@@ -35,6 +38,7 @@ public class CacheService {
     public void subscribe() {
         wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
+        getSurveyDataCache().addClientListener(surveyDataCacheListener);
     }
 
 
@@ -53,5 +57,16 @@ public class CacheService {
         RemoteCache<String, WellCoordinatesResponseV2> cache = cacheManager.administration()
             .getOrCreateCache(COMPANY_NAME + "_WellCoordinates", DefaultTemplate.DIST_ASYNC);
         return cache;
+    }
+
+    public RemoteCache<String, SurveyCacheDTO> getSurveyDataCache() {
+        RemoteCache<String, SurveyCacheDTO> cache = cacheManager.administration()
+            .getOrCreateCache(COMPANY_NAME + "_wellSurveyData", DefaultTemplate.DIST_ASYNC);
+        return  cache;
+    }
+    public RemoteCache<String, WellPlanCacheDTO> getPlanDataCache() {
+        RemoteCache<String, WellPlanCacheDTO> cache = cacheManager.administration()
+            .getOrCreateCache(COMPANY_NAME + "_wellPlanData", DefaultTemplate.DIST_ASYNC);
+        return  cache;
     }
 }

@@ -1,9 +1,9 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
+import com.moblize.ms.dailyops.service.dto.ProcessPerFeetRequestDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -25,6 +25,16 @@ public class RestClientService {
     @Value("${rest.wellformationetl.pwd}")
     private String wellformationetlPassword;
     private String processPerformanceMapPath = "performance/well";
+
+    @Value("${rest.analytics.service.url}")
+    private String analyticsServiceUrl;
+    @Value("${rest.analytics.service.user}")
+    private String analyticsServiceUser;
+    @Value("${rest.analytics.service.pwd}")
+    private String analyticsServicePassword;
+    @Value("${rest.analytics.service.processPerFeetData}")
+    private String processPerFeetData;
+
     @Value("${CODE}")
     private String customer;
 
@@ -43,5 +53,12 @@ public class RestClientService {
             set("Authorization", authHeader);
             set("Content-Type", "application/json");
         }};
+    }
+
+    public ResponseEntity processPerFeetData(ProcessPerFeetRequestDTO processPerFeetRequestDTO){
+       final Long startIndex = System.currentTimeMillis();
+        final String resetUrl = analyticsServiceUrl + processPerFeetData;
+        final HttpEntity<ProcessPerFeetRequestDTO> request = new HttpEntity<ProcessPerFeetRequestDTO>(processPerFeetRequestDTO, createHeaders(analyticsServiceUser, analyticsServicePassword));
+        return restTemplate.exchange(resetUrl, HttpMethod.POST, request, MongoWell.class);
     }
 }

@@ -235,6 +235,11 @@ rest:
     url: ${api.central.well.formation.base.url}
     user: ${api.central.well.formation.user}
     pwd: ${api.central.well.formation.pwd}
+  analytics.service:
+    url: ${api.central.ms.analytics.service.base.url}
+    user: ${api.central.ms.analytics.service.user}
+    pwd: ${api.central.ms.analytics.service.pwd}
+    processPerFeetData: "api/v1/processPerFeetData"
 
 infinispan:
   server: ${app.infinispan.server}

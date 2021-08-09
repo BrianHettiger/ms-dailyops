@@ -4,6 +4,7 @@ package com.moblize.ms.dailyops.domain.mongo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,6 +20,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Document(collection = "targetWindowDPVA")
 @JsonIgnoreProperties(value = {"id", "addedAt", "updatedAt"})
 public class TargetWindowDPVA {
@@ -43,6 +45,8 @@ public class TargetWindowDPVA {
 
     @Getter
     @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Advance {
         public Double targetVS;
         public Double tvdTop;
@@ -55,18 +59,24 @@ public class TargetWindowDPVA {
 
     @Getter
     @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static  class Basic {
         public SectionView sectionView;
         public PlanView planView;
     }
     @Getter
     @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static  class PlanView {
         public Integer left;
         public Integer right;
     }
     @Getter
     @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static  class SectionView {
         public Integer above;
         public Integer below;

@@ -337,8 +337,8 @@ public class DailyopsController {
 
 
     @Transactional(readOnly = true)
-    @GetMapping("/api/v1/getTargetWindow/{wellUid}")
-    public TargetWindowDPVA getTargetWindow(@PathVariable String wellUid, HttpServletResponse response) {
+    @GetMapping("/api/v1/getTargetWindow/{wellUid}/{wellStatus}")
+    public TargetWindowDPVA getTargetWindow(@PathVariable String wellUid, @PathVariable String wellStatus, HttpServletResponse response) {
         TargetWindowDPVA targetWindowDPVA =  targetWindowDPVAService.getTargetWindowDetail(wellUid);
         if (targetWindowDPVA == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -348,9 +348,9 @@ public class DailyopsController {
     }
 
     @Transactional(readOnly = true)
-    @PostMapping("/api/v1/saveTargetWindow")
-    public TargetWindowDPVA saveTargetWindow(@RequestBody TargetWindowDPVA targetWindowDPVA) {
-        return targetWindowDPVAService.saveTargetWindowDetail(targetWindowDPVA);
+    @PostMapping("/api/v1/saveTargetWindow/{wellStatus}")
+    public TargetWindowDPVA saveTargetWindow(@RequestBody TargetWindowDPVA targetWindowDPVA, @PathVariable String wellStatus) {
+        return targetWindowDPVAService.saveTargetWindowDetail(targetWindowDPVA, wellStatus);
     }
 
     @Transactional(readOnly =true)

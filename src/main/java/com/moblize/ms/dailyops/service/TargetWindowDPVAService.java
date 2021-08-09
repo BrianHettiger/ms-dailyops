@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+
 @Service
 @Slf4j
 public class TargetWindowDPVAService {
@@ -17,12 +19,29 @@ public class TargetWindowDPVAService {
     private NotifyDPVAService notifyDPVAService;
 
 
-
     public TargetWindowDPVA getTargetWindowDetail(String wellUID) {
-        return targetWindowDPVARepository.findFirstByUid(wellUID);
+        TargetWindowDPVA targetWindowDPVA = null;
+        try {
+            targetWindowDPVA = targetWindowDPVARepository.findFirstByUid(wellUID);
+            if (targetWindowDPVA == null) {
+                targetWindowDPVA = new TargetWindowDPVA();
+                targetWindowDPVA.setUid(wellUID);
+                targetWindowDPVA.setIsEnable(false);
+                targetWindowDPVA.setSelectedMode("basic");
+                TargetWindowDPVA.SectionView section = new TargetWindowDPVA.SectionView(15, 15);
+                TargetWindowDPVA.PlanView plan = new TargetWindowDPVA.PlanView(30, 30);
+                TargetWindowDPVA.Basic basic = new TargetWindowDPVA.Basic(section, plan);
+                targetWindowDPVA.setBasic(basic);
+                targetWindowDPVA.setAdvance(new ArrayList<>());
+                targetWindowDPVA = targetWindowDPVARepository.save(targetWindowDPVA);
+            }
+        } catch (Exception e) {
+            log.error("Error occur in getTargetWindowDetail", e);
+        }
+        return targetWindowDPVA;
     }
 
-    public TargetWindowDPVA saveTargetWindowDetail(TargetWindowDPVA targetWindow) {
+    public TargetWindowDPVA saveTargetWindowDetail(TargetWindowDPVA targetWindow, String wellStatus) {
         TargetWindowDPVA Obj = null;
         try {
             TargetWindowDPVA targetWindowDB = getTargetWindowDetail(targetWindow.getUid());
@@ -35,9 +54,9 @@ public class TargetWindowDPVAService {
             } else {
                 Obj = targetWindowDPVARepository.save(targetWindow);
             }
-            notifyDPVAService.notifyDPVAJob(targetWindow);
+            notifyDPVAService.notifyDPVAJob(targetWindow, wellStatus);
         } catch (Exception e) {
-            log.error("Error occure in saveTarget window service",e);
+            log.error("Error occur in saveTarget window service", e);
         }
         return Obj;
     }
