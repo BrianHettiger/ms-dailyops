@@ -21,9 +21,6 @@ public class TrueRopCacheListener {
     private MongoWellRepository mongoWellRepository;
     @Autowired
     RestClientService restClientService;
-    @Autowired
-    @Lazy
-    CacheService cacheService;
     @ClientCacheEntryCreated
     public void entryCreated(ClientCacheEntryCreatedEvent<String> event) {
         updateData(event.getKey());
@@ -36,7 +33,6 @@ public class TrueRopCacheListener {
     public void updateData(String key) {
         String wellUid = key;
         MongoWell mongoWell = mongoWellRepository.findByUid(key);
-        cacheService.getMongoWellCache().put(key, mongoWell);
         log.info("processWell {}", wellUid);
         restClientService.
             processWell(mongoWell);
