@@ -12,29 +12,29 @@ import org.infinispan.protostream.annotations.ProtoField;
 @Data
 public class WellPlan {
     @ProtoField(number = 1)
-    private Long id;
+    Long id;
     @ProtoField(number = 2)
-    private String wellUid;
+    String wellUid;
     @ProtoField(number = 3)
-    private String wellboreUid;
+    String wellboreUid;
     @ProtoField(number = 4)
-    private double measuredDepth;
+    Double measuredDepth;
     @ProtoField(number = 5)
-    private double inclination;
+    Double inclination;
     @ProtoField(number = 6)
-    private double azimuth;
+    Double azimuth;
     @ProtoField(number = 7)
-    private double trueVerticalDepth;
+    Double trueVerticalDepth;
     @ProtoField(number = 8)
-    private double verticalSection;
+    Double verticalSection;
     @ProtoField(number = 9)
-    private double northSouth;
+    Double northSouth;
     @ProtoField(number = 10)
-    private double eastWest;
+    Double eastWest;
     @ProtoField(number = 11)
-    private double dogLeg;
+    Double dogLeg;
     @ProtoField(number = 12)
-    private double buildRate;
+    Double buildRate;
     @ProtoField(number = 13)
-    private double turnRate;
+    Double turnRate;
 }

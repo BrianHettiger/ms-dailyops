@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
@@ -57,8 +58,15 @@ public class RestClientService {
 
     public ResponseEntity processPerFeetData(ProcessPerFeetRequestDTO processPerFeetRequestDTO){
        final Long startIndex = System.currentTimeMillis();
-        final String resetUrl = analyticsServiceUrl + processPerFeetData;
-        final HttpEntity<ProcessPerFeetRequestDTO> request = new HttpEntity<ProcessPerFeetRequestDTO>(processPerFeetRequestDTO, createHeaders(analyticsServiceUser, analyticsServicePassword));
-        return restTemplate.exchange(resetUrl, HttpMethod.POST, request, MongoWell.class);
+        ResponseEntity responseEntity = null;
+        try {
+            final String resetUrl = analyticsServiceUrl + processPerFeetData;
+            final HttpEntity<ProcessPerFeetRequestDTO> request = new HttpEntity<ProcessPerFeetRequestDTO>(processPerFeetRequestDTO, createHeaders(analyticsServiceUser, analyticsServicePassword));
+            responseEntity = restTemplate.exchange(resetUrl, HttpMethod.POST, request, MongoWell.class);
+            log.info("Process per feet data API took {}",System.currentTimeMillis()-startIndex);
+        } catch (RestClientException e) {
+            log.error("Error occur in processPerFeetData API call ", e);
+        }
+        return responseEntity;
     }
 }

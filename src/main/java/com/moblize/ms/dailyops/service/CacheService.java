@@ -30,6 +30,8 @@ public class CacheService {
     private TrueRopCacheListener trueRopCacheListener;
     @Autowired
     private SurveyDataCacheListener surveyDataCacheListener;
+    @Autowired
+    private WellPlanDataCacheListener wellPlanDataCacheListener;
 
     @Value("${CODE}")
     String COMPANY_NAME;
@@ -39,6 +41,7 @@ public class CacheService {
         wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
         getSurveyDataCache().addClientListener(surveyDataCacheListener);
+        getPlanDataCache().addClientListener(wellPlanDataCacheListener);
     }
 
 
