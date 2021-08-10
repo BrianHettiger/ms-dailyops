@@ -17,7 +17,7 @@ import java.util.List;
 public class ProcessPerFeetRequestDTO {
 
     private TargetWindowDPVA targetWindow;
-    private List<SurveyRecord> sureveyData;
+    private List<SurveyRecord> surveyData;
     private List<WellPlan> plannedData;
     private String dataUpdateFor;
 }
