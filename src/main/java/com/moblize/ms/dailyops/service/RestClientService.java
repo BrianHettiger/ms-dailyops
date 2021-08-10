@@ -24,14 +24,14 @@ public class RestClientService {
     private String wellformationetlUser;
     @Value("${rest.wellformationetl.pwd}")
     private String wellformationetlPassword;
-    @Value("${rest.nodenextgen.url}")
-    private String nodenextgenUrl;
-    @Value("${rest.nodenextgen.user}")
-    private String nodenextgenUser;
-    @Value("${rest.nodenextgen.pwd}")
-    private String nodenextgenPassword;
+    @Value("${rest.nodedrilling.url}")
+    private String nodedrillingUrl;
+    @Value("${rest.nodedrilling.user}")
+    private String nodedrillingUser;
+    @Value("${rest.nodedrilling.pwd}")
+    private String nodedrillingPassword;
     private String processPerformanceMapPath = "performance/well";
-    private String nodenextgenStomp = "stomp/";
+    private String nodedrillingStomp = "stomp/";
     @Value("${CODE}")
     private String customer;
 
@@ -43,8 +43,8 @@ public class RestClientService {
     }
 
     public ResponseEntity sendMessage(String topic, String message) {
-        final String stompUrl = nodenextgenUrl + nodenextgenStomp + topic;
-        final HttpEntity<String> request = new HttpEntity<String>(message, createHeaders(nodenextgenUser, nodenextgenPassword));
+        final String stompUrl = nodedrillingUrl + nodedrillingStomp + topic;
+        final HttpEntity<String> request = new HttpEntity<String>(message, createHeaders(nodedrillingUser, nodedrillingPassword));
         return restTemplate.exchange(stompUrl, HttpMethod.POST, request, String.class);
     }
 

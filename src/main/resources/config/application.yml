@@ -235,10 +235,10 @@ rest:
     url: ${api.central.well.formation.base.url}
     user: ${api.central.well.formation.user}
     pwd: ${api.central.well.formation.pwd}
-  nodenextgen:
-    url: ${api.defaulttenant.nextgen.base.url}
-    user: ${api.defaulttenant.nextgen.user}
-    pwd: ${api.defaulttenant.nextgen.pwd}
+  nodedrilling:
+    url: ${api.defaulttenant.nodedrilling.base.url}
+    user: ${api.defaulttenant.nodedrilling.user}
+    pwd: ${api.defaulttenant.nodedrilling.pwd}
 
 infinispan:
   server: ${app.infinispan.server}
