@@ -38,6 +38,7 @@ public class CacheService {
     @EventListener(ApplicationReadyEvent.class)
     @Async
     public void subscribe() {
+        getWellCoordinatesCache().clear();
         wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
         getSurveyDataCache().addClientListener(surveyDataCacheListener);
