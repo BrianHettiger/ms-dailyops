@@ -246,3 +246,18 @@ infinispan:
   port: ${app.infinispan.port}
   username: ${customerconfig.${CODE}.infinispan.username}
   password: ${customerconfig.${CODE}.infinispan.password}
+  client:
+    hotrod:
+      marshaller: org.infinispan.commons.marshall.ProtoStreamMarshaller
+      enabled: true
+      async_executor_factory: org.infinispan.client.hotrod.impl.async.DefaultAsyncExecutorFactory
+      default_executor_factory.pool_size: 1
+      hash_function_impl.2: org.infinispan.client.hotrod.impl.consistenthash.ConsistentHashV2
+      tcp_no_delay: true
+      tcp_keep_alive: false
+      request_balancing_strategy: org.infinispan.client.hotrod.impl.transport.tcp.RoundRobinBalancingStrategy
+      key_size_estimate: 64
+      value_size_estimate: 512
+      force_return_values: false
+      auth_realm: default
+      auth_server_name: infinispan

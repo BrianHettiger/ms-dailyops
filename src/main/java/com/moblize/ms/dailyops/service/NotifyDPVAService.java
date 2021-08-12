@@ -27,11 +27,8 @@ public class NotifyDPVAService {
         List<SurveyRecord> surveyData = null;
         List<WellPlan> planData = null;
         String wellUid = targetWindow.getUid();
-        if (targetWindow.getIsEnable()) {
             surveyData = getSurveyRecords(wellUid, wellStatus);
-        } else {
             planData = getPlanRecords(wellUid, wellStatus);
-        }
 
         sendData(targetWindow, surveyData, planData, "targetWindow");
     }
