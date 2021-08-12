@@ -1,5 +1,7 @@
 package com.moblize.ms.dailyops.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moblize.ms.dailyops.dao.WellsCoordinatesDao;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.domain.PerformanceROP;
@@ -19,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
@@ -40,8 +41,6 @@ public class WellsCoordinatesService {
     @Autowired
     private WellsCoordinatesDao wellsCoordinatesDao;
     @Autowired
-    SimpMessagingTemplate simpMessagingTemplate;
-    @Autowired
     private MongoWellRepository mongoWellRepository;
     @Autowired
     private PerformanceROPRepository ropRepository;
@@ -52,8 +51,11 @@ public class WellsCoordinatesService {
     @Autowired
     private PerformanceWellRepository wellRepository;
     @Autowired
+    private RestClientService restClientService;
+    @Autowired
     @Lazy
     private CacheService cacheService;
+    ObjectMapper objectMapper = new ObjectMapper();
     @Autowired
     TokenProvider tokenProvider;
     public Map<String, List<BHA>> getWellBHAs(String wellUid) {
@@ -671,7 +673,11 @@ public class WellsCoordinatesService {
         Map<String, MongoWell> mongoWells =cacheService.getMongoWellCache().getAll(wells);
         mongoWells.forEach((uid, well) -> {
             log.info("send update for: {}", uid);
-            simpMessagingTemplate.convertAndSend("/topic/wellActivity", getWellCoordinates(well));
+            try {
+                restClientService.sendMessage("wellActivity", objectMapper.writeValueAsString(getWellCoordinates(well)));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
             log.info("sent update for: {}", uid);
         });
     }

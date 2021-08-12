@@ -34,7 +34,7 @@
     <logger name="ch.qos.logback" level="WARN"/>
     <logger name="com.netflix" level="WARN"/>
     <logger name="com.netflix.config.sources.URLConfigurationSource" level="ERROR"/>
-    <logger name="com.netflix.discovery" level="INFO"/>
+    <logger name="com.netflix.discovery" level="WARN"/>
     <logger name="com.ryantenney" level="WARN"/>
     <logger name="com.sun" level="WARN"/>
     <logger name="com.zaxxer" level="WARN"/>
@@ -57,7 +57,7 @@
     <logger name="springfox" level="WARN"/>
     <logger name="sun.rmi" level="WARN"/>
     <logger name="springfox.documentation.schema.property" level="ERROR"/>
-    <logger name="sun.net.www" level="INFO"/>
+    <logger name="sun.net.www" level="WARN"/>
     <logger name="sun.rmi.transport" level="WARN"/>
     <!-- jhipster-needle-logback-add-log - JHipster will add a new log with level -->
 
