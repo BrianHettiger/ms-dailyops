@@ -3,6 +3,8 @@ package com.moblize.ms.dailyops.service;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.dto.TrueRopCache;
 import com.moblize.ms.dailyops.dto.WellCoordinatesResponseV2;
+import com.moblize.ms.dailyops.repository.mongo.client.WellPerformanceMetaDataRepository;
+import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.infinispan.client.hotrod.DefaultTemplate;
 import org.infinispan.client.hotrod.RemoteCache;
@@ -27,13 +29,26 @@ public class CacheService {
     WellsCoordinatesService wellsCoordinatesService;
     @Autowired
     TrueRopCacheListener trueRopCacheListener;
-
+    @Autowired
+    private WellPerformanceMetaDataRepository metaDataRepository;
+    @Autowired
+    private RestClientService restClientService;
+    @Autowired
+    private MongoWellRepository mongoWellRepository;
     @Value("${CODE}")
     String COMPANY_NAME;
     @EventListener(ApplicationReadyEvent.class)
     @Async
     public void subscribe() {
         getWellCoordinatesCache().clear();
+        log.info("Cache service start");
+        metaDataRepository.findAll().stream().forEach(metaData -> {
+            if (metaData.getBldWlkMeasureDepth() == 0 || metaData.getBldWlkMetaData().isEmpty()) {
+                log.info("Cache service process well {}", metaData.getWellUid());
+                restClientService.processWell(mongoWellRepository.findByUid(metaData.getWellUid()));
+            }
+        });
+        log.info("Cache service end");
         wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
     }
