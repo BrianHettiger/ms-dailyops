@@ -13,6 +13,8 @@ import com.moblize.ms.dailyops.repository.mongo.client.PerformanceCostRepository
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceROPRepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceWellRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
+import com.moblize.ms.dailyops.security.jwt.TokenProvider;
+import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +54,8 @@ public class WellsCoordinatesService {
     @Autowired
     @Lazy
     private CacheService cacheService;
+    @Autowired
+    TokenProvider tokenProvider;
     public Map<String, List<BHA>> getWellBHAs(String wellUid) {
 
         List<PerformanceBHA> bhaList;
@@ -67,8 +71,8 @@ public class WellsCoordinatesService {
                 (k1, k2) -> k1));
     }
 
-    public List<WellCoordinatesResponse> getWellCoordinatesV1(String customer) {
-        Collection<WellCoordinatesResponseV2> v2List = getWellCoordinates(customer);
+    public List<WellCoordinatesResponse> getWellCoordinatesV1(String customer, String token) {
+        Collection<WellCoordinatesResponseV2> v2List = getWellCoordinates(customer, token);
         return v2List.stream().map(v2 -> {
             WellCoordinatesResponse res = new WellCoordinatesResponse();
             res.setUid(v2.getUid());
@@ -120,14 +124,27 @@ public class WellsCoordinatesService {
             .put(well.getUid(),latLngMap.get(well.getUid()));
         return latLngMap.values();
     }
-    public Collection<WellCoordinatesResponseV2> getWellCoordinates(String customer) {
+    public Collection<WellCoordinatesResponseV2> getWellCoordinates(String customer, String token) {
         RemoteCache<String, WellCoordinatesResponseV2> remoteCache = cacheService.getWellCoordinatesCache();
         Map<String, WellCoordinatesResponseV2> latLngMap = new HashMap<>();
         if(!remoteCache.isEmpty()) {
-            remoteCache.values().forEach(value -> {
-                value.setEntries();
-                latLngMap.put(value.getUid(), value);
-            });
+            if(token != null) {
+                Claims claims = tokenProvider.getTokenClaims(token);
+                String email = (String) claims.get("email");
+                if(email != null && email.toLowerCase(Locale.ROOT).contains("moblize"))
+                mongoWellRepository.findAllByCustomerAndIsHidden(customer, false).forEach(mongoWell -> {
+                    WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
+                    value.setEntries();
+                    latLngMap.put(value.getUid(), value);
+                });
+            }
+            if(latLngMap.isEmpty()) {
+                mongoWellRepository.findAll().forEach(mongoWell -> {
+                    WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
+                    value.setEntries();
+                    latLngMap.put(value.getUid(), value);
+                });
+            }
             return latLngMap.values();
         }
 
