@@ -40,8 +40,9 @@ public class DatabaseConfiguration {
 
     @Bean
     public MongoCustomConversions customConversions() {
-        List<Converter<?, ?>> converters = new ArrayList<>();
+        List<Object> converters = new ArrayList<>();
         converters.add(JSR310DateConverters.DateToZonedDateTimeConverter.INSTANCE);
+        converters.add(new BsonUndefinedParseConverter());
         converters.add(JSR310DateConverters.ZonedDateTimeToDateConverter.INSTANCE);
         return new MongoCustomConversions(converters);
     }
