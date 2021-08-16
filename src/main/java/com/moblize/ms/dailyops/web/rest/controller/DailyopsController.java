@@ -8,6 +8,7 @@ import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
 import com.moblize.ms.dailyops.dto.ResponseDTO;
 import com.moblize.ms.dailyops.dto.TortuosityRequestDTO;
 import com.moblize.ms.dailyops.service.*;
+import com.moblize.ms.dailyops.service.dto.DPVAData;
 import com.moblize.ms.dailyops.service.dto.SurveyRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +45,8 @@ public class DailyopsController {
 
     @Autowired
     private TortuosityService tortuosityService;
+    @Autowired
+    private DPVAService dpvaService;
 
 
     @Transactional(readOnly = true)
@@ -357,7 +360,23 @@ public class DailyopsController {
     @PostMapping("/api/v1/getTortuosityIndex")
     public List<SurveyRecord> getTortuosityIndex(@RequestBody TortuosityRequestDTO tortuosityRequestDTO){
        return  tortuosityService.getTortuosityIndex(tortuosityRequestDTO);
-
     }
 
+    @Transactional(readOnly = true)
+    @PostMapping("/api/v1/saveSurveyDataDpva")
+    public SurveyDataDpva saveSurveyDataDpva(@RequestBody SurveyDataDpva surveyDataDpva) {
+        return dpvaService.saveSurveyDataDpva(surveyDataDpva);
+    }
+
+    @Transactional(readOnly = true)
+    @PostMapping("/api/v1/savePlannedDataDpva")
+    public PlannedDataDpva savePlannedDataDpva(@RequestBody PlannedDataDpva plannedDataDpva) {
+        return dpvaService.savePlannedDataDpva(plannedDataDpva);
+    }
+
+    @Transactional(readOnly = true)
+    @PostMapping("/api/v1/getDPVAData")
+    public List<DPVAData> getDPVAData(@RequestParam List<String> wellUid) {
+        return dpvaService.getDPVAData(wellUid);
+    }
 }
