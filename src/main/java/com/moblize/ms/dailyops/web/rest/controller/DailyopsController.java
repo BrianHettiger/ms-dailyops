@@ -49,6 +49,8 @@ public class DailyopsController {
     private TortuosityService tortuosityService;
     @Autowired
     private DPVAService dpvaService;
+    @Autowired
+    private NotifyDPVAService notifyDPVAService;
 
 
     @Transactional(readOnly = true)
@@ -381,4 +383,19 @@ public class DailyopsController {
     public List<DPVAData> getDPVAData(@RequestParam List<String> wellUid) {
         return dpvaService.getDPVAData(wellUid);
     }
+
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/resetDPVAWell/{wellUid}")
+    public void resetDPVAWell(@PathVariable String wellUid) {
+         notifyDPVAService.resetDPVAWell(wellUid);
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/resetAllDPVAWell/{customer}")
+    public void resetAllDPVAWell(@PathVariable String customer) {
+        notifyDPVAService.resetAllDPVAWell(customer);
+    }
+
+
 }

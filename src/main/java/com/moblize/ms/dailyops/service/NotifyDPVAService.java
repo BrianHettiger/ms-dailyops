@@ -1,7 +1,11 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.client.AlarmDetailClient;
+import com.moblize.ms.dailyops.domain.MongoWell;
+import com.moblize.ms.dailyops.domain.mongo.DPVALoadConfig;
 import com.moblize.ms.dailyops.domain.mongo.TargetWindowDPVA;
+import com.moblize.ms.dailyops.repository.mongo.client.DPVALoadConfigRepository;
+import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.service.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +25,24 @@ public class NotifyDPVAService {
     @Autowired
     private TargetWindowDPVAService targetWindowDPVAService;
     @Autowired
-    RestClientService restClientService;
+    private RestClientService restClientService;
+    @Autowired
+    private MongoWellRepository mongoWellRepository;
+    @Autowired
+    private DPVALoadConfigRepository dpvaLoadConfigRepository;
+
+    public void loadDPVAData(String customer) {
+        DPVALoadConfig dpvaLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(customer);
+        if(dpvaLoadConfig == null || ( dpvaLoadConfig != null && !dpvaLoadConfig.getIsDataCalculated())) {
+            mongoWellRepository.findAllByCustomer(customer).forEach(well -> {
+                notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(well.getUid()), well.getStatusWell());
+            });
+            DPVALoadConfig dpvaLoadConfigNew = new DPVALoadConfig();
+            dpvaLoadConfigNew.setCustomer(customer);
+            dpvaLoadConfigNew.setIsDataCalculated(true);
+            dpvaLoadConfigRepository.save(dpvaLoadConfigNew);
+        }
+    }
 
     public void notifyDPVAJob(TargetWindowDPVA targetWindow, String wellStatus) {
         List<SurveyRecord> surveyData = null;
@@ -70,5 +91,30 @@ public class NotifyDPVAService {
     public void sendData(TargetWindowDPVA targetWindow, List<SurveyRecord> surveyData, List<WellPlan> plannedData, String dataUpdate) {
         ProcessPerFeetRequestDTO processPerFeetRequestDTO = new ProcessPerFeetRequestDTO(targetWindow,surveyData,plannedData,dataUpdate);
         restClientService.processPerFeetData(processPerFeetRequestDTO);
+    }
+
+    public void resetDPVAWell(String wellUid) {
+        try {
+            MongoWell mongoWell = mongoWellRepository.findByUid(wellUid);
+
+            notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(mongoWell.getUid()), mongoWell.getStatusWell());
+        } catch (Exception e) {
+            log.error("Error in resetDPVAWell ", e);
+        }
+    }
+
+    public void resetAllDPVAWell(String customer) {
+        try {
+            DPVALoadConfig dpvaLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(customer);
+            if(dpvaLoadConfig == null){
+                dpvaLoadConfig = new DPVALoadConfig();
+            }
+            dpvaLoadConfig.setCustomer(customer);
+            dpvaLoadConfig.setIsDataCalculated(false);
+            dpvaLoadConfigRepository.save(dpvaLoadConfig);
+            loadDPVAData(customer);
+        } catch (Exception e) {
+            log.error("Error occur in resetAllDPVAWell ", e);
+        }
     }
 }

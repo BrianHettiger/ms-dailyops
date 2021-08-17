@@ -38,9 +38,12 @@ public class CacheService {
     private RestClientService restClientService;
     @Autowired
     private MongoWellRepository mongoWellRepository;
+    @Autowired
     private SurveyDataCacheListener surveyDataCacheListener;
     @Autowired
     private WellPlanDataCacheListener wellPlanDataCacheListener;
+    @Autowired
+    private NotifyDPVAService notifyDPVAService;
 
     @Value("${CODE}")
     String COMPANY_NAME;
@@ -56,6 +59,9 @@ public class CacheService {
             }
         });
         log.info("Cache service end");
+
+        notifyDPVAService.loadDPVAData(COMPANY_NAME);
+
         wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
         getSurveyDataCache().addClientListener(surveyDataCacheListener);
