@@ -1,8 +1,8 @@
 package com.moblize.ms.dailyops.service.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.moblize.ms.dailyops.domain.mongo.PlannedDataDpva;
-import com.moblize.ms.dailyops.domain.mongo.SurveyDataDpva;
+import com.moblize.ms.dailyops.domain.ScaledPlannedData;
+import com.moblize.ms.dailyops.domain.ScaledSurveyData;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -18,6 +18,6 @@ public class DPVAData {
     private String wellUid;
     private String customer;
     private String wellStatus;
-    private List<PlannedDataDpva.ScaledPlannedData> plannedData = new ArrayList<>();
-    private List<SurveyDataDpva.ScaledSurveyData> surveyData = new ArrayList<>();
+    private List<ScaledPlannedData> plannedData = new ArrayList<>();
+    private List<ScaledSurveyData> surveyData = new ArrayList<>();
 }

@@ -3,7 +3,9 @@ package com.moblize.ms.dailyops.config;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.dto.TrueRopCache;
 import com.moblize.ms.dailyops.dto.WellCoordinatesResponseV2;
+import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
 import com.moblize.ms.dailyops.service.dto.SurveyCacheDTO;
+import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
 import com.moblize.ms.dailyops.service.dto.WellPlanCacheDTO;
 import io.github.jhipster.config.cache.PrefixedKeyGenerator;
 import lombok.extern.slf4j.Slf4j;
@@ -80,6 +82,8 @@ public class CacheConfiguration {
             .addClass(WellCoordinatesResponseV2.class)
             .addClass(SurveyCacheDTO.class)
             .addClass(WellPlanCacheDTO.class)
+            .addClass(SurveyPerFeetDTO.class)
+            .addClass(PlannedPerFeetDTO.class)
             .packageName("moblize")
             .build(ctx);
         RemoteCache<String, String> metadataCache =

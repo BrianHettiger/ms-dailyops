@@ -9,6 +9,8 @@ import com.moblize.ms.dailyops.dto.ResponseDTO;
 import com.moblize.ms.dailyops.dto.TortuosityRequestDTO;
 import com.moblize.ms.dailyops.service.*;
 import com.moblize.ms.dailyops.service.dto.DPVAData;
+import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
+import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
 import com.moblize.ms.dailyops.service.dto.SurveyRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -364,14 +366,14 @@ public class DailyopsController {
 
     @Transactional(readOnly = true)
     @PostMapping("/api/v1/saveSurveyDataDpva")
-    public SurveyDataDpva saveSurveyDataDpva(@RequestBody SurveyDataDpva surveyDataDpva) {
-        return dpvaService.saveSurveyDataDpva(surveyDataDpva);
+    public SurveyPerFeetDTO saveSurveyDataDpva(@RequestBody SurveyPerFeetDTO surveyPerFeetDTO) {
+        return dpvaService.saveSurveyDataDpva(surveyPerFeetDTO);
     }
 
     @Transactional(readOnly = true)
     @PostMapping("/api/v1/savePlannedDataDpva")
-    public PlannedDataDpva savePlannedDataDpva(@RequestBody PlannedDataDpva plannedDataDpva) {
-        return dpvaService.savePlannedDataDpva(plannedDataDpva);
+    public PlannedPerFeetDTO savePlannedDataDpva(@RequestBody PlannedPerFeetDTO plannedPerFeetDTO) {
+        return dpvaService.savePlannedDataDpva(plannedPerFeetDTO);
     }
 
     @Transactional(readOnly = true)

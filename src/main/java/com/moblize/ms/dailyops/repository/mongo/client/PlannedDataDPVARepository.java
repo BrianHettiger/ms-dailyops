@@ -10,8 +10,7 @@ import java.util.List;
 @Repository
 public interface PlannedDataDPVARepository extends MongoRepository<PlannedDataDpva, String> {
 
-    PlannedDataDpva findFirstByUid(String uid);
-    List<PlannedDataDpva> findByUidIn(List<String> uid);
+    PlannedDataDpva findFirstByWellUid(String uid);
+    List<PlannedDataDpva> findByWellUidIn(List<String> uid);
 
-    void deleteByUid(String uid);
 }

@@ -9,8 +9,7 @@ import java.util.List;
 @Repository
 public interface SurveyDataDPVARepository extends MongoRepository<SurveyDataDpva, String> {
 
-    SurveyDataDpva findFirstByUid(String uid);
-    List<SurveyDataDpva> findByUidIn(List<String> uid);
+    SurveyDataDpva findFirstByWellUid(String uid);
+    List<SurveyDataDpva> findByWellUidIn(List<String> uid);
 
-    void deleteByUid(String uid);
 }

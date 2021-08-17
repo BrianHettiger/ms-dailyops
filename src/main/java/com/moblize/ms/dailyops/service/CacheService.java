@@ -1,9 +1,13 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
+import com.moblize.ms.dailyops.domain.mongo.PlannedDataDpva;
+import com.moblize.ms.dailyops.domain.mongo.SurveyDataDpva;
 import com.moblize.ms.dailyops.dto.TrueRopCache;
 import com.moblize.ms.dailyops.dto.WellCoordinatesResponseV2;
+import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
 import com.moblize.ms.dailyops.service.dto.SurveyCacheDTO;
+import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
 import com.moblize.ms.dailyops.service.dto.WellPlanCacheDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.infinispan.client.hotrod.DefaultTemplate;
@@ -71,6 +75,17 @@ public class CacheService {
     public RemoteCache<String, WellPlanCacheDTO> getPlanDataCache() {
         RemoteCache<String, WellPlanCacheDTO> cache = cacheManager.administration()
             .getOrCreateCache(COMPANY_NAME + "_wellPlanData", DefaultTemplate.DIST_ASYNC);
+        return  cache;
+    }
+
+    public RemoteCache<String, SurveyPerFeetDTO> getPerFeetSurveyDataCache() {
+        RemoteCache<String, SurveyPerFeetDTO> cache = cacheManager.administration()
+            .getOrCreateCache(COMPANY_NAME + "_wellPerFeetSurveyData", DefaultTemplate.DIST_ASYNC);
+        return  cache;
+    }
+    public RemoteCache<String, PlannedPerFeetDTO> getPerFeetPlanDataCache() {
+        RemoteCache<String, PlannedPerFeetDTO> cache = cacheManager.administration()
+            .getOrCreateCache(COMPANY_NAME + "_wellPerFeetPlanData", DefaultTemplate.DIST_ASYNC);
         return  cache;
     }
 }
