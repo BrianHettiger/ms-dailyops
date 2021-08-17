@@ -1,6 +1,7 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
+import com.moblize.ms.dailyops.domain.mongo.WellPerformanceMetaData;
 import com.moblize.ms.dailyops.dto.TrueRopCache;
 import com.moblize.ms.dailyops.dto.WellCoordinatesResponseV2;
 import com.moblize.ms.dailyops.repository.mongo.client.WellPerformanceMetaDataRepository;
@@ -43,14 +44,25 @@ public class CacheService {
         getWellCoordinatesCache().clear();
         log.info("Cache service start");
         metaDataRepository.findAll().stream().forEach(metaData -> {
-            if (metaData.getBldWlkMeasureDepth() == 0 || metaData.getBldWlkMetaData().isEmpty()) {
-                log.info("Cache service process well {}", metaData.getWellUid());
-                restClientService.processWell(mongoWellRepository.findByUid(metaData.getWellUid()));
-            }
+            processBuildAndWalk(metaData);
         });
         log.info("Cache service end");
         wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
+    }
+
+    private void processBuildAndWalk(WellPerformanceMetaData metaData) {
+        try {
+            if (metaData.getBldWlkMeasureDepth() == 0 || metaData.getBldWlkMetaData().isEmpty()) {
+                log.info("Cache service process well {}", metaData.getWellUid());
+                MongoWell mongoWell = mongoWellRepository.findByUid(metaData.getWellUid());
+                    if(mongoWell != null){
+                        restClientService.processWell(mongoWell);
+                    }
+            }
+        } catch (Exception e) {
+            log.error("Error occur in recalculate performance B&W ", e);
+        }
     }
 
 
