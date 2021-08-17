@@ -1,10 +1,10 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
-import com.moblize.ms.dailyops.domain.mongo.PlannedDataDpva;
-import com.moblize.ms.dailyops.domain.mongo.SurveyDataDpva;
 import com.moblize.ms.dailyops.dto.TrueRopCache;
 import com.moblize.ms.dailyops.dto.WellCoordinatesResponseV2;
+import com.moblize.ms.dailyops.repository.mongo.client.WellPerformanceMetaDataRepository;
+import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
 import com.moblize.ms.dailyops.service.dto.SurveyCacheDTO;
 import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
@@ -33,6 +33,11 @@ public class CacheService {
     @Autowired
     private TrueRopCacheListener trueRopCacheListener;
     @Autowired
+    private WellPerformanceMetaDataRepository metaDataRepository;
+    @Autowired
+    private RestClientService restClientService;
+    @Autowired
+    private MongoWellRepository mongoWellRepository;
     private SurveyDataCacheListener surveyDataCacheListener;
     @Autowired
     private WellPlanDataCacheListener wellPlanDataCacheListener;
@@ -43,6 +48,14 @@ public class CacheService {
     @Async
     public void subscribe() {
         getWellCoordinatesCache().clear();
+        log.info("Cache service start");
+        metaDataRepository.findAll().stream().forEach(metaData -> {
+            if (metaData.getBldWlkMeasureDepth() == 0 || metaData.getBldWlkMetaData().isEmpty()) {
+                log.info("Cache service process well {}", metaData.getWellUid());
+                restClientService.processWell(mongoWellRepository.findByUid(metaData.getWellUid()));
+            }
+        });
+        log.info("Cache service end");
         wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
         getSurveyDataCache().addClientListener(surveyDataCacheListener);

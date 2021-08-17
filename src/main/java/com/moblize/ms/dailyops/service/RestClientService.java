@@ -25,6 +25,12 @@ public class RestClientService {
     private String wellformationetlUser;
     @Value("${rest.wellformationetl.pwd}")
     private String wellformationetlPassword;
+    @Value("${rest.nodedrilling.url}")
+    private String nodedrillingUrl;
+    @Value("${rest.nodedrilling.user}")
+    private String nodedrillingUser;
+    @Value("${rest.nodedrilling.pwd}")
+    private String nodedrillingPassword;
     private String processPerformanceMapPath = "performance/well";
 
     @Value("${rest.analytics.service.url}")
@@ -36,6 +42,7 @@ public class RestClientService {
     @Value("${rest.analytics.service.processPerFeetData}")
     private String processPerFeetData;
 
+    private String nodedrillingStomp = "stomp/";
     @Value("${CODE}")
     private String customer;
 
@@ -44,6 +51,12 @@ public class RestClientService {
         final String resetUrl = wellformationetlUrl + processPerformanceMapPath;
         final HttpEntity<MongoWell> request = new HttpEntity<MongoWell>(well, createHeaders(wellformationetlUser, wellformationetlPassword));
         return restTemplate.exchange(resetUrl, HttpMethod.POST, request, MongoWell.class);
+    }
+
+    public ResponseEntity sendMessage(String topic, String message) {
+        final String stompUrl = nodedrillingUrl + nodedrillingStomp + topic;
+        final HttpEntity<String> request = new HttpEntity<String>(message, createHeaders(nodedrillingUser, nodedrillingPassword));
+        return restTemplate.exchange(stompUrl, HttpMethod.POST, request, String.class);
     }
 
     private HttpHeaders createHeaders(String username, String password) {
