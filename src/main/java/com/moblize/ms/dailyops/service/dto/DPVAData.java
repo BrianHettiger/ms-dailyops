@@ -20,4 +20,5 @@ public class DPVAData {
     private String wellStatus;
     private List<ScaledPlannedData> plannedData = new ArrayList<>();
     private List<ScaledSurveyData> surveyData = new ArrayList<>();
+    private DonutDistanceDTO donutDistanceDTO;
 }

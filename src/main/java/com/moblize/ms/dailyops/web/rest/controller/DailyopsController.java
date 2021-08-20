@@ -397,5 +397,11 @@ public class DailyopsController {
         notifyDPVAService.resetAllDPVAWell(customer);
     }
 
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/dpvaWellCompletedNotification/{wellUid}")
+    public void dpvaWellCompletedNotification(@PathVariable String wellUid) {
+        notifyDPVAService.dpvaWellCompletedNotification(wellUid);
+    }
+
 
 }

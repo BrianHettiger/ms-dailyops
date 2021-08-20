@@ -32,36 +32,44 @@ public class NotifyDPVAService {
     private DPVALoadConfigRepository dpvaLoadConfigRepository;
 
     public void loadDPVAData(String customer) {
-        DPVALoadConfig dpvaLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(customer);
-        if(dpvaLoadConfig == null || ( dpvaLoadConfig != null && !dpvaLoadConfig.getIsDataCalculated())) {
-            mongoWellRepository.findAllByCustomer(customer).forEach(well -> {
-                notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(well.getUid()), well.getStatusWell());
-            });
-            DPVALoadConfig dpvaLoadConfigNew = new DPVALoadConfig();
-            dpvaLoadConfigNew.setCustomer(customer);
-            dpvaLoadConfigNew.setIsDataCalculated(true);
-            dpvaLoadConfigRepository.save(dpvaLoadConfigNew);
+        try {
+            DPVALoadConfig dpvaLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(customer);
+            if (dpvaLoadConfig == null || (dpvaLoadConfig != null && !dpvaLoadConfig.getIsDataCalculated())) {
+                mongoWellRepository.findAllByCustomer(customer).forEach(well -> {
+                    notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(well.getUid()), well.getStatusWell());
+                });
+                DPVALoadConfig dpvaLoadConfigNew = new DPVALoadConfig();
+                dpvaLoadConfigNew.setCustomer(customer);
+                dpvaLoadConfigNew.setIsDataCalculated(true);
+                dpvaLoadConfigRepository.save(dpvaLoadConfigNew);
+            }
+        } catch (Exception e) {
+            log.error("Error occur in loadDPVAData ", e);
         }
     }
 
     public void notifyDPVAJob(TargetWindowDPVA targetWindow, String wellStatus) {
-        List<SurveyRecord> surveyData = null;
-        List<WellPlan> planData = null;
-        String wellUid = targetWindow.getUid();
+        try {
+            List<SurveyRecord> surveyData = null;
+            List<WellPlan> planData = null;
+            String wellUid = targetWindow.getUid();
             surveyData = getSurveyRecords(wellUid, wellStatus);
             planData = getPlanRecords(wellUid, wellStatus);
 
-        sendData(targetWindow, surveyData, planData, "targetWindow");
+            sendData(targetWindow, surveyData, planData, "targetWindow");
+        } catch (Exception e) {
+            log.error("Error occur in notifyDPVAJob ", e);
+        }
     }
 
     public void notifyDPVAJobForSurveyData(String wellUid, String wellStatus) {
-        List<SurveyRecord>  surveyData = getSurveyRecords(wellUid, wellStatus);
+        List<SurveyRecord> surveyData = getSurveyRecords(wellUid, wellStatus);
         TargetWindowDPVA targetWindow = targetWindowDPVAService.getTargetWindowDetail(wellUid);
         sendData(targetWindow, surveyData, null, "survey");
     }
 
     public void notifyDPVAJobForPlanData(String wellUid, String wellStatus) {
-        List<WellPlan>  planData = getPlanRecords(wellUid, wellStatus);
+        List<WellPlan> planData = getPlanRecords(wellUid, wellStatus);
         TargetWindowDPVA targetWindow = targetWindowDPVAService.getTargetWindowDetail(wellUid);
         sendData(targetWindow, null, planData, "plan");
     }
@@ -69,7 +77,7 @@ public class NotifyDPVAService {
     private List<WellPlan> getPlanRecords(String wellUid, String wellStatus) {
         List<WellPlan> planData;
         if (cacheService.getPlanDataCache().containsKey(wellUid) && wellStatus.equalsIgnoreCase("active")) {
-            WellPlanCacheDTO  wellPlanCacheDTO  = cacheService.getPlanDataCache().get(wellUid);
+            WellPlanCacheDTO wellPlanCacheDTO = cacheService.getPlanDataCache().get(wellUid);
             planData = wellPlanCacheDTO.getWellPlanList();
         } else {
             planData = alarmDetailClient.getPlanData(wellUid, wellStatus);
@@ -79,7 +87,7 @@ public class NotifyDPVAService {
 
     private List<SurveyRecord> getSurveyRecords(String wellUid, String wellStatus) {
         List<SurveyRecord> surveyData;
-        if (cacheService.getSurveyDataCache().containsKey(wellUid)&& wellStatus.equalsIgnoreCase("active")) {
+        if (cacheService.getSurveyDataCache().containsKey(wellUid) && wellStatus.equalsIgnoreCase("active")) {
             SurveyCacheDTO surveyCacheDTO = cacheService.getSurveyDataCache().get(wellUid);
             surveyData = surveyCacheDTO.getSurveyRecordList();
         } else {
@@ -89,7 +97,7 @@ public class NotifyDPVAService {
     }
 
     public void sendData(TargetWindowDPVA targetWindow, List<SurveyRecord> surveyData, List<WellPlan> plannedData, String dataUpdate) {
-        ProcessPerFeetRequestDTO processPerFeetRequestDTO = new ProcessPerFeetRequestDTO(targetWindow,surveyData,plannedData,dataUpdate);
+        ProcessPerFeetRequestDTO processPerFeetRequestDTO = new ProcessPerFeetRequestDTO(targetWindow, surveyData, plannedData, dataUpdate);
         restClientService.processPerFeetData(processPerFeetRequestDTO);
     }
 
@@ -106,7 +114,7 @@ public class NotifyDPVAService {
     public void resetAllDPVAWell(String customer) {
         try {
             DPVALoadConfig dpvaLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(customer);
-            if(dpvaLoadConfig == null){
+            if (dpvaLoadConfig == null) {
                 dpvaLoadConfig = new DPVALoadConfig();
             }
             dpvaLoadConfig.setCustomer(customer);
@@ -115,6 +123,22 @@ public class NotifyDPVAService {
             loadDPVAData(customer);
         } catch (Exception e) {
             log.error("Error occur in resetAllDPVAWell ", e);
+        }
+    }
+
+    public void dpvaWellCompletedNotification(String wellUid) {
+
+        try {
+            MongoWell mongoWell = mongoWellRepository.findByUid(wellUid);
+            if (!mongoWell.getStatusWell().equalsIgnoreCase("active")) {
+                cacheService.getSurveyDataCache().removeAsync(wellUid);
+                cacheService.getPerFeetSurveyDataCache().removeAsync(wellUid);
+                cacheService.getPlanDataCache().removeAsync(wellUid);
+                cacheService.getPerFeetPlanDataCache().removeAsync(wellUid);
+                notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(mongoWell.getUid()), mongoWell.getStatusWell());
+            }
+        } catch (Exception e) {
+            log.error("Error occur in dpvaWellCompletedNotification service ", e);
         }
     }
 }

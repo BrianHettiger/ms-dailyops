@@ -7,16 +7,16 @@ import com.moblize.ms.dailyops.repository.mongo.client.PlannedDataDPVARepository
 import com.moblize.ms.dailyops.repository.mongo.client.SurveyDataDPVARepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.service.dto.DPVAData;
+import com.moblize.ms.dailyops.service.dto.DonutDistanceDTO;
 import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
 import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -110,6 +110,9 @@ public class DPVAService {
                 dpvaData.setWellUid(well);
                 dpvaData.setPlannedData(finalPlannedMap.getOrDefault(well, new PlannedDataDpva()).getScaledPlannedData());
                 dpvaData.setSurveyData(finalSurveyMap.getOrDefault(well, new SurveyDataDpva()).getScaledSurveyData());
+
+                dpvaData.setDonutDistanceDTO(donutDistance(dpvaData));
+
                 result.add(dpvaData);
             });
         }
@@ -120,9 +123,65 @@ public class DPVAService {
                 dpvaData.setWellUid(well.getUid());
                 dpvaData.setPlannedData(cacheService.getPerFeetPlanDataCache().getOrDefault(well.getUid(), new PlannedPerFeetDTO()).getScaledPlannedData());
                 dpvaData.setSurveyData(cacheService.getPerFeetSurveyDataCache().getOrDefault(well.getUid(), new SurveyPerFeetDTO()).getScaledSurveyData());
+                dpvaData.setDonutDistanceDTO(donutDistance(dpvaData));
                 result.add(dpvaData);
             });
         }
         return result;
+    }
+
+    private DonutDistanceDTO donutDistance(DPVAData dpvaData) {
+        DonutDistanceDTO donutDistanceDTO = new DonutDistanceDTO();
+
+        Map<String, DistanceDTO> map = new HashMap<>();
+        var wrapper = new Object(){ double totalDistance = 0d; };
+        Stack<Double> trajectoryStack = new Stack<>();
+        dpvaData.getSurveyData().forEach(survey->{
+            Double distance = survey.getDistance();
+            Double previousMD = trajectoryStack.isEmpty() ? null : trajectoryStack.pop();
+            Double drilledDepth = previousMD != null ? survey.getMd() - previousMD : 0;
+            if(distance<=10d){
+                calculateDistanceDonut(map, drilledDepth, "0-10");
+            } else  if(distance > 10d && distance <= 20d){
+                calculateDistanceDonut(map, drilledDepth, "10-20");
+            }else  if(distance > 20d && distance <= 30d){
+                calculateDistanceDonut(map, drilledDepth, "20-30");
+            }else  if(distance > 30d && distance <= 40d){
+                calculateDistanceDonut(map, drilledDepth, "30-40");
+            }else  if(distance > 40d && distance <= 50d){
+                calculateDistanceDonut(map, drilledDepth, "40-50");
+            }else  if(distance > 50d){
+                calculateDistanceDonut(map, drilledDepth, "+50");
+            }
+            wrapper.totalDistance += distance;
+            trajectoryStack.push(survey.getMd());
+        });
+        donutDistanceDTO.setData(map);
+        if (dpvaData != null && dpvaData.getSurveyData() != null && !dpvaData.getSurveyData().isEmpty()) {
+            donutDistanceDTO.setAvgDistance(wrapper.totalDistance / dpvaData.getSurveyData().size());
+        }
+        return donutDistanceDTO;
+    }
+
+    private void calculateDistanceDonut(Map<String, DistanceDTO> map, Double drilledDepth, String depthRange) {
+        DistanceDTO distanceDTO = map.getOrDefault(depthRange, new DistanceDTO());
+        distanceDTO.increaseCount();
+        distanceDTO.setDrilledDepth(drilledDepth);
+        map.put(depthRange, distanceDTO);
+    }
+
+    @Getter
+    @Setter
+    public static class DistanceDTO {
+        int count = 0;
+        Double drilledDepth = 0.0d;
+
+        public void increaseCount() {
+            this.count += 1;
+        }
+
+        public void setDrilledDepth(Double drilledDepth){
+            this.drilledDepth += drilledDepth;
+        }
     }
 }

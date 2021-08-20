@@ -52,12 +52,12 @@ public class CacheService {
     public void subscribe() {
         getWellCoordinatesCache().clear();
         log.info("Cache service start");
-        metaDataRepository.findAll().stream().forEach(metaData -> {
+       /* metaDataRepository.findAll().stream().forEach(metaData -> {
             if (metaData.getBldWlkMeasureDepth() == 0 || metaData.getBldWlkMetaData().isEmpty()) {
                 log.info("Cache service process well {}", metaData.getWellUid());
                 restClientService.processWell(mongoWellRepository.findByUid(metaData.getWellUid()));
             }
-        });
+        });*/
         log.info("Cache service end");
 
         notifyDPVAService.loadDPVAData(COMPANY_NAME);
