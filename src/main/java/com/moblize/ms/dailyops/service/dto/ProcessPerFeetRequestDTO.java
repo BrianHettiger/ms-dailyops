@@ -20,4 +20,7 @@ public class ProcessPerFeetRequestDTO {
     private List<SurveyRecord> surveyData;
     private List<WellPlan> plannedData;
     private String dataUpdateFor;
+    private String wellUid;
+    private String customer;
+    private String wellStatus;
 }

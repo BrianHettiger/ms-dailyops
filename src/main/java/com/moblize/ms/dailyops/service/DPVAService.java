@@ -3,13 +3,12 @@ package com.moblize.ms.dailyops.service;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.domain.mongo.PlannedDataDpva;
 import com.moblize.ms.dailyops.domain.mongo.SurveyDataDpva;
+import com.moblize.ms.dailyops.domain.mongo.TargetWindowPerFootDPVA;
 import com.moblize.ms.dailyops.repository.mongo.client.PlannedDataDPVARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.SurveyDataDPVARepository;
+import com.moblize.ms.dailyops.repository.mongo.client.TargetWindowPerFootRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
-import com.moblize.ms.dailyops.service.dto.DPVAData;
-import com.moblize.ms.dailyops.service.dto.DonutDistanceDTO;
-import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
-import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
+import com.moblize.ms.dailyops.service.dto.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +31,8 @@ public class DPVAService {
     private MongoWellRepository mongoWellRepository;
     @Autowired
     private CacheService cacheService;
+    @Autowired
+    private TargetWindowPerFootRepository targetWindowPerFootRepository;
 
     public SurveyPerFeetDTO saveSurveyDataDpva(SurveyPerFeetDTO surveyPerFeetDTO) {
         try {
@@ -69,20 +70,46 @@ public class DPVAService {
                 if (null != plannedDataDpvaDB) {
                     plannedDataDpvaDB.setWellStatus(plannedPerFeetDTO.getWellStatus());
                     plannedDataDpvaDB.setScaledPlannedData(plannedPerFeetDTO.getScaledPlannedData());
-                    plannedDataDPVARepository.save(plannedDataDpvaDB);
                 } else {
                     plannedDataDpvaDB = new PlannedDataDpva();
                     plannedDataDpvaDB.setWellUid(plannedPerFeetDTO.getWellUid());
                     plannedDataDpvaDB.setWellStatus(plannedPerFeetDTO.getWellStatus());
                     plannedDataDpvaDB.setCustomer(plannedPerFeetDTO.getCustomer());
                     plannedDataDpvaDB.setScaledPlannedData(plannedPerFeetDTO.getScaledPlannedData());
-                    plannedDataDPVARepository.save(plannedDataDpvaDB);
                 }
+                plannedDataDPVARepository.save(plannedDataDpvaDB);
             }
         } catch (Exception e) {
             log.error("Error occur in savePlannedDataDpva ", e);
         }
         return plannedPerFeetDTO;
+    }
+
+
+    public TargetWindowPerFootDTO savePerFootTargetWindowDpva(TargetWindowPerFootDTO targetWindowPerFootDTO) {
+        try {
+            if (targetWindowPerFootDTO.getWellStatus().equalsIgnoreCase("active")) {
+                cacheService.getPerFeetTargetWindowDataCache().put(targetWindowPerFootDTO.getWellUid(), targetWindowPerFootDTO);
+            } else {
+                TargetWindowPerFootDPVA targetWindowPerFootDPVADB = targetWindowPerFootRepository.findFirstByWellUid(targetWindowPerFootDTO.getWellUid());
+                if (null != targetWindowPerFootDPVADB) {
+                    targetWindowPerFootDPVADB.setWellStatus(targetWindowPerFootDTO.getWellStatus());
+                    targetWindowPerFootDPVADB.setCustomer(targetWindowPerFootDTO.getCustomer());
+                    targetWindowPerFootDPVADB.setBasic(targetWindowPerFootDTO.getBasic());
+                    targetWindowPerFootDPVADB.setAdvance(targetWindowPerFootDTO.getAdvance());
+                } else {
+                    targetWindowPerFootDPVADB = new TargetWindowPerFootDPVA();
+                    targetWindowPerFootDPVADB.setWellStatus(targetWindowPerFootDTO.getWellStatus());
+                    targetWindowPerFootDPVADB.setCustomer(targetWindowPerFootDTO.getCustomer());
+                    targetWindowPerFootDPVADB.setBasic(targetWindowPerFootDTO.getBasic());
+                    targetWindowPerFootDPVADB.setAdvance(targetWindowPerFootDTO.getAdvance());
+                }
+                targetWindowPerFootRepository.save(targetWindowPerFootDPVADB);
+            }
+        } catch (Exception e) {
+            log.error("Error occur in savePerFootTargetWindowDpva ", e);
+        }
+        return targetWindowPerFootDTO;
     }
 
     public List<DPVAData> getDPVAData(List<String> wellUids) {

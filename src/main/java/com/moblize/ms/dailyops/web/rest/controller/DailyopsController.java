@@ -8,10 +8,7 @@ import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
 import com.moblize.ms.dailyops.dto.ResponseDTO;
 import com.moblize.ms.dailyops.dto.TortuosityRequestDTO;
 import com.moblize.ms.dailyops.service.*;
-import com.moblize.ms.dailyops.service.dto.DPVAData;
-import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
-import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
-import com.moblize.ms.dailyops.service.dto.SurveyRecord;
+import com.moblize.ms.dailyops.service.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -376,6 +373,12 @@ public class DailyopsController {
     @PostMapping("/api/v1/savePlannedDataDpva")
     public PlannedPerFeetDTO savePlannedDataDpva(@RequestBody PlannedPerFeetDTO plannedPerFeetDTO) {
         return dpvaService.savePlannedDataDpva(plannedPerFeetDTO);
+    }
+
+    @Transactional(readOnly = true)
+    @PostMapping("/api/v1/savePerFootTargetWindowDpva")
+    public TargetWindowPerFootDTO savePerFootTargetWindowDpva(@RequestBody TargetWindowPerFootDTO targetWindowPerFootDTO) {
+        return dpvaService.savePerFootTargetWindowDpva(targetWindowPerFootDTO);
     }
 
     @Transactional(readOnly = true)

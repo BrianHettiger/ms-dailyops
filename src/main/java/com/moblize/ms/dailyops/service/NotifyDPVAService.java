@@ -9,6 +9,7 @@ import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.service.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,9 @@ public class NotifyDPVAService {
     private MongoWellRepository mongoWellRepository;
     @Autowired
     private DPVALoadConfigRepository dpvaLoadConfigRepository;
+
+    @Value("${CODE}")
+    private String code;
 
     public void loadDPVAData(String customer) {
         try {
@@ -56,7 +60,7 @@ public class NotifyDPVAService {
             surveyData = getSurveyRecords(wellUid, wellStatus);
             planData = getPlanRecords(wellUid, wellStatus);
 
-            sendData(targetWindow, surveyData, planData, "targetWindow");
+            sendData(targetWindow, surveyData, planData, "targetWindow", wellUid, wellStatus );
         } catch (Exception e) {
             log.error("Error occur in notifyDPVAJob ", e);
         }
@@ -65,13 +69,13 @@ public class NotifyDPVAService {
     public void notifyDPVAJobForSurveyData(String wellUid, String wellStatus) {
         List<SurveyRecord> surveyData = getSurveyRecords(wellUid, wellStatus);
         TargetWindowDPVA targetWindow = targetWindowDPVAService.getTargetWindowDetail(wellUid);
-        sendData(targetWindow, surveyData, null, "survey");
+        sendData(targetWindow, surveyData, null, "survey", wellUid, wellStatus);
     }
 
     public void notifyDPVAJobForPlanData(String wellUid, String wellStatus) {
         List<WellPlan> planData = getPlanRecords(wellUid, wellStatus);
         TargetWindowDPVA targetWindow = targetWindowDPVAService.getTargetWindowDetail(wellUid);
-        sendData(targetWindow, null, planData, "plan");
+        sendData(targetWindow, null, planData, "plan", wellUid, wellStatus);
     }
 
     private List<WellPlan> getPlanRecords(String wellUid, String wellStatus) {
@@ -96,8 +100,8 @@ public class NotifyDPVAService {
         return surveyData;
     }
 
-    public void sendData(TargetWindowDPVA targetWindow, List<SurveyRecord> surveyData, List<WellPlan> plannedData, String dataUpdate) {
-        ProcessPerFeetRequestDTO processPerFeetRequestDTO = new ProcessPerFeetRequestDTO(targetWindow, surveyData, plannedData, dataUpdate);
+    public void sendData(TargetWindowDPVA targetWindow, List<SurveyRecord> surveyData, List<WellPlan> plannedData, String dataUpdate, String wellUid, String wellStatus) {
+        ProcessPerFeetRequestDTO processPerFeetRequestDTO = new ProcessPerFeetRequestDTO(targetWindow, surveyData, plannedData, dataUpdate, wellUid, wellStatus, code);
         restClientService.processPerFeetData(processPerFeetRequestDTO);
     }
 
@@ -135,6 +139,7 @@ public class NotifyDPVAService {
                 cacheService.getPerFeetSurveyDataCache().removeAsync(wellUid);
                 cacheService.getPlanDataCache().removeAsync(wellUid);
                 cacheService.getPerFeetPlanDataCache().removeAsync(wellUid);
+                cacheService.getPerFeetTargetWindowDataCache().removeAsync(wellUid);
                 notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(mongoWell.getUid()), mongoWell.getStatusWell());
             }
         } catch (Exception e) {

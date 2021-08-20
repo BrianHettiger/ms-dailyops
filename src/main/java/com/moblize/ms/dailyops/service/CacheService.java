@@ -5,10 +5,7 @@ import com.moblize.ms.dailyops.dto.TrueRopCache;
 import com.moblize.ms.dailyops.dto.WellCoordinatesResponseV2;
 import com.moblize.ms.dailyops.repository.mongo.client.WellPerformanceMetaDataRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
-import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
-import com.moblize.ms.dailyops.service.dto.SurveyCacheDTO;
-import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
-import com.moblize.ms.dailyops.service.dto.WellPlanCacheDTO;
+import com.moblize.ms.dailyops.service.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.infinispan.client.hotrod.DefaultTemplate;
 import org.infinispan.client.hotrod.RemoteCache;
@@ -105,6 +102,12 @@ public class CacheService {
     public RemoteCache<String, PlannedPerFeetDTO> getPerFeetPlanDataCache() {
         RemoteCache<String, PlannedPerFeetDTO> cache = cacheManager.administration()
             .getOrCreateCache(COMPANY_NAME + "_wellPerFeetPlanData", DefaultTemplate.DIST_ASYNC);
+        return  cache;
+    }
+
+    public RemoteCache<String, TargetWindowPerFootDTO> getPerFeetTargetWindowDataCache() {
+        RemoteCache<String, TargetWindowPerFootDTO> cache = cacheManager.administration()
+            .getOrCreateCache(COMPANY_NAME + "_wellPerFeetTargetWindowData", DefaultTemplate.DIST_ASYNC);
         return  cache;
     }
 }

@@ -3,10 +3,7 @@ package com.moblize.ms.dailyops.config;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.dto.TrueRopCache;
 import com.moblize.ms.dailyops.dto.WellCoordinatesResponseV2;
-import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
-import com.moblize.ms.dailyops.service.dto.SurveyCacheDTO;
-import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
-import com.moblize.ms.dailyops.service.dto.WellPlanCacheDTO;
+import com.moblize.ms.dailyops.service.dto.*;
 import io.github.jhipster.config.cache.PrefixedKeyGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.infinispan.client.hotrod.RemoteCache;
@@ -84,6 +81,7 @@ public class CacheConfiguration {
             .addClass(WellPlanCacheDTO.class)
             .addClass(SurveyPerFeetDTO.class)
             .addClass(PlannedPerFeetDTO.class)
+            .addClass(TargetWindowPerFootDTO.class)
             .packageName("moblize")
             .build(ctx);
         RemoteCache<String, String> metadataCache =
