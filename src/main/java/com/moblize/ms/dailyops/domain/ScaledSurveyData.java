@@ -14,18 +14,26 @@ public class ScaledSurveyData implements Serializable {
     @ProtoField(number = 1)
     Double md;
     @ProtoField(number = 2)
-    Double vs;
+    Double mdActual;
     @ProtoField(number = 3)
-    Double tvd;
+    Double vs;
     @ProtoField(number = 4)
-    Double ew;
+    Double tvd;
     @ProtoField(number = 5)
-    Double ns;
+    Double ew;
     @ProtoField(number = 6)
-    Double dls;
+    Double ns;
     @ProtoField(number = 7)
-    Double distance;
+    Double dls;
+    // SECTION VIEW
     @ProtoField(number = 8)
-    Boolean isIn;
+    Double svDistance;
+    @ProtoField(number = 9)
+    Boolean svIsIn;
+    // PLAN VIEW
+    @ProtoField(number = 10)
+    Double pvDistance;
+    @ProtoField(number = 11)
+    Boolean pvIsIn;
 
 }

@@ -1,9 +1,11 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
+import com.moblize.ms.dailyops.domain.ScaledSurveyData;
 import com.moblize.ms.dailyops.domain.mongo.PlannedDataDpva;
 import com.moblize.ms.dailyops.domain.mongo.SurveyDataDpva;
 import com.moblize.ms.dailyops.domain.mongo.TargetWindowPerFootDPVA;
+import com.moblize.ms.dailyops.dto.DPVARequestDTO;
 import com.moblize.ms.dailyops.repository.mongo.client.PlannedDataDPVARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.SurveyDataDPVARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.TargetWindowPerFootRepository;
@@ -16,8 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -28,11 +28,16 @@ public class DPVAService {
     @Autowired
     private SurveyDataDPVARepository surveyDataDPVARepository;
     @Autowired
+    private TargetWindowPerFootRepository targetWindowPerFootRepository;
+    @Autowired
     private MongoWellRepository mongoWellRepository;
     @Autowired
     private CacheService cacheService;
     @Autowired
-    private TargetWindowPerFootRepository targetWindowPerFootRepository;
+    private NotifyDPVAService notifyDPVAService;
+
+    private final static String ACTIVE_STATUS = "active";
+    private final static String COMPLETED_STATUS = "Completed";
 
     public SurveyPerFeetDTO saveSurveyDataDpva(SurveyPerFeetDTO surveyPerFeetDTO) {
         try {
@@ -43,6 +48,8 @@ public class DPVAService {
                 if (null != surveyDataDpvaDB) {
                     surveyDataDpvaDB.setWellStatus(surveyPerFeetDTO.getWellStatus());
                     surveyDataDpvaDB.setScaledSurveyData(surveyPerFeetDTO.getScaledSurveyData());
+                    surveyDataDpvaDB.setPvInPercentage(surveyPerFeetDTO.getPvInPercentage());
+                    surveyDataDpvaDB.setSvInPercentage(surveyPerFeetDTO.getSvInPercentage());
                     surveyDataDPVARepository.save(surveyDataDpvaDB);
                 } else {
                     SurveyDataDpva surveyDataDpva = new SurveyDataDpva();
@@ -50,6 +57,8 @@ public class DPVAService {
                     surveyDataDpva.setWellStatus(surveyPerFeetDTO.getWellStatus());
                     surveyDataDpva.setCustomer(surveyPerFeetDTO.getCustomer());
                     surveyDataDpva.setScaledSurveyData(surveyPerFeetDTO.getScaledSurveyData());
+                    surveyDataDpva.setPvInPercentage(surveyPerFeetDTO.getPvInPercentage());
+                    surveyDataDpva.setSvInPercentage(surveyPerFeetDTO.getSvInPercentage());
                     surveyDataDPVARepository.save(surveyDataDpva);
                 }
             }
@@ -89,21 +98,16 @@ public class DPVAService {
     public TargetWindowPerFootDTO savePerFootTargetWindowDpva(TargetWindowPerFootDTO targetWindowPerFootDTO) {
         try {
             if (targetWindowPerFootDTO.getWellStatus().equalsIgnoreCase("active")) {
+                targetWindowPerFootDTO.setProtoData();
                 cacheService.getPerFeetTargetWindowDataCache().put(targetWindowPerFootDTO.getWellUid(), targetWindowPerFootDTO);
             } else {
                 TargetWindowPerFootDPVA targetWindowPerFootDPVADB = targetWindowPerFootRepository.findFirstByWellUid(targetWindowPerFootDTO.getWellUid());
-                if (null != targetWindowPerFootDPVADB) {
-                    targetWindowPerFootDPVADB.setWellStatus(targetWindowPerFootDTO.getWellStatus());
-                    targetWindowPerFootDPVADB.setCustomer(targetWindowPerFootDTO.getCustomer());
-                    targetWindowPerFootDPVADB.setBasic(targetWindowPerFootDTO.getBasic());
-                    targetWindowPerFootDPVADB.setAdvance(targetWindowPerFootDTO.getAdvance());
-                } else {
+                if (null == targetWindowPerFootDPVADB) {
                     targetWindowPerFootDPVADB = new TargetWindowPerFootDPVA();
-                    targetWindowPerFootDPVADB.setWellStatus(targetWindowPerFootDTO.getWellStatus());
-                    targetWindowPerFootDPVADB.setCustomer(targetWindowPerFootDTO.getCustomer());
-                    targetWindowPerFootDPVADB.setBasic(targetWindowPerFootDTO.getBasic());
-                    targetWindowPerFootDPVADB.setAdvance(targetWindowPerFootDTO.getAdvance());
                 }
+                targetWindowPerFootDPVADB.setWellStatus(targetWindowPerFootDTO.getWellStatus());
+                targetWindowPerFootDPVADB.setCustomer(targetWindowPerFootDTO.getCustomer());
+                createTargetWindowObject(targetWindowPerFootDPVADB, targetWindowPerFootDTO);
                 targetWindowPerFootRepository.save(targetWindowPerFootDPVADB);
             }
         } catch (Exception e) {
@@ -112,75 +116,115 @@ public class DPVAService {
         return targetWindowPerFootDTO;
     }
 
-    public List<DPVAData> getDPVAData(List<String> wellUids) {
-        List<DPVAData> result = new ArrayList<>();
+    public DPVAResult getDPVAData(DPVARequestDTO dpvaRequestDTO) {
 
-        List<MongoWell> activeMongoWellList = mongoWellRepository.findAllByUidInAndStatusWell(wellUids, "active");
-        List<MongoWell> completedMongoWellList = mongoWellRepository.findAllByUidInAndStatusWellNotContains(wellUids, "active");
-        List<String> completedWellUID = completedMongoWellList.stream().map(mongoWell -> mongoWell.getUid()).collect(Collectors.toList());
+        DPVAResult dpvaResult = new DPVAResult();
+        List<String> wellUids = new ArrayList<>();
+        wellUids.add(dpvaRequestDTO.getPrimaryWell());
+        wellUids.addAll(dpvaRequestDTO.getOffsetWell());
 
-        if (completedWellUID != null && !completedWellUID.isEmpty()) {
-            List<SurveyDataDpva> surveyList = surveyDataDPVARepository.findByWellUidIn(completedWellUID);
-            Map<String, SurveyDataDpva> surveyMap = Collections.emptyMap();
-            Map<String, PlannedDataDpva> plannedMap = Collections.emptyMap();
-            if (surveyList != null) {
-                surveyMap = surveyList.stream().collect(Collectors.toMap(SurveyDataDpva::getWellUid, Function.identity()));
+        MongoWell primaryMongoWell = mongoWellRepository.findByUid(dpvaRequestDTO.getPrimaryWell());
+        List<MongoWell> offsetWells = mongoWellRepository.findAllByUidIn(dpvaRequestDTO.getOffsetWell());
+
+        Map<String, List<ScaledSurveyData>> surveyMap = new HashMap<>();
+        offsetWells.forEach(well -> {
+
+            if (well.getStatusWell().equalsIgnoreCase(ACTIVE_STATUS)) {
+                SurveyPerFeetDTO surveyPerFeetCache = cacheService.getPerFeetSurveyDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new SurveyPerFeetDTO());
+                surveyMap.put(well.getUid(), surveyPerFeetCache.getScaledSurveyData());
+            } else {
+                SurveyDataDpva surveyDataDpva = surveyDataDPVARepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
+                if(surveyDataDpva == null){
+                    surveyDataDpva = new SurveyDataDpva();
+                }
+                surveyMap.put(well.getUid(), surveyDataDpva.getScaledSurveyData());
             }
-            List<PlannedDataDpva> plannedList = plannedDataDPVARepository.findByWellUidIn(completedWellUID);
-            if (plannedList != null) {
-                plannedMap = plannedList.stream().collect(Collectors.toMap(PlannedDataDpva::getWellUid, Function.identity()));
-            }
-            Map<String, PlannedDataDpva> finalPlannedMap = plannedMap;
-            Map<String, SurveyDataDpva> finalSurveyMap = surveyMap;
-            completedWellUID.forEach(well -> {
-                DPVAData dpvaData = new DPVAData();
-                dpvaData.setWellUid(well);
-                dpvaData.setPlannedData(finalPlannedMap.getOrDefault(well, new PlannedDataDpva()).getScaledPlannedData());
-                dpvaData.setSurveyData(finalSurveyMap.getOrDefault(well, new SurveyDataDpva()).getScaledSurveyData());
 
-                dpvaData.setDonutDistanceDTO(donutDistance(dpvaData));
+        });
+        dpvaResult.setOffsetSurveyData(surveyMap);
 
-                result.add(dpvaData);
-            });
+
+        DPVAData dpvaData = new DPVAData();
+        if (!primaryMongoWell.getStatusWell().equalsIgnoreCase(ACTIVE_STATUS)) {
+            SurveyDataDpva surveyDataDpva = surveyDataDPVARepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
+            PlannedDataDpva plannedDataDpva = plannedDataDPVARepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
+            TargetWindowPerFootDPVA targetWindowPerFootDPVA = targetWindowPerFootRepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
+            dpvaData.setWellUid(dpvaRequestDTO.getPrimaryWell());
+            dpvaData.setPlannedData(plannedDataDpva.getScaledPlannedData());
+            dpvaData.setSurveyData(surveyDataDpva.getScaledSurveyData());
+            dpvaData.setSvInPercentage(surveyDataDpva.getSvInPercentage());
+            dpvaData.setPvInPercentage(surveyDataDpva.getPvInPercentage());
+            TargetWindowPerFootDTO targetWindowPerFootDTO = new TargetWindowPerFootDTO();
+            createTargetWindowObject(targetWindowPerFootDPVA, targetWindowPerFootDTO);
+            dpvaData.setTargetWindow(targetWindowPerFootDTO);
+            dpvaData.setDonutDistance(donutDistance(dpvaData));
+
+            List<SurveyRecord> surveyRecordList = notifyDPVAService.getSurveyRecords(dpvaRequestDTO.getPrimaryWell(), COMPLETED_STATUS);
+            setDirectionalAngle(dpvaData, surveyRecordList);
+            dpvaResult.setDpvaData(dpvaData);
+
         }
-        if( null != activeMongoWellList && !activeMongoWellList.isEmpty()){
-
-            activeMongoWellList.forEach(well -> {
-                DPVAData dpvaData = new DPVAData();
-                dpvaData.setWellUid(well.getUid());
-                dpvaData.setPlannedData(cacheService.getPerFeetPlanDataCache().getOrDefault(well.getUid(), new PlannedPerFeetDTO()).getScaledPlannedData());
-                dpvaData.setSurveyData(cacheService.getPerFeetSurveyDataCache().getOrDefault(well.getUid(), new SurveyPerFeetDTO()).getScaledSurveyData());
-                dpvaData.setDonutDistanceDTO(donutDistance(dpvaData));
-                result.add(dpvaData);
-            });
+        if (primaryMongoWell.getStatusWell().equalsIgnoreCase(ACTIVE_STATUS)) {
+            dpvaData.setWellUid(dpvaRequestDTO.getPrimaryWell());
+            dpvaData.setPlannedData(cacheService.getPerFeetPlanDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new PlannedPerFeetDTO()).getScaledPlannedData());
+            SurveyPerFeetDTO surveyPerFeetCache = cacheService.getPerFeetSurveyDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new SurveyPerFeetDTO());
+            dpvaData.setSurveyData(surveyPerFeetCache.getScaledSurveyData());
+            dpvaData.setSvInPercentage(surveyPerFeetCache.getSvInPercentage());
+            dpvaData.setPvInPercentage(surveyPerFeetCache.getPvInPercentage());
+            TargetWindowPerFootDTO targetDTOCache = cacheService.getPerFeetTargetWindowDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new TargetWindowPerFootDTO());
+            targetDTOCache.setEntries();
+            dpvaData.setTargetWindow(targetDTOCache);
+            dpvaData.setDonutDistance(donutDistance(dpvaData));
+            List<SurveyRecord> surveyRecordList = notifyDPVAService.getSurveyRecords(dpvaRequestDTO.getPrimaryWell(), ACTIVE_STATUS);
+            setDirectionalAngle(dpvaData, surveyRecordList);
         }
-        return result;
+        dpvaResult.setDpvaData(dpvaData);
+        return dpvaResult;
+    }
+
+    private void setDirectionalAngle(DPVAData dpvaData, List<SurveyRecord> surveyRecordList) {
+        if (surveyRecordList != null && !surveyRecordList.isEmpty()) {
+            SurveyRecord surveyRecord = surveyRecordList.get(surveyRecordList.size() - 1);
+            dpvaData.setIncAngle((surveyRecord.getStartIncl() + surveyRecord.getIncl()) / 2);
+            dpvaData.setAzmAngle((surveyRecord.getStartAzimuth() + surveyRecord.getAzimuth()) / 2);
+        }
+    }
+
+    private void createTargetWindowObject(TargetWindowPerFootDPVA windowsDBObj, TargetWindowPerFootDTO targetWindowPerFootDTO) {
+        targetWindowPerFootDTO.setBasic(windowsDBObj.getBasic());
+        targetWindowPerFootDTO.setAdvance(windowsDBObj.getAdvance());
+        targetWindowPerFootDTO.setFirstLine(windowsDBObj.getFirstLine());
+        targetWindowPerFootDTO.setCenterLine(windowsDBObj.getCenterLine());
+        targetWindowPerFootDTO.setLastLine(windowsDBObj.getLastLine());
+        targetWindowPerFootDTO.setSideLine(windowsDBObj.getSideLine());
+        targetWindowPerFootDTO.setSvIntersections(windowsDBObj.getSvIntersections());
+        targetWindowPerFootDTO.setPvIntersections(windowsDBObj.getPvIntersections());
+
     }
 
     private DonutDistanceDTO donutDistance(DPVAData dpvaData) {
         DonutDistanceDTO donutDistanceDTO = new DonutDistanceDTO();
 
         Map<String, DistanceDTO> map = new HashMap<>();
-        var wrapper = new Object(){ double totalDistance = 0d; };
+        var wrapper = new Object() {
+            double totalDistance = 0d;
+        };
         Stack<Double> trajectoryStack = new Stack<>();
-        dpvaData.getSurveyData().forEach(survey->{
-            Double distance = survey.getDistance();
+        dpvaData.getSurveyData().forEach(survey -> {
+
             Double previousMD = trajectoryStack.isEmpty() ? null : trajectoryStack.pop();
             Double drilledDepth = previousMD != null ? survey.getMd() - previousMD : 0;
-            if(distance<=10d){
-                calculateDistanceDonut(map, drilledDepth, "0-10");
-            } else  if(distance > 10d && distance <= 20d){
-                calculateDistanceDonut(map, drilledDepth, "10-20");
-            }else  if(distance > 20d && distance <= 30d){
-                calculateDistanceDonut(map, drilledDepth, "20-30");
-            }else  if(distance > 30d && distance <= 40d){
-                calculateDistanceDonut(map, drilledDepth, "30-40");
-            }else  if(distance > 40d && distance <= 50d){
-                calculateDistanceDonut(map, drilledDepth, "40-50");
-            }else  if(distance > 50d){
-                calculateDistanceDonut(map, drilledDepth, "+50");
-            }
+
+            Double distance = survey.getSvDistance();
+            distance = distance == null ? 0d : distance;
+            donutProcess(map, distance, drilledDepth, "section");
             wrapper.totalDistance += distance;
+
+            distance = survey.getPvDistance();
+            distance = distance == null ? 0d : distance;
+            donutProcess(map, distance, drilledDepth, "plan");
+            wrapper.totalDistance += distance;
+
             trajectoryStack.push(survey.getMd());
         });
         donutDistanceDTO.setData(map);
@@ -190,10 +234,30 @@ public class DPVAService {
         return donutDistanceDTO;
     }
 
-    private void calculateDistanceDonut(Map<String, DistanceDTO> map, Double drilledDepth, String depthRange) {
+    private void donutProcess(Map<String, DistanceDTO> map, Double distance, Double drilledDepth, String viewType) {
+        if (distance <= 10d) {
+            calculateDistanceDonut(map, drilledDepth, "0-10", viewType);
+        } else if (distance > 10d && distance <= 20d) {
+            calculateDistanceDonut(map, drilledDepth, "10-20", viewType);
+        } else if (distance > 20d && distance <= 30d) {
+            calculateDistanceDonut(map, drilledDepth, "20-30", viewType);
+        } else if (distance > 30d && distance <= 40d) {
+            calculateDistanceDonut(map, drilledDepth, "30-40", viewType);
+        } else if (distance > 40d && distance <= 50d) {
+            calculateDistanceDonut(map, drilledDepth, "40-50", viewType);
+        } else if (distance > 50d) {
+            calculateDistanceDonut(map, drilledDepth, "+50", viewType);
+        }
+    }
+
+    private void calculateDistanceDonut(Map<String, DistanceDTO> map, Double drilledDepth, String depthRange, String viewType) {
         DistanceDTO distanceDTO = map.getOrDefault(depthRange, new DistanceDTO());
         distanceDTO.increaseCount();
-        distanceDTO.setDrilledDepth(drilledDepth);
+        if (viewType.equalsIgnoreCase("section")) {
+            distanceDTO.setDrilledDepthSectionView(drilledDepth);
+        } else {
+            distanceDTO.setDrilledDepthPlanView(drilledDepth);
+        }
         map.put(depthRange, distanceDTO);
     }
 
@@ -201,14 +265,20 @@ public class DPVAService {
     @Setter
     public static class DistanceDTO {
         int count = 0;
-        Double drilledDepth = 0.0d;
+        Double drilledDepthSectionView = 0.0d;
+
+        Double drilledDepthPlanView = 0.0d;
 
         public void increaseCount() {
             this.count += 1;
         }
 
-        public void setDrilledDepth(Double drilledDepth){
-            this.drilledDepth += drilledDepth;
+        public void setDrilledDepthSectionView(Double drilledDepthSectionView) {
+            this.drilledDepthSectionView += drilledDepthSectionView;
+        }
+
+        public void setDrilledDepthPlanView(Double drilledDepthPlanView) {
+            this.drilledDepthPlanView = drilledDepthPlanView;
         }
     }
 }

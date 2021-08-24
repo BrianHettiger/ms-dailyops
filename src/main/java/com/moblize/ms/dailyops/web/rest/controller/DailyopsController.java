@@ -3,10 +3,8 @@ package com.moblize.ms.dailyops.web.rest.controller;
 import com.moblize.ms.dailyops.domain.PerformanceROP;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
 import com.moblize.ms.dailyops.domain.mongo.*;
-import com.moblize.ms.dailyops.dto.BHA;
-import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
-import com.moblize.ms.dailyops.dto.ResponseDTO;
-import com.moblize.ms.dailyops.dto.TortuosityRequestDTO;
+import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
+import com.moblize.ms.dailyops.dto.*;
 import com.moblize.ms.dailyops.service.*;
 import com.moblize.ms.dailyops.service.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -383,8 +381,8 @@ public class DailyopsController {
 
     @Transactional(readOnly = true)
     @PostMapping("/api/v1/getDPVAData")
-    public List<DPVAData> getDPVAData(@RequestParam List<String> wellUid) {
-        return dpvaService.getDPVAData(wellUid);
+    public DPVAResult getDPVAData(@RequestBody DPVARequestDTO dpvaRequestDTO) {
+        return dpvaService.getDPVAData(dpvaRequestDTO);
     }
 
 

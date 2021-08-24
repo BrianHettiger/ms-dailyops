@@ -70,16 +70,14 @@ public class TargetWindowDPVA {
     @NoArgsConstructor
     @AllArgsConstructor
     public static  class PlanView {
-        public Integer left;
-        public Integer right;
+        public Integer leftAndRight;
     }
     @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
     public static  class SectionView {
-        public Integer above;
-        public Integer below;
+        public Integer aboveAndBelow;
     }
 
 }

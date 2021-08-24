@@ -22,22 +22,17 @@ import java.util.List;
 @JsonIgnoreProperties(value = {"id", "addedAt", "updatedAt"})
 public class SurveyDataDpva {
     @Id
-    @ProtoField(number = 1)
     String id;
-    @ProtoField(number = 2)
     String wellUid;
-    @ProtoField(number = 3)
     String customer;
-    @ProtoField(number = 4)
     String wellStatus;
     @Embedded
-    @ProtoField(number = 5, collectionImplementation = ArrayList.class)
     List<ScaledSurveyData> scaledSurveyData= new ArrayList<>();
+    private Float svInPercentage = 0.0f;
+    private Float pvInPercentage = 0.0f;
     @CreatedDate
-    @ProtoField(number = 6)
     LocalDateTime addedAt;
     @LastModifiedDate
-    @ProtoField(number = 7)
     LocalDateTime updatedAt;
 
 

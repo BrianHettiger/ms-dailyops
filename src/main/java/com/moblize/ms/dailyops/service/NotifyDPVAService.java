@@ -89,7 +89,7 @@ public class NotifyDPVAService {
         return planData;
     }
 
-    private List<SurveyRecord> getSurveyRecords(String wellUid, String wellStatus) {
+    public List<SurveyRecord> getSurveyRecords(String wellUid, String wellStatus) {
         List<SurveyRecord> surveyData;
         if (cacheService.getSurveyDataCache().containsKey(wellUid) && wellStatus.equalsIgnoreCase("active")) {
             SurveyCacheDTO surveyCacheDTO = cacheService.getSurveyDataCache().get(wellUid);

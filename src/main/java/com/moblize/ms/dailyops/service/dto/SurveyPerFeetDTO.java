@@ -21,7 +21,11 @@ public class SurveyPerFeetDTO {
     @ProtoField(number = 3)
     String wellStatus;
     @ProtoField(number = 4, collectionImplementation = ArrayList.class)
-    List<ScaledSurveyData> scaledSurveyData= new ArrayList<>();
+    List<ScaledSurveyData> scaledSurveyData = new ArrayList<>();
+    @ProtoField(number = 5)
+    Float svInPercentage = 0.0f;
+    @ProtoField(number = 6)
+    Float pvInPercentage = 0.0f;
 
 
 }

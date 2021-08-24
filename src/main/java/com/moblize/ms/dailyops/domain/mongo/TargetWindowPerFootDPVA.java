@@ -3,6 +3,7 @@ package com.moblize.ms.dailyops.domain.mongo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.moblize.ms.dailyops.service.dto.ScaledTargetWindow;
+import com.moblize.ms.dailyops.service.dto.TargetWindowPerFootDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,6 +36,16 @@ public class TargetWindowPerFootDPVA {
     private List<ScaledTargetWindow> basic = new ArrayList<>();
     @Embedded
     private List<ScaledTargetWindow> advance = new ArrayList<>();
+
+    private List<List<Float>> firstLine = new ArrayList<>();
+    private List<List<Float>> centerLine = new ArrayList<>();
+    private List<List<Float>> lastLine = new ArrayList<>();
+    private List<List<Float>> sideLine = new ArrayList<>();
+    @Embedded
+    private List<Intersection> svIntersections = new ArrayList<>();
+    @Embedded
+    private List<Intersection> pvIntersections = new ArrayList<>();
+
     @CreatedDate
     LocalDateTime addedAt;
     @LastModifiedDate
