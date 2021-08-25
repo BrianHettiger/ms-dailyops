@@ -60,7 +60,7 @@ public class NotifyDPVAService {
             surveyData = getSurveyRecords(wellUid, wellStatus);
             planData = getPlanRecords(wellUid, wellStatus);
 
-            sendData(targetWindow, surveyData, planData, "targetWindow", wellUid, wellStatus );
+            sendData(targetWindow, surveyData, planData, "targetWindow", wellUid, wellStatus);
         } catch (Exception e) {
             log.error("Error occur in notifyDPVAJob ", e);
         }
@@ -101,8 +101,8 @@ public class NotifyDPVAService {
     }
 
     public void sendData(TargetWindowDPVA targetWindow, List<SurveyRecord> surveyData, List<WellPlan> plannedData, String dataUpdate, String wellUid, String wellStatus) {
-        if(plannedData != null && !plannedData.isEmpty()) {
-            ProcessPerFeetRequestDTO processPerFeetRequestDTO = new ProcessPerFeetRequestDTO(targetWindow, surveyData, plannedData, dataUpdate, wellUid, wellStatus, code);
+        if (plannedData != null && !plannedData.isEmpty()) {
+            ProcessPerFeetRequestDTO processPerFeetRequestDTO = new ProcessPerFeetRequestDTO(targetWindow, surveyData, plannedData, dataUpdate, wellUid, code, wellStatus);
             restClientService.processPerFeetData(processPerFeetRequestDTO);
         }
     }

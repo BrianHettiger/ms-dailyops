@@ -6,6 +6,7 @@ import com.moblize.ms.dailyops.domain.mongo.PlannedDataDpva;
 import com.moblize.ms.dailyops.domain.mongo.SurveyDataDpva;
 import com.moblize.ms.dailyops.domain.mongo.TargetWindowPerFootDPVA;
 import com.moblize.ms.dailyops.dto.DPVARequestDTO;
+import com.moblize.ms.dailyops.dto.Section;
 import com.moblize.ms.dailyops.repository.mongo.client.PlannedDataDPVARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.SurveyDataDPVARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.TargetWindowPerFootRepository;
@@ -165,11 +166,28 @@ public class DPVAService {
             dpvaData.setWellUid(dpvaRequestDTO.getPrimaryWell());
             dpvaData.setPlannedData(plannedDataDpva.getScaledPlannedData());
             dpvaData.setSurveyData(surveyDataDpva.getScaledSurveyData());
-            dpvaData.setSvInPercentage(surveyDataDpva.getSvInPercentage());
-            dpvaData.setPvInPercentage(surveyDataDpva.getPvInPercentage());
-            TargetWindowPerFootDTO targetWindowPerFootDTO = new TargetWindowPerFootDTO();
-            createTargetWindowObject(targetWindowPerFootDPVA, targetWindowPerFootDTO);
-            dpvaData.setTargetWindow(targetWindowPerFootDTO);
+           // TargetWindowPerFootDTO targetWindowPerFootDTO = new TargetWindowPerFootDTO();
+           // createTargetWindowObject(targetWindowPerFootDPVA, targetWindowPerFootDTO);
+            SectionPlanView sectionView = new SectionPlanView();
+            sectionView.setFootagePercentage(surveyDataDpva.getSvInPercentage());
+            TargetWindowsData targetWindowsData = new TargetWindowsData();
+            targetWindowsData.setFirstLine(targetWindowPerFootDPVA.getSvFirstLine());
+            targetWindowsData.setCenterLine(targetWindowPerFootDPVA.getSvCenterLine());
+            targetWindowsData.setLastLine(targetWindowPerFootDPVA.getSvLastLine());
+            targetWindowsData.setSideLines(targetWindowPerFootDPVA.getSvSideLine());
+            sectionView.setTargetWindowsData(targetWindowsData);
+            dpvaData.setSectionView(sectionView);
+
+            SectionPlanView planView = new SectionPlanView();
+            planView.setFootagePercentage(surveyDataDpva.getSvInPercentage());
+            TargetWindowsData planViewData = new TargetWindowsData();
+            planViewData.setFirstLine(targetWindowPerFootDPVA.getSvFirstLine());
+            planViewData.setCenterLine(targetWindowPerFootDPVA.getSvCenterLine());
+            planViewData.setLastLine(targetWindowPerFootDPVA.getSvLastLine());
+            planViewData.setSideLines(targetWindowPerFootDPVA.getSvSideLine());
+            planView.setTargetWindowsData(planViewData);
+            dpvaData.setPlanView(planView);
+
             dpvaData.setDonutDistance(donutDistance(dpvaData));
 
             List<SurveyRecord> surveyRecordList = notifyDPVAService.getSurveyRecords(dpvaRequestDTO.getPrimaryWell(), COMPLETED_STATUS);
@@ -182,12 +200,30 @@ public class DPVAService {
             dpvaData.setPlannedData(cacheService.getPerFeetPlanDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new PlannedPerFeetDTO()).getScaledPlannedData());
             SurveyPerFeetDTO surveyPerFeetCache = cacheService.getPerFeetSurveyDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new SurveyPerFeetDTO());
             dpvaData.setSurveyData(surveyPerFeetCache.getScaledSurveyData());
-            dpvaData.setSvInPercentage(surveyPerFeetCache.getSvInPercentage());
-            dpvaData.setPvInPercentage(surveyPerFeetCache.getPvInPercentage());
             TargetWindowPerFootDTO targetDTOCache = cacheService.getPerFeetTargetWindowDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new TargetWindowPerFootDTO());
             targetDTOCache.setEntries();
-            dpvaData.setTargetWindow(targetDTOCache);
+
+            SectionPlanView sectionView = new SectionPlanView();
+            sectionView.setFootagePercentage(surveyPerFeetCache.getSvInPercentage());
+            TargetWindowsData targetWindowsData = new TargetWindowsData();
+            targetWindowsData.setFirstLine(targetDTOCache.getSvFirstLine());
+            targetWindowsData.setCenterLine(targetDTOCache.getSvCenterLine());
+            targetWindowsData.setLastLine(targetDTOCache.getSvLastLine());
+            targetWindowsData.setSideLines(targetDTOCache.getSvSideLine());
+            sectionView.setTargetWindowsData(targetWindowsData);
+            dpvaData.setSectionView(sectionView);
+
+            SectionPlanView planView = new SectionPlanView();
+            planView.setFootagePercentage(surveyPerFeetCache.getPvInPercentage());
+            TargetWindowsData planViewData = new TargetWindowsData();
+            planViewData.setFirstLine(targetDTOCache.getSvFirstLine());
+            planViewData.setCenterLine(targetDTOCache.getSvCenterLine());
+            planViewData.setLastLine(targetDTOCache.getSvLastLine());
+            planViewData.setSideLines(targetDTOCache.getSvSideLine());
+            planView.setTargetWindowsData(planViewData);
+            dpvaData.setPlanView(planView);
             dpvaData.setDonutDistance(donutDistance(dpvaData));
+
             List<SurveyRecord> surveyRecordList = notifyDPVAService.getSurveyRecords(dpvaRequestDTO.getPrimaryWell(), ACTIVE_STATUS);
             setDirectionalAngle(dpvaData, surveyRecordList);
         }
