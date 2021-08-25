@@ -134,10 +134,10 @@ public class DPVAService {
         DPVAResult dpvaResult = new DPVAResult();
         List<String> wellUids = new ArrayList<>();
         wellUids.add(dpvaRequestDTO.getPrimaryWell());
-        wellUids.addAll(dpvaRequestDTO.getOffsetWell());
+        wellUids.addAll(dpvaRequestDTO.getOffsetWells());
 
         MongoWell primaryMongoWell = mongoWellRepository.findByUid(dpvaRequestDTO.getPrimaryWell());
-        List<MongoWell> offsetWells = mongoWellRepository.findAllByUidIn(dpvaRequestDTO.getOffsetWell());
+        List<MongoWell> offsetWells = mongoWellRepository.findAllByUidIn(dpvaRequestDTO.getOffsetWells());
 
         Map<String, List<ScaledSurveyData>> surveyMap = new HashMap<>();
         offsetWells.forEach(well -> {
