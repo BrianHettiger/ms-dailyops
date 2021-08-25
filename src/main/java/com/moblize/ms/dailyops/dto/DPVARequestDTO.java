@@ -8,5 +8,5 @@ import java.util.List;
 @Data
 public class DPVARequestDTO {
     private String primaryWell;
-    private List<String> offsetWell =  new ArrayList<>();
+    private List<String> offsetWells  =  new ArrayList<>();
 }
