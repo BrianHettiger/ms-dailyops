@@ -6,7 +6,6 @@ import com.moblize.ms.dailyops.domain.mongo.PlannedDataDpva;
 import com.moblize.ms.dailyops.domain.mongo.SurveyDataDpva;
 import com.moblize.ms.dailyops.domain.mongo.TargetWindowPerFootDPVA;
 import com.moblize.ms.dailyops.dto.DPVARequestDTO;
-import com.moblize.ms.dailyops.dto.Section;
 import com.moblize.ms.dailyops.repository.mongo.client.PlannedDataDPVARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.SurveyDataDPVARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.TargetWindowPerFootRepository;
@@ -175,6 +174,7 @@ public class DPVAService {
             targetWindowsData.setCenterLine(targetWindowPerFootDPVA.getSvCenterLine());
             targetWindowsData.setLastLine(targetWindowPerFootDPVA.getSvLastLine());
             targetWindowsData.setSideLines(targetWindowPerFootDPVA.getSvSideLine());
+            targetWindowsData.setIntersections(targetWindowPerFootDPVA.getSvIntersections());
             sectionView.setTargetWindowsData(targetWindowsData);
             dpvaData.setSectionView(sectionView);
 
@@ -185,6 +185,7 @@ public class DPVAService {
             planViewData.setCenterLine(targetWindowPerFootDPVA.getSvCenterLine());
             planViewData.setLastLine(targetWindowPerFootDPVA.getSvLastLine());
             planViewData.setSideLines(targetWindowPerFootDPVA.getSvSideLine());
+            planViewData.setIntersections(targetWindowPerFootDPVA.getPvIntersections());
             planView.setTargetWindowsData(planViewData);
             dpvaData.setPlanView(planView);
 
@@ -210,6 +211,7 @@ public class DPVAService {
             targetWindowsData.setCenterLine(targetDTOCache.getSvCenterLine());
             targetWindowsData.setLastLine(targetDTOCache.getSvLastLine());
             targetWindowsData.setSideLines(targetDTOCache.getSvSideLine());
+            targetWindowsData.setIntersections(targetDTOCache.getSvIntersections());
             sectionView.setTargetWindowsData(targetWindowsData);
             dpvaData.setSectionView(sectionView);
 
@@ -220,6 +222,7 @@ public class DPVAService {
             planViewData.setCenterLine(targetDTOCache.getSvCenterLine());
             planViewData.setLastLine(targetDTOCache.getSvLastLine());
             planViewData.setSideLines(targetDTOCache.getSvSideLine());
+            planViewData.setIntersections(targetDTOCache.getPvIntersections());
             planView.setTargetWindowsData(planViewData);
             dpvaData.setPlanView(planView);
             dpvaData.setDonutDistance(donutDistance(dpvaData));
@@ -237,21 +240,6 @@ public class DPVAService {
             dpvaData.setIncAngle((surveyRecord.getStartIncl() + surveyRecord.getIncl()) / 2);
             dpvaData.setAzmAngle((surveyRecord.getStartAzimuth() + surveyRecord.getAzimuth()) / 2);
         }
-    }
-
-    private void createTargetWindowObject(TargetWindowPerFootDPVA windowsDBObj, TargetWindowPerFootDTO targetWindowPerFootDTO) {
-        targetWindowPerFootDTO.setBasic(windowsDBObj.getBasic());
-        targetWindowPerFootDTO.setAdvance(windowsDBObj.getAdvance());
-        targetWindowPerFootDTO.setPvFirstLine(windowsDBObj.getPvFirstLine());
-        targetWindowPerFootDTO.setPvCenterLine(windowsDBObj.getPvCenterLine());
-        targetWindowPerFootDTO.setPvLastLine(windowsDBObj.getPvLastLine());
-        targetWindowPerFootDTO.setPvSideLine(windowsDBObj.getPvSideLine());
-        targetWindowPerFootDTO.setSvFirstLine(windowsDBObj.getSvFirstLine());
-        targetWindowPerFootDTO.setSvCenterLine(windowsDBObj.getSvCenterLine());
-        targetWindowPerFootDTO.setSvLastLine(windowsDBObj.getSvLastLine());
-        targetWindowPerFootDTO.setSvSideLine(windowsDBObj.getSvSideLine());
-        targetWindowPerFootDTO.setSvIntersections(windowsDBObj.getSvIntersections());
-        targetWindowPerFootDTO.setPvIntersections(windowsDBObj.getPvIntersections());
     }
 
     private DonutDistanceDTO donutDistance(DPVAData dpvaData) {
