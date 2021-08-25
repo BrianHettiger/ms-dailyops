@@ -19,16 +19,10 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DPVAData {
     private String wellUid;
-  //  private String customer;
     private String wellStatus;
     private List<ScaledPlannedData> plannedData = new ArrayList<>();
     private List<ScaledSurveyData> surveyData = new ArrayList<>();
-   // private Float svInPercentage = 0.0f;
-   // private Float pvInPercentage = 0.0f;
- //   private TargetWindowPerFootDTO targetWindow = new TargetWindowPerFootDTO();
     private DonutDistanceDTO donutDistance;
-    private Float incAngle = 0.0f;
-    private Float azmAngle = 0.0f;
 
     @JsonProperty("sectionView")
     public SectionPlanView sectionView;

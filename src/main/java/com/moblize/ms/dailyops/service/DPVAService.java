@@ -237,8 +237,8 @@ public class DPVAService {
     private void setDirectionalAngle(DPVAData dpvaData, List<SurveyRecord> surveyRecordList) {
         if (surveyRecordList != null && !surveyRecordList.isEmpty()) {
             SurveyRecord surveyRecord = surveyRecordList.get(surveyRecordList.size() - 1);
-            dpvaData.setIncAngle((surveyRecord.getStartIncl() + surveyRecord.getIncl()) / 2);
-            dpvaData.setAzmAngle((surveyRecord.getStartAzimuth() + surveyRecord.getAzimuth()) / 2);
+            dpvaData.getSectionView().setAngleDirection((surveyRecord.getStartIncl() + surveyRecord.getIncl()) / 2);
+            dpvaData.getPlanView().setAngleDirection((surveyRecord.getStartAzimuth() + surveyRecord.getAzimuth()) / 2);
         }
     }
 
