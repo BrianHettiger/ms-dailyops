@@ -107,7 +107,19 @@ public class DPVAService {
                 }
                 targetWindowPerFootDPVADB.setWellStatus(targetWindowPerFootDTO.getWellStatus());
                 targetWindowPerFootDPVADB.setCustomer(targetWindowPerFootDTO.getCustomer());
-                createTargetWindowObject(targetWindowPerFootDPVADB, targetWindowPerFootDTO);
+                targetWindowPerFootDPVADB.setWellUid(targetWindowPerFootDTO.getWellUid());
+                targetWindowPerFootDPVADB.setBasic(targetWindowPerFootDTO.getBasic());
+                targetWindowPerFootDPVADB.setAdvance(targetWindowPerFootDTO.getAdvance());
+                targetWindowPerFootDPVADB.setPvFirstLine(targetWindowPerFootDTO.getPvFirstLine());
+                targetWindowPerFootDPVADB.setPvCenterLine(targetWindowPerFootDTO.getPvCenterLine());
+                targetWindowPerFootDPVADB.setPvLastLine(targetWindowPerFootDTO.getPvLastLine());
+                targetWindowPerFootDPVADB.setPvSideLine(targetWindowPerFootDTO.getPvSideLine());
+                targetWindowPerFootDPVADB.setSvFirstLine(targetWindowPerFootDTO.getSvFirstLine());
+                targetWindowPerFootDPVADB.setSvCenterLine(targetWindowPerFootDTO.getSvCenterLine());
+                targetWindowPerFootDPVADB.setSvLastLine(targetWindowPerFootDTO.getSvLastLine());
+                targetWindowPerFootDPVADB.setSvSideLine(targetWindowPerFootDTO.getSvSideLine());
+                targetWindowPerFootDPVADB.setSvIntersections(targetWindowPerFootDTO.getSvIntersections());
+                targetWindowPerFootDPVADB.setPvIntersections(targetWindowPerFootDTO.getPvIntersections());
                 targetWindowPerFootRepository.save(targetWindowPerFootDPVADB);
             }
         } catch (Exception e) {
@@ -128,20 +140,21 @@ public class DPVAService {
 
         Map<String, List<ScaledSurveyData>> surveyMap = new HashMap<>();
         offsetWells.forEach(well -> {
-
+            DPVAData dpvaData = new DPVAData();
+            dpvaData.setWellUid(well.getUid());
             if (well.getStatusWell().equalsIgnoreCase(ACTIVE_STATUS)) {
                 SurveyPerFeetDTO surveyPerFeetCache = cacheService.getPerFeetSurveyDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new SurveyPerFeetDTO());
-                surveyMap.put(well.getUid(), surveyPerFeetCache.getScaledSurveyData());
+                dpvaData.setSurveyData(surveyPerFeetCache.getScaledSurveyData());
             } else {
                 SurveyDataDpva surveyDataDpva = surveyDataDPVARepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
                 if(surveyDataDpva == null){
                     surveyDataDpva = new SurveyDataDpva();
                 }
-                surveyMap.put(well.getUid(), surveyDataDpva.getScaledSurveyData());
+                dpvaData.setSurveyData( surveyDataDpva.getScaledSurveyData());
             }
+            dpvaResult.getOffsetWellsDPVAData().add(dpvaData);
 
         });
-        dpvaResult.setOffsetSurveyData(surveyMap);
 
 
         DPVAData dpvaData = new DPVAData();
@@ -161,7 +174,7 @@ public class DPVAService {
 
             List<SurveyRecord> surveyRecordList = notifyDPVAService.getSurveyRecords(dpvaRequestDTO.getPrimaryWell(), COMPLETED_STATUS);
             setDirectionalAngle(dpvaData, surveyRecordList);
-            dpvaResult.setDpvaData(dpvaData);
+            dpvaResult.setPrimaryWellDPVAData(dpvaData);
 
         }
         if (primaryMongoWell.getStatusWell().equalsIgnoreCase(ACTIVE_STATUS)) {
@@ -178,7 +191,7 @@ public class DPVAService {
             List<SurveyRecord> surveyRecordList = notifyDPVAService.getSurveyRecords(dpvaRequestDTO.getPrimaryWell(), ACTIVE_STATUS);
             setDirectionalAngle(dpvaData, surveyRecordList);
         }
-        dpvaResult.setDpvaData(dpvaData);
+        dpvaResult.setPrimaryWellDPVAData(dpvaData);
         return dpvaResult;
     }
 
@@ -193,13 +206,16 @@ public class DPVAService {
     private void createTargetWindowObject(TargetWindowPerFootDPVA windowsDBObj, TargetWindowPerFootDTO targetWindowPerFootDTO) {
         targetWindowPerFootDTO.setBasic(windowsDBObj.getBasic());
         targetWindowPerFootDTO.setAdvance(windowsDBObj.getAdvance());
-        targetWindowPerFootDTO.setFirstLine(windowsDBObj.getFirstLine());
-        targetWindowPerFootDTO.setCenterLine(windowsDBObj.getCenterLine());
-        targetWindowPerFootDTO.setLastLine(windowsDBObj.getLastLine());
-        targetWindowPerFootDTO.setSideLine(windowsDBObj.getSideLine());
+        targetWindowPerFootDTO.setPvFirstLine(windowsDBObj.getPvFirstLine());
+        targetWindowPerFootDTO.setPvCenterLine(windowsDBObj.getPvCenterLine());
+        targetWindowPerFootDTO.setPvLastLine(windowsDBObj.getPvLastLine());
+        targetWindowPerFootDTO.setPvSideLine(windowsDBObj.getPvSideLine());
+        targetWindowPerFootDTO.setSvFirstLine(windowsDBObj.getSvFirstLine());
+        targetWindowPerFootDTO.setSvCenterLine(windowsDBObj.getSvCenterLine());
+        targetWindowPerFootDTO.setSvLastLine(windowsDBObj.getSvLastLine());
+        targetWindowPerFootDTO.setSvSideLine(windowsDBObj.getSvSideLine());
         targetWindowPerFootDTO.setSvIntersections(windowsDBObj.getSvIntersections());
         targetWindowPerFootDTO.setPvIntersections(windowsDBObj.getPvIntersections());
-
     }
 
     private DonutDistanceDTO donutDistance(DPVAData dpvaData) {

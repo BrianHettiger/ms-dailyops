@@ -37,10 +37,16 @@ public class TargetWindowPerFootDPVA {
     @Embedded
     private List<ScaledTargetWindow> advance = new ArrayList<>();
 
-    private List<List<Float>> firstLine = new ArrayList<>();
-    private List<List<Float>> centerLine = new ArrayList<>();
-    private List<List<Float>> lastLine = new ArrayList<>();
-    private List<List<Float>> sideLine = new ArrayList<>();
+    private List<List<Float>> pvFirstLine = new ArrayList<>();
+    private List<List<Float>> pvCenterLine = new ArrayList<>();
+    private List<List<Float>> pvLastLine = new ArrayList<>();
+    private List<List<List<Float>>> pvSideLine = new ArrayList<>();
+
+    private List<List<Float>> svFirstLine = new ArrayList<>();
+    private List<List<Float>> svCenterLine = new ArrayList<>();
+    private List<List<Float>> svLastLine = new ArrayList<>();
+    private List<List<List<Float>>> svSideLine = new ArrayList<>();
+
     @Embedded
     private List<Intersection> svIntersections = new ArrayList<>();
     @Embedded

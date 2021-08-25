@@ -75,7 +75,7 @@ public class RestClientService {
         try {
             final String resetUrl = analyticsServiceUrl + processPerFeetData;
             final HttpEntity<ProcessPerFeetRequestDTO> request = new HttpEntity<ProcessPerFeetRequestDTO>(processPerFeetRequestDTO, createHeaders(analyticsServiceUser, analyticsServicePassword));
-            responseEntity = restTemplate.exchange(resetUrl, HttpMethod.POST, request, MongoWell.class);
+            responseEntity = restTemplate.exchange(resetUrl, HttpMethod.POST, request, String.class);
             log.info("Process per feet data API took {}",System.currentTimeMillis()-startIndex);
         } catch (RestClientException e) {
             log.error("Error occur in processPerFeetData API call ", e);

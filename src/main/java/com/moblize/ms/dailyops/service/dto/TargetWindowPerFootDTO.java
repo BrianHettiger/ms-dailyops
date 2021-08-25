@@ -2,7 +2,9 @@ package com.moblize.ms.dailyops.service.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.moblize.ms.dailyops.domain.mongo.Intersection;
+import com.moblize.ms.dailyops.dto.SideLinesCoordinates;
 import com.moblize.ms.dailyops.dto.TargetWindowsCoordinate;
+import com.moblize.ms.dailyops.dto.TargetWindowsSideLineCoordinate;
 import com.moblize.ms.dailyops.dto.WindowCoordinate;
 import lombok.*;
 import org.infinispan.protostream.annotations.ProtoField;
@@ -22,10 +24,17 @@ public class TargetWindowPerFootDTO {
     List<ScaledTargetWindow> basic = new ArrayList<>();
     @ProtoField(number = 5, collectionImplementation = ArrayList.class)
     List<ScaledTargetWindow> advance = new ArrayList<>();
-    List<List<Float>> firstLine = new ArrayList<>();
-    List<List<Float>> centerLine = new ArrayList<>();
-    List<List<Float>> lastLine = new ArrayList<>();
-    List<List<Float>> sideLine = new ArrayList<>();
+
+    List<List<Float>> pvFirstLine = new ArrayList<>();
+    List<List<Float>> pvCenterLine = new ArrayList<>();
+    List<List<Float>> pvLastLine = new ArrayList<>();
+    List<List<List<Float>>> pvSideLine = new ArrayList<>();
+
+    List<List<Float>> svFirstLine = new ArrayList<>();
+    List<List<Float>> svCenterLine = new ArrayList<>();
+    List<List<Float>> svLastLine = new ArrayList<>();
+    List<List<List<Float>>> svSideLine = new ArrayList<>();
+
     @ProtoField(number = 6, collectionImplementation = ArrayList.class)
     List<Intersection> svIntersections = new ArrayList<>();
     @ProtoField(number = 7, collectionImplementation = ArrayList.class)
@@ -33,30 +42,50 @@ public class TargetWindowPerFootDTO {
 
     @JsonIgnore
     @ProtoField(number = 8)
-    TargetWindowsCoordinate firstLineCoordinate = new TargetWindowsCoordinate();
+    TargetWindowsCoordinate pvFirstLineCoordinate = new TargetWindowsCoordinate();
     @JsonIgnore
     @ProtoField(number = 9)
-    TargetWindowsCoordinate centerLineCoordinate = new TargetWindowsCoordinate();
+    TargetWindowsCoordinate pvCenterLineCoordinate = new TargetWindowsCoordinate();
     @JsonIgnore
     @ProtoField(number = 10)
-    TargetWindowsCoordinate lastLineCoordinate = new TargetWindowsCoordinate();
+    TargetWindowsCoordinate pvLastLineCoordinate = new TargetWindowsCoordinate();
     @JsonIgnore
     @ProtoField(number = 11)
-    TargetWindowsCoordinate sideLineCoordinate = new TargetWindowsCoordinate();
+    TargetWindowsSideLineCoordinate pvSideLineCoordinate = new TargetWindowsSideLineCoordinate();
+    @JsonIgnore
+    @ProtoField(number = 12)
+    TargetWindowsCoordinate svFirstLineCoordinate = new TargetWindowsCoordinate();
+    @JsonIgnore
+    @ProtoField(number = 13)
+    TargetWindowsCoordinate svCenterLineCoordinate = new TargetWindowsCoordinate();
+    @JsonIgnore
+    @ProtoField(number = 14)
+    TargetWindowsCoordinate svLastLineCoordinate = new TargetWindowsCoordinate();
+    @JsonIgnore
+    @ProtoField(number = 15)
+    TargetWindowsSideLineCoordinate svSideLineCoordinate = new TargetWindowsSideLineCoordinate();
 
 
     public void setProtoData() {
-        setProtoCoordData(firstLine, firstLineCoordinate);
-        setProtoCoordData(centerLine, centerLineCoordinate);
-        setProtoCoordData(lastLine, lastLineCoordinate);
-        setProtoCoordData(sideLine, sideLineCoordinate);
+        setProtoCoordData(pvFirstLine, pvFirstLineCoordinate);
+        setProtoCoordData(pvCenterLine, pvCenterLineCoordinate);
+        setProtoCoordData(pvLastLine, pvLastLineCoordinate);
+        setProtoCoordData(pvSideLine, pvSideLineCoordinate);
+        setProtoCoordData(svFirstLine, svFirstLineCoordinate);
+        setProtoCoordData(svCenterLine, svCenterLineCoordinate);
+        setProtoCoordData(svLastLine, svLastLineCoordinate);
+        setProtoCoordData(svSideLine, svSideLineCoordinate);
     }
 
     public void setEntries() {
-        setEntriesCoord(firstLineCoordinate, firstLine);
-        setEntriesCoord(centerLineCoordinate, centerLine);
-        setEntriesCoord(lastLineCoordinate, lastLine);
-        setEntriesCoord(sideLineCoordinate, sideLine);
+        setEntriesCoord(pvFirstLineCoordinate, pvFirstLine);
+        setEntriesCoord(pvCenterLineCoordinate, pvCenterLine);
+        setEntriesCoord(pvLastLineCoordinate, pvLastLine);
+        setEntriesCoord(pvSideLineCoordinate, pvSideLine);
+        setEntriesCoord(svFirstLineCoordinate, svFirstLine);
+        setEntriesCoord(svCenterLineCoordinate, svCenterLine);
+        setEntriesCoord(svLastLineCoordinate, svLastLine);
+        setEntriesCoord(svSideLineCoordinate, svSideLine);
     }
 
     public void setProtoCoordData(List<List<Float>> input, TargetWindowsCoordinate output) {
@@ -79,6 +108,42 @@ public class TargetWindowPerFootDTO {
                 coordinate.add(location.getXAxis());
                 coordinate.add(location.getYAxis());
                 output.add(coordinate);
+            });
+        }
+    }
+    public void setProtoCoordData(List<List<List<Float>>> input, TargetWindowsSideLineCoordinate output) {
+        if (output.getSideLinesCoordinates().isEmpty() && !input.isEmpty()) {
+            input.forEach((values) -> {
+                SideLinesCoordinates sideLinesCoordinates = new SideLinesCoordinates();
+                if (!values.isEmpty()) {
+                    TargetWindowsCoordinate targetWindowsCoordinate = new TargetWindowsCoordinate();
+                    values.forEach(sideLines -> {
+                        WindowCoordinate windowCoordinate = new WindowCoordinate();
+                        windowCoordinate.setXAxis(sideLines.get(0));
+                        windowCoordinate.setYAxis(sideLines.get(1));
+                        targetWindowsCoordinate.getWindowCoordinates().add(windowCoordinate);
+                    });
+                    sideLinesCoordinates.getWindowCoordinates().add(targetWindowsCoordinate);
+                }
+                output.getSideLinesCoordinates().add(sideLinesCoordinates);
+            });
+        }
+    }
+
+    public void setEntriesCoord(TargetWindowsSideLineCoordinate input, List<List<List<Float>>> output) {
+
+        if (output.isEmpty() && !input.getSideLinesCoordinates().isEmpty()) {
+            input.getSideLinesCoordinates().forEach(sideLinesCoordinates -> {
+                List<List<Float>> sideLines = new ArrayList<>();
+                sideLinesCoordinates.getWindowCoordinates().forEach(targetWindowsCoordinate -> {
+                    targetWindowsCoordinate.getWindowCoordinates().forEach(windowCoordinate -> {
+                        List<Float> coordinate = new ArrayList<>();
+                        coordinate.add(windowCoordinate.getXAxis());
+                        coordinate.add(windowCoordinate.getYAxis());
+                        sideLines.add(coordinate);
+                    });
+                    output.add(sideLines);
+                });
             });
         }
     }

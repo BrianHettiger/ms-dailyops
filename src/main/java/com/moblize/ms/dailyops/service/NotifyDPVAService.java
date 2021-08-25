@@ -101,8 +101,10 @@ public class NotifyDPVAService {
     }
 
     public void sendData(TargetWindowDPVA targetWindow, List<SurveyRecord> surveyData, List<WellPlan> plannedData, String dataUpdate, String wellUid, String wellStatus) {
-        ProcessPerFeetRequestDTO processPerFeetRequestDTO = new ProcessPerFeetRequestDTO(targetWindow, surveyData, plannedData, dataUpdate, wellUid, wellStatus, code);
-        restClientService.processPerFeetData(processPerFeetRequestDTO);
+        if(plannedData != null && !plannedData.isEmpty()) {
+            ProcessPerFeetRequestDTO processPerFeetRequestDTO = new ProcessPerFeetRequestDTO(targetWindow, surveyData, plannedData, dataUpdate, wellUid, wellStatus, code);
+            restClientService.processPerFeetData(processPerFeetRequestDTO);
+        }
     }
 
     public void resetDPVAWell(String wellUid) {
