@@ -37,6 +37,9 @@ public class TargetWindowDPVA {
     public Basic basic;
     @JsonProperty("advance")
     public List<Advance> advance = null;
+
+    private Float lateralStartDepth;
+
     @CreatedDate
     private LocalDateTime addedAt;
     @LastModifiedDate

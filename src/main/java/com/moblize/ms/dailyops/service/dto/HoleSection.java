@@ -1,17 +1,20 @@
 package com.moblize.ms.dailyops.service.dto;
 
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.infinispan.protostream.annotations.ProtoEnumValue;
+import lombok.*;
 
-@Getter
-@Setter
-@ToString
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class HoleSectionDTO {
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+
+/**
+ * A HoleSection.
+ */
+@Getter @Setter @ToString
+@NoArgsConstructor
+@AllArgsConstructor
+public class HoleSection {
+
     public enum HoleSectionType {
         ALL("ALL"),
         SURFACE("SURFACE"),
@@ -20,8 +23,7 @@ public class HoleSectionDTO {
         LATERAL("LATERAL"),
         UNKNOWN("UNKNOWN");
 
-        @ProtoEnumValue(number = 1)
-        private String holeSectionType;
+        private final String holeSectionType;
 
         HoleSectionType(String type) {
             this.holeSectionType = type;
@@ -31,7 +33,9 @@ public class HoleSectionDTO {
             return holeSectionType;
         }
     }
-
+    @Id
+    private Long id;
+    @Enumerated(EnumType.STRING)
     private HoleSectionType section = HoleSectionType.ALL;
 
     private Float fromDepth;

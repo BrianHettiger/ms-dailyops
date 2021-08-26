@@ -60,7 +60,7 @@ public class SurveyRecord {
     @ProtoField(number = 24)
     Float avgGammaRay1ShiftedByRotaryDrilling;
     @ProtoEnumValue(number = 25)
-    HoleSectionDTO.HoleSectionType section;
+    HoleSection.HoleSectionType section;
     @ProtoField(number = 26)
     Double slidingPercentage;
     @ProtoField(number = 27)

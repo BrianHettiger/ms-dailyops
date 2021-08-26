@@ -267,6 +267,7 @@ public class DPVAService {
 
             trajectoryStack.push(survey.getMd());
         });
+
         donutDistanceDTO.setData(map);
         if (dpvaData != null && dpvaData.getSurveyData() != null && !dpvaData.getSurveyData().isEmpty()) {
             donutDistanceDTO.setAvgDistance(wrapper.totalDistance / dpvaData.getSurveyData().size());
@@ -305,6 +306,7 @@ public class DPVAService {
     @Setter
     public static class DistanceDTO {
         int count = 0;
+
         Double drilledDepthSectionView = 0.0d;
 
         Double drilledDepthPlanView = 0.0d;

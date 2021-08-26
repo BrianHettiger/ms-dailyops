@@ -1,6 +1,7 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.client.AlarmDetailClient;
+import com.moblize.ms.dailyops.client.KpiDashboardClient;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.domain.mongo.DPVALoadConfig;
 import com.moblize.ms.dailyops.domain.mongo.TargetWindowDPVA;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -31,6 +33,8 @@ public class NotifyDPVAService {
     private MongoWellRepository mongoWellRepository;
     @Autowired
     private DPVALoadConfigRepository dpvaLoadConfigRepository;
+    @Autowired
+    private KpiDashboardClient kpiDashboardClient;
 
     @Value("${CODE}")
     private String code;
@@ -102,6 +106,10 @@ public class NotifyDPVAService {
 
     public void sendData(TargetWindowDPVA targetWindow, List<SurveyRecord> surveyData, List<WellPlan> plannedData, String dataUpdate, String wellUid, String wellStatus) {
         if (plannedData != null && !plannedData.isEmpty()) {
+            Optional<Float>  lateralDepth = kpiDashboardClient.getHoleSections(wellUid).stream().filter(holeSection -> holeSection.getSection().name().equalsIgnoreCase("lateral")).map(holeSection -> holeSection.getFromDepth()).findFirst();
+            if(lateralDepth.isPresent()){
+                targetWindow.setLateralStartDepth(lateralDepth.get());
+            }
             ProcessPerFeetRequestDTO processPerFeetRequestDTO = new ProcessPerFeetRequestDTO(targetWindow, surveyData, plannedData, dataUpdate, wellUid, code, wellStatus);
             restClientService.processPerFeetData(processPerFeetRequestDTO);
         }
