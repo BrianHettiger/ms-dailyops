@@ -133,12 +133,15 @@ public class WellsCoordinatesService {
             if(token != null) {
                 Claims claims = tokenProvider.getTokenClaims(token);
                 String email = (String) claims.get("email");
-                if(email != null && email.toLowerCase(Locale.ROOT).contains("moblize"))
-                mongoWellRepository.findAllByCustomerAndIsHidden(customer, false).forEach(mongoWell -> {
-                    WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
-                    value.setEntries();
-                    latLngMap.put(value.getUid(), value);
-                });
+                log.info("Email: {}", email);
+                if(email != null && email.toLowerCase().contains("moblize")) {
+                    log.info("Moblize user");
+                    mongoWellRepository.findAllByCustomerAndIsHidden(customer, false).forEach(mongoWell -> {
+                        WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
+                        value.setEntries();
+                        latLngMap.put(value.getUid(), value);
+                    });
+                }
             }
             if(latLngMap.isEmpty()) {
                 mongoWellRepository.findAll().forEach(mongoWell -> {
