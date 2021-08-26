@@ -36,7 +36,7 @@ public class ScaledSurveyData implements Serializable {
     @ProtoField(number = 11)
     Boolean pvIsIn;
     @ProtoField(number = 12)
-    Double azim;
+    Double azi;
     @ProtoField(number = 13)
     Double inc;
 
