@@ -133,10 +133,8 @@ public class WellsCoordinatesService {
             if(token != null) {
                 Claims claims = tokenProvider.getTokenClaims(token);
                 String email = (String) claims.get("email");
-                log.info("Email: {}", email);
                 if(email != null && email.toLowerCase().contains("moblize")) {
-                    log.info("Moblize user");
-                    mongoWellRepository.findAllByCustomerAndIsHidden(customer, false).forEach(mongoWell -> {
+                    mongoWellRepository.findAll().forEach(mongoWell -> {
                         WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
                         value.setEntries();
                         latLngMap.put(value.getUid(), value);
@@ -144,7 +142,7 @@ public class WellsCoordinatesService {
                 }
             }
             if(latLngMap.isEmpty()) {
-                mongoWellRepository.findAll().forEach(mongoWell -> {
+                mongoWellRepository.findAllByCustomerAndIsHidden(customer, false).forEach(mongoWell -> {
                     WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
                     value.setEntries();
                     latLngMap.put(value.getUid(), value);
@@ -675,13 +673,13 @@ public class WellsCoordinatesService {
     public void sendWellUpdates(Set<String> wells) {
         Map<String, MongoWell> mongoWells =cacheService.getMongoWellCache().getAll(wells);
         mongoWells.forEach((uid, well) -> {
-            log.info("send update for: {}", uid);
+            log.debug("send update for: {}", uid);
             try {
                 restClientService.sendMessage("wellActivity", objectMapper.writeValueAsString(getWellCoordinates(well)));
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
-            log.info("sent update for: {}", uid);
+            log.debug("sent update for: {}", uid);
         });
     }
 }

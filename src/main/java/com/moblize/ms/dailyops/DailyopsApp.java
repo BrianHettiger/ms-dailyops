@@ -79,7 +79,7 @@ public class DailyopsApp {
         } catch (UnknownHostException e) {
             log.warn("The host name could not be determined, using `localhost` as fallback");
         }
-        log.info("\n----------------------------------------------------------\n\t" +
+        log.debug("\n----------------------------------------------------------\n\t" +
                 "Application '{}' is running! Access URLs:\n\t" +
                 "Local: \t\t{}://localhost:{}{}\n\t" +
                 "External: \t{}://{}:{}{}\n\t" +
@@ -98,7 +98,7 @@ public class DailyopsApp {
         if (configServerStatus == null) {
             configServerStatus = "Not found or not setup for this application";
         }
-        log.info("\n----------------------------------------------------------\n\t" +
+        log.debug("\n----------------------------------------------------------\n\t" +
                 "Config Server: \t{}\n----------------------------------------------------------", configServerStatus);
     }
 }
