@@ -39,14 +39,18 @@ public class NotifyDPVAService {
     public void loadDPVAData(String customer) {
         try {
             DPVALoadConfig dpvaLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(customer);
-            if (dpvaLoadConfig == null || (dpvaLoadConfig != null && !dpvaLoadConfig.getIsDataCalculated())) {
+            if(dpvaLoadConfig == null){
+                dpvaLoadConfig = new DPVALoadConfig();
+                dpvaLoadConfig.setCustomer(customer);
+                dpvaLoadConfig.setIsDataCalculated(false);
+                dpvaLoadConfigRepository.save(dpvaLoadConfig);
+            }
+            if (dpvaLoadConfig != null && !dpvaLoadConfig.getIsDataCalculated()) {
                 mongoWellRepository.findAllByCustomer(customer).forEach(well -> {
                     notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(well.getUid()), well.getStatusWell());
                 });
-                DPVALoadConfig dpvaLoadConfigNew = new DPVALoadConfig();
-                dpvaLoadConfigNew.setCustomer(customer);
-                dpvaLoadConfigNew.setIsDataCalculated(true);
-                dpvaLoadConfigRepository.save(dpvaLoadConfigNew);
+                dpvaLoadConfig.setIsDataCalculated(true);
+                dpvaLoadConfigRepository.save(dpvaLoadConfig);
             }
         } catch (Exception e) {
             log.error("Error occur in loadDPVAData ", e);
