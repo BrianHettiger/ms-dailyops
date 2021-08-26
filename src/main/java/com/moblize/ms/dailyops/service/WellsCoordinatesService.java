@@ -134,7 +134,7 @@ public class WellsCoordinatesService {
                 Claims claims = tokenProvider.getTokenClaims(token);
                 String email = (String) claims.get("email");
                 if(email != null && email.toLowerCase().contains("moblize")) {
-                    mongoWellRepository.findAll().forEach(mongoWell -> {
+                    mongoWellRepository.findAllByCustomer(customer).forEach(mongoWell -> {
                         WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
                         value.setEntries();
                         latLngMap.put(value.getUid(), value);
