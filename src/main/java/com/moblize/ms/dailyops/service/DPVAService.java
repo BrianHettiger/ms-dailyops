@@ -30,6 +30,8 @@ public class DPVAService {
     @Autowired
     private TargetWindowPerFootRepository targetWindowPerFootRepository;
     @Autowired
+    private TargetWindowDPVAService targetWindowDPVAService;
+    @Autowired
     private MongoWellRepository mongoWellRepository;
     @Autowired
     private CacheService cacheService;
@@ -245,32 +247,36 @@ public class DPVAService {
     private DonutDistanceDTO donutDistance(DPVAData dpvaData) {
         DonutDistanceDTO donutDistanceDTO = new DonutDistanceDTO();
 
-        Map<String, DistanceDTO> map = new HashMap<>();
-        var wrapper = new Object() {
-            double totalDistance = 0d;
-        };
-        Stack<Double> trajectoryStack = new Stack<>();
-        dpvaData.getSurveyData().forEach(survey -> {
+        Float lateralLength = targetWindowDPVAService.getTargetWindowDetail(dpvaData.getWellUid()).getLateralStartDepth();
+        if (lateralLength != null) {
+            Map<String, DistanceDTO> map = new HashMap<>();
+            var wrapper = new Object() {
+                double totalDistance = 0d;
+            };
+            Stack<Double> trajectoryStack = new Stack<>();
+            dpvaData.getSurveyData().forEach(survey -> {
+                if (survey.getMd() > lateralLength) {
+                    Double previousMD = trajectoryStack.isEmpty() ? null : trajectoryStack.pop();
+                    Double drilledDepth = previousMD != null ? survey.getMd() - previousMD : 0;
 
-            Double previousMD = trajectoryStack.isEmpty() ? null : trajectoryStack.pop();
-            Double drilledDepth = previousMD != null ? survey.getMd() - previousMD : 0;
+                    Double distance = survey.getSvDistance();
+                    distance = distance == null ? 0d : distance;
+                    donutProcess(map, distance, drilledDepth, "section");
+                    wrapper.totalDistance += distance;
 
-            Double distance = survey.getSvDistance();
-            distance = distance == null ? 0d : distance;
-            donutProcess(map, distance, drilledDepth, "section");
-            wrapper.totalDistance += distance;
+                    distance = survey.getPvDistance();
+                    distance = distance == null ? 0d : distance;
+                    donutProcess(map, distance, drilledDepth, "plan");
+                    wrapper.totalDistance += distance;
 
-            distance = survey.getPvDistance();
-            distance = distance == null ? 0d : distance;
-            donutProcess(map, distance, drilledDepth, "plan");
-            wrapper.totalDistance += distance;
+                    trajectoryStack.push(survey.getMd());
+                }
+            });
 
-            trajectoryStack.push(survey.getMd());
-        });
-
-        donutDistanceDTO.setData(map);
-        if (dpvaData != null && dpvaData.getSurveyData() != null && !dpvaData.getSurveyData().isEmpty()) {
-            donutDistanceDTO.setAvgDistance(wrapper.totalDistance / dpvaData.getSurveyData().size());
+            donutDistanceDTO.setData(map);
+            if (dpvaData != null && dpvaData.getSurveyData() != null && !dpvaData.getSurveyData().isEmpty()) {
+                donutDistanceDTO.setAvgDistance(wrapper.totalDistance / dpvaData.getSurveyData().size());
+            }
         }
         return donutDistanceDTO;
     }
