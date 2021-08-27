@@ -247,7 +247,7 @@ public class DPVAService {
     private DonutDistanceDTO donutDistance(DPVAData dpvaData) {
         DonutDistanceDTO donutDistanceDTO = new DonutDistanceDTO();
 
-        Float lateralLength = targetWindowDPVAService.getTargetWindowDetail(dpvaData.getWellUid()).getLateralStartDepth();
+        Float lateralLength =  notifyDPVAService.getLateralLength(dpvaData.getWellUid());
         if (lateralLength != null) {
             Map<String, DistanceDTO> map = new HashMap<>();
             var wrapper = new Object() {
