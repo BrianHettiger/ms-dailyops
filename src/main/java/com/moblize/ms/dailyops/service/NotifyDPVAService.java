@@ -3,7 +3,7 @@ package com.moblize.ms.dailyops.service;
 import com.moblize.ms.dailyops.client.AlarmDetailClient;
 import com.moblize.ms.dailyops.client.KpiDashboardClient;
 import com.moblize.ms.dailyops.domain.MongoWell;
-import com.moblize.ms.dailyops.domain.mongo.DPVALoadConfig;
+import com.moblize.ms.dailyops.domain.mongo.DailyOpsLoadConfig;
 import com.moblize.ms.dailyops.domain.mongo.TargetWindowDPVA;
 import com.moblize.ms.dailyops.repository.mongo.client.DPVALoadConfigRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
@@ -40,25 +40,30 @@ public class NotifyDPVAService {
     @Value("${CODE}")
     private String code;
 
-    public void loadDPVAData(String customer) {
+    public void loadDPVAData(String customer,DailyOpsLoadConfig dailyOpsLoadConfig) {
         try {
-            DPVALoadConfig dpvaLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(customer);
-            if(dpvaLoadConfig == null){
-                dpvaLoadConfig = new DPVALoadConfig();
-                dpvaLoadConfig.setCustomer(customer);
-                dpvaLoadConfig.setIsDataCalculated(false);
-                dpvaLoadConfigRepository.save(dpvaLoadConfig);
-            }
-            if (dpvaLoadConfig != null && !dpvaLoadConfig.getIsDataCalculated()) {
+            if (dailyOpsLoadConfig != null && !dailyOpsLoadConfig.getIsDPVACalculated()) {
                 mongoWellRepository.findAllByCustomer(customer).forEach(well -> {
                     notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(well.getUid()), well.getStatusWell());
                 });
-                dpvaLoadConfig.setIsDataCalculated(true);
-                dpvaLoadConfigRepository.save(dpvaLoadConfig);
+                dailyOpsLoadConfig.setIsDPVACalculated(true);
+                dpvaLoadConfigRepository.save(dailyOpsLoadConfig);
             }
         } catch (Exception e) {
             log.error("Error occur in loadDPVAData ", e);
         }
+    }
+
+    public DailyOpsLoadConfig getDailyOpsLoadConfig(String customer) {
+        DailyOpsLoadConfig dailyOpsLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(customer);
+        if(dailyOpsLoadConfig == null){
+            dailyOpsLoadConfig = new DailyOpsLoadConfig();
+            dailyOpsLoadConfig.setCustomer(customer);
+            dailyOpsLoadConfig.setIsDPVACalculated(false);
+            dailyOpsLoadConfig.setIsPerformanceMapCalculated(true);
+            dailyOpsLoadConfig = dpvaLoadConfigRepository.save(dailyOpsLoadConfig);
+        }
+        return dailyOpsLoadConfig;
     }
 
     public void notifyDPVAJob(TargetWindowDPVA targetWindow, String wellStatus) {
@@ -141,14 +146,15 @@ public class NotifyDPVAService {
 
     public void resetAllDPVAWell(String customer) {
         try {
-            DPVALoadConfig dpvaLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(customer);
-            if (dpvaLoadConfig == null) {
-                dpvaLoadConfig = new DPVALoadConfig();
+            DailyOpsLoadConfig dailyOpsLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(customer);
+            if (dailyOpsLoadConfig == null) {
+                dailyOpsLoadConfig = new DailyOpsLoadConfig();
             }
-            dpvaLoadConfig.setCustomer(customer);
-            dpvaLoadConfig.setIsDataCalculated(false);
-            dpvaLoadConfigRepository.save(dpvaLoadConfig);
-            loadDPVAData(customer);
+            dailyOpsLoadConfig.setCustomer(customer);
+            dailyOpsLoadConfig.setIsDPVACalculated(false);
+            dailyOpsLoadConfig.setIsPerformanceMapCalculated(true);
+            dailyOpsLoadConfig =   dpvaLoadConfigRepository.save(dailyOpsLoadConfig);
+            loadDPVAData(customer, dailyOpsLoadConfig);
         } catch (Exception e) {
             log.error("Error occur in resetAllDPVAWell ", e);
         }
