@@ -78,7 +78,7 @@ public class RestClientService {
             responseEntity = restTemplate.exchange(resetUrl, HttpMethod.POST, request, String.class);
             log.info("Process per feet data API took {}",System.currentTimeMillis()-startIndex);
         } catch (RestClientException e) {
-            log.error("Error occur in processPerFeetData API call ", e);
+            log.error("Error occur in processPerFeetData API call {}"+processPerFeetRequestDTO.getWellUid(), e);
         }
         return responseEntity;
     }
