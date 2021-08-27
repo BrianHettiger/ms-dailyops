@@ -8,6 +8,7 @@ import com.moblize.ms.dailyops.dto.*;
 import com.moblize.ms.dailyops.service.*;
 import com.moblize.ms.dailyops.service.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,6 +47,9 @@ public class DailyopsController {
     private DPVAService dpvaService;
     @Autowired
     private NotifyDPVAService notifyDPVAService;
+    @Autowired
+    @Lazy
+    private CacheService cacheService;
 
 
     @Transactional(readOnly = true)
@@ -396,6 +400,12 @@ public class DailyopsController {
     @GetMapping("/api/v1/resetAllDPVAWell/{customer}")
     public void resetAllDPVAWell(@PathVariable String customer) {
         notifyDPVAService.resetAllDPVAWell(customer);
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/resetAllPFWell")
+    public void resetAllPFWell() {
+        cacheService.resetPerformanceMapData();
     }
 
     @Transactional(readOnly = true)

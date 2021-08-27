@@ -4,6 +4,7 @@ import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.domain.mongo.DailyOpsLoadConfig;
 import com.moblize.ms.dailyops.dto.TrueRopCache;
 import com.moblize.ms.dailyops.dto.WellCoordinatesResponseV2;
+import com.moblize.ms.dailyops.repository.mongo.client.DPVALoadConfigRepository;
 import com.moblize.ms.dailyops.repository.mongo.client.WellPerformanceMetaDataRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.service.dto.*;
@@ -42,6 +43,8 @@ public class CacheService {
     private WellPlanDataCacheListener wellPlanDataCacheListener;
     @Autowired
     private NotifyDPVAService notifyDPVAService;
+    @Autowired
+    private DPVALoadConfigRepository dpvaLoadConfigRepository;
 
     @Value("${CODE}")
     String COMPANY_NAME;
@@ -50,16 +53,11 @@ public class CacheService {
     public void subscribe() {
         getWellCoordinatesCache().clear();
         log.info("Cache service start");
-        DailyOpsLoadConfig dailyOpsLoadConfig =   notifyDPVAService.getDailyOpsLoadConfig(COMPANY_NAME);
-        if(dailyOpsLoadConfig != null && !dailyOpsLoadConfig.getIsPerformanceMapCalculated()) {
-            metaDataRepository.findAll().stream().forEach(metaData -> {
-                    log.info("Cache service process well {}", metaData.getWellUid());
-                    restClientService.processWell(mongoWellRepository.findByUid(metaData.getWellUid()));
-            });
-        }
+        DailyOpsLoadConfig dailyOpsLoadConfig = notifyDPVAService.getDailyOpsLoadConfig(COMPANY_NAME);
+        processPerformanceMapData(dailyOpsLoadConfig);
         log.info("Cache service end");
 
-       notifyDPVAService.loadDPVAData(COMPANY_NAME, dailyOpsLoadConfig);
+        notifyDPVAService.loadDPVAData(COMPANY_NAME, dailyOpsLoadConfig);
 
         wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
@@ -67,6 +65,25 @@ public class CacheService {
         getPlanDataCache().addClientListener(wellPlanDataCacheListener);
     }
 
+    private void processPerformanceMapData(DailyOpsLoadConfig dailyOpsLoadConfig) {
+        if (dailyOpsLoadConfig != null && !dailyOpsLoadConfig.getIsPerformanceMapCalculated()) {
+            metaDataRepository.findAll().stream().forEach(metaData -> {
+                try {
+                    log.info("Cache service process well {}", metaData.getWellUid());
+                    restClientService.processWell(mongoWellRepository.findByUid(metaData.getWellUid()));
+                } catch (Exception e) {
+                    log.error("Error in process performanceMap on load", e);
+                }
+            });
+            dailyOpsLoadConfig.setIsPerformanceMapCalculated(true);
+            dpvaLoadConfigRepository.save(dailyOpsLoadConfig);
+        }
+    }
+
+    public void resetPerformanceMapData(){
+        processPerformanceMapData(notifyDPVAService.getDailyOpsLoadConfig(COMPANY_NAME));
+        wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
+    }
 
     public RemoteCache<String, TrueRopCache> getTrueRopMetaCache() {
         RemoteCache<String, TrueRopCache> cache = cacheManager.administration()

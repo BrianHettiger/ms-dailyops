@@ -23,4 +23,5 @@ public class ProcessPerFeetRequestDTO {
     private String wellUid;
     private String customer;
     private String wellStatus;
+    private Float lateralStartDepth;
 }
