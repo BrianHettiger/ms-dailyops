@@ -39,5 +39,7 @@ public class ScaledSurveyData implements Serializable {
     Double azi;
     @ProtoField(number = 13)
     Double inc;
+    @ProtoField(number = 14)
+    Double dlsDistance;
 
 }
