@@ -17,7 +17,7 @@ import lombok.Setter;
 public class SectionPlanView {
 
     @JsonProperty("targetWindowsData")
-    public TargetWindowsData targetWindowsData;
+    public TargetWindowsData targetWindowsData = new TargetWindowsData();
     @JsonProperty("footagePercentage")
     public Float footagePercentage;
     public Float angleDirection;

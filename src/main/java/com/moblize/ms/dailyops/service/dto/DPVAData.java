@@ -7,9 +7,7 @@ import com.moblize.ms.dailyops.domain.ScaledSurveyData;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.infinispan.protostream.annotations.ProtoField;
 
-import javax.persistence.Embedded;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,11 +20,11 @@ public class DPVAData {
     private String wellStatus;
     private List<ScaledPlannedData> plannedData = new ArrayList<>();
     private List<ScaledSurveyData> surveyData = new ArrayList<>();
-    private DonutDistanceDTO donutDistance;
+    private DonutDistanceDTO donutDistance = new DonutDistanceDTO();
 
     @JsonProperty("sectionView")
-    public SectionPlanView sectionView;
+    public SectionPlanView sectionView = new SectionPlanView();
 
     @JsonProperty("planView")
-    public SectionPlanView planView;
+    public SectionPlanView planView = new SectionPlanView();
 }
