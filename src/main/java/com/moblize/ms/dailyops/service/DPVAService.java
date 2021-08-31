@@ -44,9 +44,6 @@ public class DPVAService {
 
     public SurveyPerFeetDTO saveSurveyDataDpva(SurveyPerFeetDTO surveyPerFeetDTO) {
         try {
-           ScaledSurveyData scaledSurveyData = surveyPerFeetDTO.getScaledSurveyData().get(surveyPerFeetDTO.getScaledSurveyData().size()-10);
-           log.info("saveSurveyDataDpva datapoint {},{} ",scaledSurveyData.getPvDistance(), scaledSurveyData.getSvDistance());
-
             if (surveyPerFeetDTO.getWellStatus().equalsIgnoreCase("active")) {
                 cacheService.getPerFeetSurveyDataCache().put(surveyPerFeetDTO.getWellUid(), surveyPerFeetDTO);
             } else {
