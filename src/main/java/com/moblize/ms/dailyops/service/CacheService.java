@@ -42,19 +42,19 @@ public class CacheService {
     @Async
     public void subscribe() {
         getWellCoordinatesCache().clear();
-        log.info("Cache service start");
+        log.debug("Cache service start");
         metaDataRepository.findAll().stream().forEach(metaData -> {
             processBuildAndWalk(metaData);
         });
-        log.info("Cache service end");
-        wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
+        log.debug("Cache service end");
+        wellsCoordinatesService.getWellCoordinates(COMPANY_NAME, null);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
     }
 
     private void processBuildAndWalk(WellPerformanceMetaData metaData) {
         try {
             if (metaData.getBldWlkMeasureDepth() == 0 || metaData.getBldWlkMetaData().isEmpty()) {
-                log.info("Cache service process well {}", metaData.getWellUid());
+                log.debug("Cache service process well {}", metaData.getWellUid());
                 MongoWell mongoWell = mongoWellRepository.findByUid(metaData.getWellUid());
                     if(mongoWell != null){
                         restClientService.processWell(mongoWell);
