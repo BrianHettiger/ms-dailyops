@@ -58,11 +58,11 @@ public class CacheService {
         log.info("Cache service end");
 
         notifyDPVAService.loadDPVAData(COMPANY_NAME, dailyOpsLoadConfig);
+        getSurveyDataCache().addClientListener(surveyDataCacheListener);
+        getPlanDataCache().addClientListener(wellPlanDataCacheListener);
 
         wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
-        getSurveyDataCache().addClientListener(surveyDataCacheListener);
-        getPlanDataCache().addClientListener(wellPlanDataCacheListener);
     }
 
     private void processPerformanceMapData(DailyOpsLoadConfig dailyOpsLoadConfig) {
