@@ -222,10 +222,10 @@ public class DPVAService {
                 SectionPlanView planView = new SectionPlanView();
                 planView.setFootagePercentage(surveyPerFeetCache.getPvInPercentage());
                 TargetWindowsData planViewData = new TargetWindowsData();
-                planViewData.setFirstLine(targetDTOCache.getSvFirstLine());
-                planViewData.setCenterLine(targetDTOCache.getSvCenterLine());
-                planViewData.setLastLine(targetDTOCache.getSvLastLine());
-                planViewData.setSideLines(targetDTOCache.getSvSideLine());
+                planViewData.setFirstLine(targetDTOCache.getPvFirstLine());
+                planViewData.setCenterLine(targetDTOCache.getPvCenterLine());
+                planViewData.setLastLine(targetDTOCache.getPvLastLine());
+                planViewData.setSideLines(targetDTOCache.getPvSideLine());
                 planViewData.setIntersections(targetDTOCache.getPvIntersections());
                 planView.setTargetWindowsData(planViewData);
                 dpvaData.setPlanView(planView);
