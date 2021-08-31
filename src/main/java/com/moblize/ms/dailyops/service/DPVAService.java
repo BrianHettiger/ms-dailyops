@@ -181,12 +181,12 @@ public class DPVAService {
                 dpvaData.setSectionView(sectionView);
 
                 SectionPlanView planView = new SectionPlanView();
-                planView.setFootagePercentage(surveyDataDpva.getSvInPercentage());
+                planView.setFootagePercentage(surveyDataDpva.getPvInPercentage());
                 TargetWindowsData planViewData = new TargetWindowsData();
-                planViewData.setFirstLine(targetWindowPerFootDPVA.getSvFirstLine());
-                planViewData.setCenterLine(targetWindowPerFootDPVA.getSvCenterLine());
-                planViewData.setLastLine(targetWindowPerFootDPVA.getSvLastLine());
-                planViewData.setSideLines(targetWindowPerFootDPVA.getSvSideLine());
+                planViewData.setFirstLine(targetWindowPerFootDPVA.getPvFirstLine());
+                planViewData.setCenterLine(targetWindowPerFootDPVA.getPvCenterLine());
+                planViewData.setLastLine(targetWindowPerFootDPVA.getPvLastLine());
+                planViewData.setSideLines(targetWindowPerFootDPVA.getPvSideLine());
                 planViewData.setIntersections(targetWindowPerFootDPVA.getPvIntersections());
                 planView.setTargetWindowsData(planViewData);
                 dpvaData.setPlanView(planView);
