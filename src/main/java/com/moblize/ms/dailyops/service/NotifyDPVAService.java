@@ -93,25 +93,11 @@ public class NotifyDPVAService {
     }
 
     private List<WellPlan> getPlanRecords(String wellUid, String wellStatus) {
-        List<WellPlan> planData;
-        if (cacheService.getPlanDataCache().containsKey(wellUid) && wellStatus.equalsIgnoreCase("active")) {
-            WellPlanCacheDTO wellPlanCacheDTO = cacheService.getPlanDataCache().get(wellUid);
-            planData = wellPlanCacheDTO.getWellPlanList();
-        } else {
-            planData = alarmDetailClient.getPlanData(wellUid, wellStatus);
-        }
-        return planData;
+        return alarmDetailClient.getPlanData(wellUid, wellStatus);
     }
 
     public List<SurveyRecord> getSurveyRecords(String wellUid, String wellStatus) {
-        List<SurveyRecord> surveyData;
-        if (cacheService.getSurveyDataCache().containsKey(wellUid) && wellStatus.equalsIgnoreCase("active")) {
-            SurveyCacheDTO surveyCacheDTO = cacheService.getSurveyDataCache().get(wellUid);
-            surveyData = surveyCacheDTO.getSurveyRecordList();
-        } else {
-            surveyData = alarmDetailClient.getSurveyData(wellUid, wellStatus);
-        }
-        return surveyData;
+        return alarmDetailClient.getSurveyData(wellUid, wellStatus);
     }
 
     public void sendData(TargetWindowDPVA targetWindow, List<SurveyRecord> surveyData, List<WellPlan> plannedData, String dataUpdate, String wellUid, String wellStatus) {
@@ -164,9 +150,9 @@ public class NotifyDPVAService {
         try {
             MongoWell mongoWell = mongoWellRepository.findByUid(wellUid);
             if (!mongoWell.getStatusWell().equalsIgnoreCase("active")) {
-                cacheService.getSurveyDataCache().removeAsync(wellUid);
+                //cacheService.getSurveyDataCache().removeAsync(wellUid);
                 cacheService.getPerFeetSurveyDataCache().removeAsync(wellUid);
-                cacheService.getPlanDataCache().removeAsync(wellUid);
+                //cacheService.getPlanDataCache().removeAsync(wellUid);
                 cacheService.getPerFeetPlanDataCache().removeAsync(wellUid);
                 cacheService.getPerFeetTargetWindowDataCache().removeAsync(wellUid);
                 notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(mongoWell.getUid()), mongoWell.getStatusWell());
