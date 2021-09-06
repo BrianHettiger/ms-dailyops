@@ -146,10 +146,10 @@ public class DPVAService {
             DPVAData dpvaData = new DPVAData();
             dpvaData.setWellUid(well.getUid());
             if (well.getStatusWell().equalsIgnoreCase(ACTIVE_STATUS)) {
-                SurveyPerFeetDTO surveyPerFeetCache = cacheService.getPerFeetSurveyDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new SurveyPerFeetDTO());
+                SurveyPerFeetDTO surveyPerFeetCache = cacheService.getPerFeetSurveyDataCache().getOrDefault(well.getUid(), new SurveyPerFeetDTO());
                 dpvaData.setSurveyData(surveyPerFeetCache.getScaledSurveyData());
             } else {
-                SurveyDataDpva surveyDataDpva = surveyDataDPVARepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
+                SurveyDataDpva surveyDataDpva = surveyDataDPVARepository.findFirstByWellUid(well.getUid());
                 if(surveyDataDpva == null){
                     surveyDataDpva = new SurveyDataDpva();
                 }
