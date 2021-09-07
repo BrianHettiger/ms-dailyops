@@ -27,4 +27,6 @@ public class DPVAData {
 
     @JsonProperty("planView")
     public SectionPlanView planView = new SectionPlanView();
+    @JsonProperty("tData")
+    private List<SurveyTortuosity> surveyTortuosityList = new ArrayList<>();
 }

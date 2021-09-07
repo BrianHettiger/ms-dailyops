@@ -1,14 +1,11 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
-import com.moblize.ms.dailyops.domain.ScaledSurveyData;
-import com.moblize.ms.dailyops.domain.mongo.PlannedDataDpva;
-import com.moblize.ms.dailyops.domain.mongo.SurveyDataDpva;
-import com.moblize.ms.dailyops.domain.mongo.TargetWindowDPVA;
-import com.moblize.ms.dailyops.domain.mongo.TargetWindowPerFootDPVA;
+import com.moblize.ms.dailyops.domain.mongo.*;
 import com.moblize.ms.dailyops.dto.DPVARequestDTO;
 import com.moblize.ms.dailyops.repository.mongo.client.PlannedDataDPVARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.SurveyDataDPVARepository;
+import com.moblize.ms.dailyops.repository.mongo.client.SurveyTortuosityDPVARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.TargetWindowPerFootRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.service.dto.*;
@@ -38,6 +35,8 @@ public class DPVAService {
     private CacheService cacheService;
     @Autowired
     private NotifyDPVAService notifyDPVAService;
+    @Autowired
+    private SurveyTortuosityDPVARepository surveyTortuosityDPVARepository;
 
     private final static String ACTIVE_STATUS = "active";
     private final static String COMPLETED_STATUS = "Completed";
@@ -148,12 +147,19 @@ public class DPVAService {
             if (well.getStatusWell().equalsIgnoreCase(ACTIVE_STATUS)) {
                 SurveyPerFeetDTO surveyPerFeetCache = cacheService.getPerFeetSurveyDataCache().getOrDefault(well.getUid(), new SurveyPerFeetDTO());
                 dpvaData.setSurveyData(surveyPerFeetCache.getScaledSurveyData());
+                dpvaData.setSurveyTortuosityList(cacheService.getTortuosityDataCache().getOrDefault(well.getUid(), new TortuosityDTO()).getSurveyTortuosityList());
             } else {
                 SurveyDataDpva surveyDataDpva = surveyDataDPVARepository.findFirstByWellUid(well.getUid());
                 if(surveyDataDpva == null){
                     surveyDataDpva = new SurveyDataDpva();
                 }
+                SurveyTortuosityDPVA surveyTortuosityDPVA = surveyTortuosityDPVARepository.findFirstByWellUid(well.getUid());
+                if(surveyTortuosityDPVA == null){
+                    surveyTortuosityDPVA = new SurveyTortuosityDPVA();
+                }
                 dpvaData.setSurveyData( surveyDataDpva.getScaledSurveyData());
+                dpvaData.setSurveyTortuosityList(surveyTortuosityDPVA.getSurveyTortuosityList());
+
             }
             dpvaResult.getOffsetWellsDPVAData().add(dpvaData);
 
@@ -165,9 +171,11 @@ public class DPVAService {
             SurveyDataDpva surveyDataDpva = surveyDataDPVARepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
             PlannedDataDpva plannedDataDpva = plannedDataDPVARepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
             TargetWindowPerFootDPVA targetWindowPerFootDPVA = targetWindowPerFootRepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
+            SurveyTortuosityDPVA surveyTortuosityDPVA = surveyTortuosityDPVARepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
             dpvaData.setWellUid(dpvaRequestDTO.getPrimaryWell());
             dpvaData.setPlannedData(plannedDataDpva.getScaledPlannedData());
             dpvaData.setSurveyData(surveyDataDpva.getScaledSurveyData());
+            dpvaData.setSurveyTortuosityList(surveyTortuosityDPVA.getSurveyTortuosityList());
             if(targetWindowDPVA.getIsEnable()) {
                 SectionPlanView sectionView = new SectionPlanView();
                 sectionView.setFootagePercentage(surveyDataDpva.getSvInPercentage());
@@ -204,6 +212,7 @@ public class DPVAService {
             dpvaData.setPlannedData(cacheService.getPerFeetPlanDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new PlannedPerFeetDTO()).getScaledPlannedData());
             SurveyPerFeetDTO surveyPerFeetCache = cacheService.getPerFeetSurveyDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new SurveyPerFeetDTO());
             dpvaData.setSurveyData(surveyPerFeetCache.getScaledSurveyData());
+            dpvaData.setSurveyTortuosityList(cacheService.getTortuosityDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new TortuosityDTO()).getSurveyTortuosityList());
             TargetWindowPerFootDTO targetDTOCache = cacheService.getPerFeetTargetWindowDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new TargetWindowPerFootDTO());
             targetDTOCache.setEntries();
 
@@ -309,6 +318,24 @@ public class DPVAService {
             distanceDTO.setDrilledDepthPlanView(drilledDepth);
         }
         map.put(depthRange, distanceDTO);
+    }
+
+    public TortuosityDTO saveTortuosityData(TortuosityDTO tortuosityDTO) {
+        if (tortuosityDTO.getWellStatus().equalsIgnoreCase(ACTIVE_STATUS)) {
+            cacheService.getTortuosityDataCache().put(tortuosityDTO.getWellUid(), tortuosityDTO);
+        } else {
+            SurveyTortuosityDPVA surveyTortuosityDPVA = surveyTortuosityDPVARepository.findFirstByWellUid(tortuosityDTO.getWellUid());
+            if(surveyTortuosityDPVA != null){
+                surveyTortuosityDPVA.setSurveyTortuosityList(tortuosityDTO.getSurveyTortuosityList());
+            } else {
+                surveyTortuosityDPVA = new SurveyTortuosityDPVA();
+                surveyTortuosityDPVA.setWellUid(tortuosityDTO.getWellUid());
+            }
+            surveyTortuosityDPVA.setSurveyTortuosityList(tortuosityDTO.getSurveyTortuosityList());
+            surveyTortuosityDPVARepository.save(surveyTortuosityDPVA);
+
+        }
+        return tortuosityDTO;
     }
 
     @Getter

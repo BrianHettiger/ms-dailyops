@@ -384,6 +384,12 @@ public class DailyopsController {
     }
 
     @Transactional(readOnly = true)
+    @PostMapping("/api/v1/saveTortuosityData")
+    public TortuosityDTO saveTortuosityData(@RequestBody TortuosityDTO tortuosityDTO) {
+        return dpvaService.saveTortuosityData(tortuosityDTO);
+    }
+
+    @Transactional(readOnly = true)
     @PostMapping("/api/v1/getDPVAData")
     public DPVAResult getDPVAData(@RequestBody DPVARequestDTO dpvaRequestDTO) {
         return dpvaService.getDPVAData(dpvaRequestDTO);

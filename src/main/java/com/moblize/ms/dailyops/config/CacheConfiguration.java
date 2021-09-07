@@ -82,6 +82,7 @@ public class CacheConfiguration {
             .addClass(SurveyPerFeetDTO.class)
             .addClass(PlannedPerFeetDTO.class)
             .addClass(TargetWindowPerFootDTO.class)
+            .addClass(TortuosityDTO.class)
             .packageName("moblize")
             .build(ctx);
         RemoteCache<String, String> metadataCache =

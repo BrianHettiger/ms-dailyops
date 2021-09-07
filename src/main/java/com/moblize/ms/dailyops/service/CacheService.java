@@ -129,4 +129,10 @@ public class CacheService {
             .getOrCreateCache(COMPANY_NAME + "_wellPerFeetTargetWindowData", DefaultTemplate.DIST_ASYNC);
         return  cache;
     }
+
+    public RemoteCache<String, TortuosityDTO> getTortuosityDataCache() {
+        RemoteCache<String, TortuosityDTO> cache = cacheManager.administration()
+            .getOrCreateCache(COMPANY_NAME + "_wellTortuosityData", DefaultTemplate.DIST_ASYNC);
+        return  cache;
+    }
 }
