@@ -175,7 +175,7 @@ public class DPVAService {
             dpvaData.setWellUid(dpvaRequestDTO.getPrimaryWell());
             dpvaData.setPlannedData(plannedDataDpva.getScaledPlannedData());
             dpvaData.setSurveyData(surveyDataDpva.getScaledSurveyData());
-            dpvaData.setSurveyTortuosityList(surveyTortuosityDPVA.getSurveyTortuosityList());
+            dpvaData.setSurveyTortuosityList(surveyTortuosityDPVA != null ? surveyTortuosityDPVA.getSurveyTortuosityList() : new ArrayList<>());
             if(targetWindowDPVA.getIsEnable()) {
                 SectionPlanView sectionView = new SectionPlanView();
                 sectionView.setFootagePercentage(surveyDataDpva.getSvInPercentage());
