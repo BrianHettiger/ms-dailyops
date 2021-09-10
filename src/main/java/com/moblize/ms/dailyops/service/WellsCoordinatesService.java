@@ -129,20 +129,25 @@ public class WellsCoordinatesService {
     public Collection<WellCoordinatesResponseV2> getWellCoordinates(String customer, String token) {
         RemoteCache<String, WellCoordinatesResponseV2> remoteCache = cacheService.getWellCoordinatesCache();
         Map<String, WellCoordinatesResponseV2> latLngMap = new HashMap<>();
-        if(!remoteCache.isEmpty()) {
-            if(token != null) {
-                Claims claims = tokenProvider.getTokenClaims(token);
-                String email = (String) claims.get("email");
-                if(email != null && email.toLowerCase().contains("moblize")) {
-                    mongoWellRepository.findAllByCustomer(customer).forEach(mongoWell -> {
-                        WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
-                        value.setEntries();
-                        latLngMap.put(value.getUid(), value);
-                    });
-                }
+        List<MongoWell> mongoWells = null;
+        if(token != null) {
+            Claims claims = tokenProvider.getTokenClaims(token);
+            String email = (String) claims.get("email");
+            if (email != null && email.toLowerCase().contains("moblize")) {
+                mongoWells = mongoWellRepository.findAllByCustomer(customer);
             }
+        }
+        if(mongoWells == null){
+            mongoWells = mongoWellRepository.findAllByCustomerAndIsHidden(customer, false);
+        }
+        if(!remoteCache.isEmpty()) {
+            mongoWells.forEach(mongoWell -> {
+                WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
+                value.setEntries();
+                latLngMap.put(value.getUid(), value);
+            });
             if(latLngMap.isEmpty()) {
-                mongoWellRepository.findAllByCustomerAndIsHidden(customer, false).forEach(mongoWell -> {
+                mongoWells.forEach(mongoWell -> {
                     WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
                     value.setEntries();
                     latLngMap.put(value.getUid(), value);
@@ -151,13 +156,12 @@ public class WellsCoordinatesService {
             return latLngMap.values();
         }
 
-        List<MongoWell> mongoWell = cacheService.getMongoWellCache().values().stream().collect(Collectors.toList());
         final Map<String, ROPs> ropByWellUidMap = getWellROPsMap();
         final Map<String, Cost> costByWellUidMap = getWellCostMap();
         final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap();
         final Map<String, WellData> wellMap = getWellDataMap();
 
-        mongoWell.forEach(well -> populateForWell(
+        mongoWells.forEach(well -> populateForWell(
             well,
             ropByWellUidMap,
             costByWellUidMap,
@@ -454,7 +458,8 @@ public class WellsCoordinatesService {
                 ropDto.setFootageDrilled(footageDrilled);
             }
         } catch (Exception e) {
-            log.error("Error in ropDomainToDto for UID: {}",ropDomain.getUid());
+            log.error("Error in ropDomainToDto for UID: {}",ropDomain.getUid(), e);
+
         }
         return ropDto;
     }
