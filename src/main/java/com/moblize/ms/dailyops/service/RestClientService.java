@@ -1,6 +1,7 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
+import com.moblize.ms.dailyops.service.dto.DPVAResult;
 import com.moblize.ms.dailyops.service.dto.ProcessPerFeetRequestDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
@@ -56,6 +57,12 @@ public class RestClientService {
     public ResponseEntity sendMessage(String topic, String message) {
         final String stompUrl = nodedrillingUrl + nodedrillingStomp + topic;
         final HttpEntity<String> request = new HttpEntity<String>(message, createHeaders(nodedrillingUser, nodedrillingPassword));
+        return restTemplate.exchange(stompUrl, HttpMethod.POST, request, String.class);
+    }
+
+    public ResponseEntity sendDataToNodeSocket(DPVAResult dpvaResult) {
+        final String stompUrl = nodedrillingUrl + nodedrillingStomp+"dpvaData" ;
+        final HttpEntity<DPVAResult> request = new HttpEntity<>(dpvaResult, createHeaders(nodedrillingUser, nodedrillingPassword));
         return restTemplate.exchange(stompUrl, HttpMethod.POST, request, String.class);
     }
 

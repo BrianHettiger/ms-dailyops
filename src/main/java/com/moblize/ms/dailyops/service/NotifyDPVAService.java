@@ -82,14 +82,16 @@ public class NotifyDPVAService {
 
     public void notifyDPVAJobForSurveyData(String wellUid, String wellStatus) {
         List<SurveyRecord> surveyData = getSurveyRecords(wellUid, wellStatus);
+        List<WellPlan> planData = getPlanRecords(wellUid, wellStatus);
         TargetWindowDPVA targetWindow = targetWindowDPVAService.getTargetWindowDetail(wellUid);
-        sendData(targetWindow, surveyData, null, "survey", wellUid, wellStatus);
+        sendData(targetWindow, surveyData, planData, "survey", wellUid, wellStatus);
     }
 
     public void notifyDPVAJobForPlanData(String wellUid, String wellStatus) {
         List<WellPlan> planData = getPlanRecords(wellUid, wellStatus);
+        List<SurveyRecord> surveyData = getSurveyRecords(wellUid, wellStatus);
         TargetWindowDPVA targetWindow = targetWindowDPVAService.getTargetWindowDetail(wellUid);
-        sendData(targetWindow, null, planData, "plan", wellUid, wellStatus);
+        sendData(targetWindow, surveyData, planData, "plan", wellUid, wellStatus);
     }
 
     private List<WellPlan> getPlanRecords(String wellUid, String wellStatus) {

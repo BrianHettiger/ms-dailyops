@@ -37,6 +37,8 @@ public class DPVAService {
     private NotifyDPVAService notifyDPVAService;
     @Autowired
     private SurveyTortuosityDPVARepository surveyTortuosityDPVARepository;
+    @Autowired
+    private RestClientService restClientService;
 
     private final static String ACTIVE_STATUS = "active";
     private final static String COMPLETED_STATUS = "Completed";
@@ -102,6 +104,7 @@ public class DPVAService {
             if (targetWindowPerFootDTO.getWellStatus().equalsIgnoreCase("active")) {
                 targetWindowPerFootDTO.setProtoData();
                 cacheService.getPerFeetTargetWindowDataCache().put(targetWindowPerFootDTO.getWellUid(), targetWindowPerFootDTO);
+                pushDataToUI(targetWindowPerFootDTO.getWellUid());
             } else {
                 TargetWindowPerFootDPVA targetWindowPerFootDPVADB = targetWindowPerFootRepository.findFirstByWellUid(targetWindowPerFootDTO.getWellUid());
                 if (null == targetWindowPerFootDPVADB) {
@@ -128,6 +131,17 @@ public class DPVAService {
             log.error("Error occur in savePerFootTargetWindowDpva ", e);
         }
         return targetWindowPerFootDTO;
+    }
+
+    private void pushDataToUI(String wellUid) {
+        try {
+            DPVARequestDTO dpvaRequestDTO = new DPVARequestDTO();
+            dpvaRequestDTO.setPrimaryWell(wellUid);
+            DPVAResult dpvaResult =  getDPVAData(dpvaRequestDTO);
+            restClientService.sendDataToNodeSocket(dpvaResult);
+        } catch (Exception e) {
+          log.error("Error occur while using data to node socket");
+        }
     }
 
     public DPVAResult getDPVAData(DPVARequestDTO dpvaRequestDTO) {
