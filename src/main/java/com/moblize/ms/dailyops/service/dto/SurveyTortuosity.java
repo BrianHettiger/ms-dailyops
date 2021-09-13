@@ -14,9 +14,9 @@ public class SurveyTortuosity {
     @ProtoField(number = 1)
     Double md;
     @ProtoField(number = 2)
-    Double tiINC = 0d;
+    String tiINC = "";
     @ProtoField(number = 3)
-    Double tiAZI = 0d;
+    String tiAZI = "";
     @ProtoField(number = 4)
-    Double ti3D = 0d;
+    String ti3D = "";
 }
