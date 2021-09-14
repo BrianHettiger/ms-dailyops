@@ -62,7 +62,7 @@ public class CacheService {
         getSurveyDataCache().addClientListener(surveyDataCacheListener);
         getPlanDataCache().addClientListener(wellPlanDataCacheListener);
 
-        wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
+        wellsCoordinatesService.getWellCoordinates(COMPANY_NAME, null);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
     }
 
@@ -83,7 +83,7 @@ public class CacheService {
 
     public void resetPerformanceMapData(){
         processPerformanceMapData(notifyDPVAService.getDailyOpsLoadConfig(COMPANY_NAME));
-        wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
+        wellsCoordinatesService.getWellCoordinates(COMPANY_NAME, null);
     }
 
 
