@@ -15,6 +15,8 @@ import com.moblize.ms.dailyops.repository.mongo.client.PerformanceCostRepository
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceROPRepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceWellRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
+import com.moblize.ms.dailyops.security.jwt.TokenProvider;
+import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +56,8 @@ public class WellsCoordinatesService {
     @Lazy
     private CacheService cacheService;
     ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    TokenProvider tokenProvider;
     public Map<String, List<BHA>> getWellBHAs(String wellUid) {
 
         List<PerformanceBHA> bhaList;
@@ -69,8 +73,8 @@ public class WellsCoordinatesService {
                 (k1, k2) -> k1));
     }
 
-    public List<WellCoordinatesResponse> getWellCoordinatesV1(String customer) {
-        Collection<WellCoordinatesResponseV2> v2List = getWellCoordinates(customer);
+    public List<WellCoordinatesResponse> getWellCoordinatesV1(String customer, String token) {
+        Collection<WellCoordinatesResponseV2> v2List = getWellCoordinates(customer, token);
         return v2List.stream().map(v2 -> {
             WellCoordinatesResponse res = new WellCoordinatesResponse();
             res.setUid(v2.getUid());
@@ -122,24 +126,42 @@ public class WellsCoordinatesService {
             .put(well.getUid(),latLngMap.get(well.getUid()));
         return latLngMap.values();
     }
-    public Collection<WellCoordinatesResponseV2> getWellCoordinates(String customer) {
+    public Collection<WellCoordinatesResponseV2> getWellCoordinates(String customer, String token) {
         RemoteCache<String, WellCoordinatesResponseV2> remoteCache = cacheService.getWellCoordinatesCache();
         Map<String, WellCoordinatesResponseV2> latLngMap = new HashMap<>();
+        List<MongoWell> mongoWells = null;
+        if(token != null) {
+            Claims claims = tokenProvider.getTokenClaims(token);
+            String email = (String) claims.get("email");
+            if (email != null && email.toLowerCase().contains("moblize")) {
+                mongoWells = mongoWellRepository.findAllByCustomer(customer);
+            }
+        }
+        if(mongoWells == null){
+            mongoWells = mongoWellRepository.findAllByCustomerAndIsHidden(customer, false);
+        }
         if(!remoteCache.isEmpty()) {
-            remoteCache.values().forEach(value -> {
+            mongoWells.forEach(mongoWell -> {
+                WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
                 value.setEntries();
                 latLngMap.put(value.getUid(), value);
             });
+            if(latLngMap.isEmpty()) {
+                mongoWells.forEach(mongoWell -> {
+                    WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
+                    value.setEntries();
+                    latLngMap.put(value.getUid(), value);
+                });
+            }
             return latLngMap.values();
         }
 
-        List<MongoWell> mongoWell = cacheService.getMongoWellCache().values().stream().collect(Collectors.toList());
         final Map<String, ROPs> ropByWellUidMap = getWellROPsMap();
         final Map<String, Cost> costByWellUidMap = getWellCostMap();
         final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap();
         final Map<String, WellData> wellMap = getWellDataMap();
 
-        mongoWell.forEach(well -> populateForWell(
+        mongoWells.forEach(well -> populateForWell(
             well,
             ropByWellUidMap,
             costByWellUidMap,
@@ -436,7 +458,8 @@ public class WellsCoordinatesService {
                 ropDto.setFootageDrilled(footageDrilled);
             }
         } catch (Exception e) {
-            log.error("Error in ropDomainToDto for UID: {}",ropDomain.getUid());
+            log.error("Error in ropDomainToDto for UID: {}",ropDomain.getUid(), e);
+
         }
         return ropDto;
     }
@@ -655,13 +678,13 @@ public class WellsCoordinatesService {
     public void sendWellUpdates(Set<String> wells) {
         Map<String, MongoWell> mongoWells =cacheService.getMongoWellCache().getAll(wells);
         mongoWells.forEach((uid, well) -> {
-            log.info("send update for: {}", uid);
+            log.debug("send update for: {}", uid);
             try {
                 restClientService.sendMessage("wellActivity", objectMapper.writeValueAsString(getWellCoordinates(well)));
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
-            log.info("sent update for: {}", uid);
+            log.debug("sent update for: {}", uid);
         });
     }
 }

@@ -1,6 +1,7 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
+import com.moblize.ms.dailyops.domain.mongo.WellPerformanceMetaData;
 import com.moblize.ms.dailyops.domain.mongo.DailyOpsLoadConfig;
 import com.moblize.ms.dailyops.dto.TrueRopCache;
 import com.moblize.ms.dailyops.dto.WellCoordinatesResponseV2;
@@ -84,6 +85,7 @@ public class CacheService {
         processPerformanceMapData(notifyDPVAService.getDailyOpsLoadConfig(COMPANY_NAME));
         wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
     }
+
 
     public RemoteCache<String, TrueRopCache> getTrueRopMetaCache() {
         RemoteCache<String, TrueRopCache> cache = cacheManager.administration()

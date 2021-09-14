@@ -54,23 +54,29 @@ public class DailyopsController {
 
     @Transactional(readOnly = true)
     @GetMapping("/api/v1/getWellCoordinates")
-    public ResponseDTO getWellCoordinates(@RequestParam("customer") String customer, HttpServletResponse response) {
+    public ResponseDTO getWellCoordinates(
+        @RequestParam("customer") String customer,
+        @RequestHeader(value = "authorization", required = false) String token,
+        HttpServletResponse response) {
         if (customer == null || customer == "") {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return ResponseDTO.invalid("Customer cannot be null.");
         } else {
-            return ResponseDTO.complete(wellsCoordinatesService.getWellCoordinatesV1(customer));
+            return ResponseDTO.complete(wellsCoordinatesService.getWellCoordinatesV1(customer, token));
         }
     }
 
     @Transactional(readOnly = true)
     @GetMapping("/api/v2/getWellCoordinates")
-    public ResponseDTO getWellCoordinatesV2(@RequestParam("customer") String customer, HttpServletResponse response) {
+    public ResponseDTO getWellCoordinatesV2(
+        @RequestParam("customer") String customer,
+        @RequestHeader(value = "authorization", required = false) String token,
+        HttpServletResponse response) {
         if (customer == null || customer == "") {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return ResponseDTO.invalid("Customer cannot be null.");
         } else {
-            return ResponseDTO.complete(wellsCoordinatesService.getWellCoordinates(customer));
+            return ResponseDTO.complete(wellsCoordinatesService.getWellCoordinates(customer, token));
         }
     }
 
