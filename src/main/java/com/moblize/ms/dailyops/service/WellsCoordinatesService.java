@@ -20,6 +20,7 @@ import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
@@ -37,6 +38,9 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class WellsCoordinatesService {
+
+    @Value("${CODE}")
+    String COMPANY_NAME;
 
     @Autowired
     private WellsCoordinatesDao wellsCoordinatesDao;
@@ -449,10 +453,10 @@ public class WellsCoordinatesService {
             if (null != ropDomain.getFootageDrilled()&& null != ropDomain.getFootageDrilled().getSection()) {
                 final Section footageDrilledSection = new Section();
                 footageDrilledSection.setAll(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getAll()));
-                footageDrilledSection.setSurface(dataRound(ropDomain.getFootageDrilled().getSection().getSurface()).doubleValue());
-                footageDrilledSection.setIntermediate(dataRound(ropDomain.getFootageDrilled().getSection().getIntermediate()).doubleValue());
-                footageDrilledSection.setCurve(dataRound(ropDomain.getFootageDrilled().getSection().getCurve()).doubleValue());
-                footageDrilledSection.setLateral(dataRound(ropDomain.getFootageDrilled().getSection().getLateral()).doubleValue());
+                footageDrilledSection.setSurface(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getSurface()));
+                footageDrilledSection.setIntermediate(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getIntermediate()));
+                footageDrilledSection.setCurve(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getCurve()));
+                footageDrilledSection.setLateral(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getLateral()));
                 ROP footageDrilled = new ROP();
                 footageDrilled.setSection(footageDrilledSection);
                 ropDto.setFootageDrilled(footageDrilled);
@@ -680,7 +684,9 @@ public class WellsCoordinatesService {
         mongoWells.forEach((uid, well) -> {
             log.debug("send update for: {}", uid);
             try {
-                restClientService.sendMessage("wellActivity", objectMapper.writeValueAsString(getWellCoordinates(well)));
+                if(null != well && null != well.getCustomer() && well.getCustomer().equalsIgnoreCase(COMPANY_NAME)){
+                    restClientService.sendMessage("wellActivity", objectMapper.writeValueAsString(getWellCoordinates(well)));
+                }
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
