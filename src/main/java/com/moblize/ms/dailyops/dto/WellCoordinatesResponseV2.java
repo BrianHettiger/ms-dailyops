@@ -109,7 +109,7 @@ public class WellCoordinatesResponseV2 {
         setEntriesCoord(protoPlannedData, plannedData);
     }
     public void setProtoCoordData(List<List<Double>> input, DepthCoordinate output) {
-        if(output.getProtoCoordiantes().isEmpty() && !input.isEmpty()) {
+        if(output.getProtoCoordiantes().isEmpty() && input != null && !input.isEmpty()) {
             input.forEach((values) -> {
                 if(!values.isEmpty()) {
                     Location location = new Location();
@@ -121,7 +121,7 @@ public class WellCoordinatesResponseV2 {
         }
     }
     public void setEntriesCoord(DepthCoordinate input, List<List<Double>> output) {
-        if(output.isEmpty() && !input.getProtoCoordiantes().isEmpty()) {
+        if(output.isEmpty() && input != null && !input.getProtoCoordiantes().isEmpty()) {
             input.getProtoCoordiantes().forEach(location ->{
                 List<Double> coordinate = new ArrayList<>();
                 coordinate.add(location.getLat());
