@@ -150,16 +150,16 @@ public class WellsCoordinatesService {
                 WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
                 if(value != null){
                     value.setEntries();
+                    latLngMap.put(value.getUid(), value);
                 }
-                latLngMap.put(value.getUid(), value);
             });
             if(latLngMap.isEmpty()) {
                 mongoWells.forEach(mongoWell -> {
                     WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
                     if(value != null) {
                         value.setEntries();
+                        latLngMap.put(value.getUid(), value);
                     }
-                    latLngMap.put(value.getUid(), value);
                 });
             }
             return latLngMap.values();
