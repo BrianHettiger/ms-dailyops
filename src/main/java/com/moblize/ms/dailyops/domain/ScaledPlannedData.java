@@ -25,5 +25,9 @@ public class ScaledPlannedData implements Serializable {
     Double tvd;
     @ProtoField(number = 6)
     Double dls;
+    @ProtoField(number = 7)
+    Double azi;
+    @ProtoField(number = 8)
+    Double inc;
 
 }
