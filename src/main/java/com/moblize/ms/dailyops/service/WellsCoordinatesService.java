@@ -146,7 +146,6 @@ public class WellsCoordinatesService {
         }
         if(!remoteCache.isEmpty()) {
             mongoWells.forEach(mongoWell -> {
-                log.error("Get data from cache {}, customer {}", mongoWell.getUid(), mongoWell.getCustomer());
                 WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
                 if(value != null){
                     value.setEntries();
