@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 public class PerformanceWellService {
     @Autowired
     private PerformanceWellDao performanceWellDao;
+    @Autowired
+    private CacheService cacheService;
 
     public PerformanceWell savePerformanceWell(PerformanceWell performanceWellDTO){
         return performanceWellDao.saveUpdatePerformanceWell(performanceWellDTO);
@@ -25,6 +27,9 @@ public class PerformanceWellService {
     }
 
     public void deletePerformanceWell(String uid){
+        cacheService.getTrueRopMetaCache().remove(uid);
+        cacheService.getWellCoordinatesCache().remove(uid);
+        cacheService.getMongoWellCache().remove(uid);
         performanceWellDao.deletePerformanceWell(uid);
     }
 }
