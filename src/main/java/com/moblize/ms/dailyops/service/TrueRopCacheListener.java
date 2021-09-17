@@ -37,6 +37,8 @@ public class TrueRopCacheListener {
         log.debug("processWell {}, {}", wellUid, customer);
         if(mongoWell != null && mongoWell.getCustomer() != null && mongoWell.getCustomer().equalsIgnoreCase(customer)){
             restClientService.processWell(mongoWell);
+        } else {
+            log.error("Not a valid well {} for customer {}", wellUid, customer);
         }
     }
 

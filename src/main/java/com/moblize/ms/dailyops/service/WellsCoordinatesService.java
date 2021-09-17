@@ -690,9 +690,11 @@ public class WellsCoordinatesService {
             try {
                 if(null != well && null != well.getCustomer() && well.getCustomer().equalsIgnoreCase(COMPANY_NAME)){
                     restClientService.sendMessage("wellActivity", objectMapper.writeValueAsString(getWellCoordinates(well)));
+                }  else {
+                    log.error("Not a valid well {} for customer {}", well.getUid(), COMPANY_NAME);
                 }
             } catch (JsonProcessingException e) {
-                e.printStackTrace();
+               log.error("Error occur for sendWellUpdates ", e );
             }
             log.debug("sent update for: {}", uid);
         });
