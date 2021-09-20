@@ -110,14 +110,16 @@ public class WellsCoordinatesService {
         final Map<String, Cost> costByWellUidMap = getWellCostMap(well);
         final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap(well);
         final Map<String, WellData> wellMap = getWellDataMap(well);
-        populateForWell(
-            well,
-            ropByWellUidMap,
-            costByWellUidMap,
-            bhaCountByUidMap,
-            wellMap,
-            latLngMap
-        );
+        if(ropByWellUidMap != null && costByWellUidMap !=null && bhaCountByUidMap != null && wellMap != null) {
+            populateForWell(
+                well,
+                ropByWellUidMap,
+                costByWellUidMap,
+                bhaCountByUidMap,
+                wellMap,
+                latLngMap
+            );
+        }
         HashMap<String, Float> drilledWellDepth = new HashMap<>();
         WellSurveyPlannedLatLong wellSurvey = wellsCoordinatesDao.findWellSurveyPlannedLatLong(well.getUid());
         if(wellSurvey != null) {
@@ -308,7 +310,7 @@ public class WellsCoordinatesService {
     private Map<String, WellData> getWellDataMap(MongoWell well) {
         final PerformanceWell performanceWell = wellRepository.findFirstByUid(well.getUid());
 
-        return Map.of(performanceWell.getUid(), WellsCoordinatesService.performanceWellToDto(performanceWell));
+        return performanceWell!=null?Map.of(performanceWell.getUid(), WellsCoordinatesService.performanceWellToDto(performanceWell)):null;
     }
 
 
@@ -324,8 +326,7 @@ public class WellsCoordinatesService {
 
     private Map<String, BHACount> getWellBHACountMap(MongoWell well) {
         final PerformanceBHA bha = bhaRepository.findFirstByUid(well.getUid());
-
-        return Map.of(bha.getUid(), WellsCoordinatesService.bhaSectionCountToDto(bha));
+        return bha != null?Map.of(bha.getUid(), WellsCoordinatesService.bhaSectionCountToDto(bha)): null;
     }
 
     private Map<String, Cost> getWellCostMap() {
@@ -340,7 +341,7 @@ public class WellsCoordinatesService {
 
     private Map<String, Cost> getWellCostMap(MongoWell well) {
         final PerformanceCost cost = costRepository.findFirstByUid(well.getUid());
-        return Map.of(cost.getUid(), WellsCoordinatesService.costToDto(cost));
+        return cost!=null?Map.of(cost.getUid(), WellsCoordinatesService.costToDto(cost)):null;
     }
 
     private Map<String, ROPs> getWellROPsMap() {
@@ -354,7 +355,7 @@ public class WellsCoordinatesService {
 
     private Map<String, ROPs> getWellROPsMap(MongoWell well) {
         final PerformanceROP rop = ropRepository.findByUid(well.getUid());
-        return Map.of(rop.getUid(), WellsCoordinatesService.ropDomainToDto(rop));
+        return rop!=null?Map.of(rop.getUid(), WellsCoordinatesService.ropDomainToDto(rop)):null;
     }
 
 
