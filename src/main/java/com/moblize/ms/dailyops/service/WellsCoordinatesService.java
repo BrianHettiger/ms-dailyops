@@ -710,9 +710,10 @@ public class WellsCoordinatesService {
     }
 
     public void sendWellUpdates(Set<String> wells) {
-        List<MongoWell> mongoWells = mongoWellRepository.findAllByUidIn(new ArrayList(wells));
+
+        List<MongoWell> mongoWells = mongoWellRepository.findAllByUidIn(List.copyOf(wells));
         mongoWells.forEach((well) -> {
-            log.debug("send update for: {}", well.getUid());
+            log.info("send update for: {}", well.getUid());
             try {
                 if(null != well && null != well.getCustomer() && well.getCustomer().equalsIgnoreCase(COMPANY_NAME)){
                     restClientService.sendMessage("wellActivity", objectMapper.writeValueAsString(getWellCoordinates(well)));
@@ -722,7 +723,7 @@ public class WellsCoordinatesService {
             } catch (JsonProcessingException e) {
                log.error("Error occur for sendWellUpdates ", e );
             }
-            log.debug("sent update for: {}", well.getUid());
+            log.info("sent update for: {}", well.getUid());
         });
     }
 }
