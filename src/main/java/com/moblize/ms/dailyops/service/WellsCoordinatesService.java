@@ -110,16 +110,14 @@ public class WellsCoordinatesService {
         final Map<String, Cost> costByWellUidMap = getWellCostMap(well);
         final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap(well);
         final Map<String, WellData> wellMap = getWellDataMap(well);
-        if(ropByWellUidMap != null && costByWellUidMap !=null && bhaCountByUidMap != null && wellMap != null) {
-            populateForWell(
-                well,
-                ropByWellUidMap,
-                costByWellUidMap,
-                bhaCountByUidMap,
-                wellMap,
-                latLngMap
-            );
-        }
+        populateForWell(
+            well,
+            ropByWellUidMap,
+            costByWellUidMap,
+            bhaCountByUidMap,
+            wellMap,
+            latLngMap
+        );
         HashMap<String, Float> drilledWellDepth = new HashMap<>();
         WellSurveyPlannedLatLong wellSurvey = wellsCoordinatesDao.findWellSurveyPlannedLatLong(well.getUid());
         if(wellSurvey != null) {
@@ -128,8 +126,8 @@ public class WellsCoordinatesService {
                 drilledWellDepth,
                 latLngMap
             );
+            latLngMap.get(well.getUid()).setProtoData();
         }
-        latLngMap.get(well.getUid()).setProtoData();
         cacheService.getWellCoordinatesCache()
             .put(well.getUid(),latLngMap.get(well.getUid()));
         return latLngMap.values();
@@ -280,8 +278,8 @@ public class WellsCoordinatesService {
             wellCoordinatesResponse.setSlidingROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getSlidingROP());
             wellCoordinatesResponse.setRotatingROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getRotatingROP());
             wellCoordinatesResponse.setEffectiveROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getEffectiveROP());
-            wellCoordinatesResponse.setCost(costByWellUidMap.get(well.getUid()));
-            wellCoordinatesResponse.setBhaCount(bhaCountByUidMap.get(well.getUid()));
+            wellCoordinatesResponse.setCost(costByWellUidMap.getOrDefault(well.getUid(), new Cost()));
+            wellCoordinatesResponse.setBhaCount(bhaCountByUidMap.getOrDefault(well.getUid(), new BHACount()));
             wellCoordinatesResponse.setTotalDays(wellMap.getOrDefault(well.getUid(), new WellData()).getTotalDays());
             wellCoordinatesResponse.setFootagePerDay(wellMap.getOrDefault(well.getUid(), new WellData()).getFootagePerDay());
             wellCoordinatesResponse.setSlidingPercentage(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getSlidingPercentage());
