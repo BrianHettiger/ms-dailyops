@@ -110,6 +110,7 @@ public class WellsCoordinatesService {
         final Map<String, Cost> costByWellUidMap = getWellCostMap(well);
         final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap(well);
         final Map<String, WellData> wellMap = getWellDataMap(well);
+        log.info("bhaCountByUidMap:{}",bhaCountByUidMap);
         populateForWell(
             well,
             ropByWellUidMap,

@@ -9,6 +9,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -41,7 +42,7 @@ public class RestClientService {
         final HttpEntity<MongoWell> request = new HttpEntity<MongoWell>(well, createHeaders(wellformationetlUser, wellformationetlPassword));
         return restTemplate.exchange(resetUrl, HttpMethod.POST, request, MongoWell.class);
     }
-
+    @Async
     public ResponseEntity sendMessage(String topic, String message) {
         final String stompUrl = nodedrillingUrl + nodedrillingStomp + topic;
         final HttpEntity<String> request = new HttpEntity<String>(message, createHeaders(nodedrillingUser, nodedrillingPassword));
