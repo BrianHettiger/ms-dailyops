@@ -43,7 +43,7 @@ public class CacheService {
     public void subscribe() {
         getWellCoordinatesCache().clear();
 
-        wellsCoordinatesService.getWellCoordinates(COMPANY_NAME, null);
+//        wellsCoordinatesService.getWellCoordinates(COMPANY_NAME, null);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
     }
 
