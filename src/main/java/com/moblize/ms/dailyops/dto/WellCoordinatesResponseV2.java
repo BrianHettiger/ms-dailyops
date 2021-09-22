@@ -90,16 +90,18 @@ public class WellCoordinatesResponseV2 {
         if(rangeDataKeys == null) {
             rangeDataKeys = new ArrayList<>();
             rangeDataValues = new ArrayList<>();
-            holeSectionRange.forEach((k, v) -> {
-                rangeDataKeys.add(k);
-                rangeDataValues.add(v);
-            });
+            if(holeSectionRange != null) {
+                holeSectionRange.forEach((k, v) -> {
+                    rangeDataKeys.add(k);
+                    rangeDataValues.add(v);
+                });
+            }
         }
         setProtoCoordData(drilledData, protoDrilledData);
         setProtoCoordData(plannedData, protoPlannedData);
     }
     public void setEntries() {
-        if(holeSectionRange == null && rangeDataKeys != null) {
+        if(holeSectionRange == null && rangeDataKeys != null && !rangeDataKeys.isEmpty()) {
             holeSectionRange = new HashMap<>();
             for(int i = 0; i < rangeDataKeys.size(); i++) {
                 holeSectionRange.put(rangeDataKeys.get(i), rangeDataValues.get(i));
