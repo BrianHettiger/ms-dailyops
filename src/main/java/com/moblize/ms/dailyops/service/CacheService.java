@@ -42,7 +42,6 @@ public class CacheService {
     @Async
     public void subscribe() {
         getWellCoordinatesCache().clear();
-
         wellsCoordinatesService.getWellCoordinates(COMPANY_NAME, null);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
     }
