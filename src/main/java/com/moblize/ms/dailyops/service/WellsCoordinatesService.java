@@ -285,7 +285,9 @@ public class WellsCoordinatesService {
             wellCoordinatesResponse.setFootagePerDay(wellMap.getOrDefault(well.getUid(), new WellData()).getFootagePerDay());
             wellCoordinatesResponse.setSlidingPercentage(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getSlidingPercentage());
             wellCoordinatesResponse.setFootageDrilled(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getFootageDrilled());
-            wellCoordinatesResponse.setHoleSectionRange(wellMap.getOrDefault(well.getUid(), new WellData()).getHoleSectionRange());
+            if(wellMap.get(well.getUid()) != null) {
+                wellCoordinatesResponse.setHoleSectionRange(wellMap.get(well.getUid()).getHoleSectionRange());
+            }
             wellCoordinatesResponse.setAvgDLSBySection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDLSBySection());
             wellCoordinatesResponse.setAvgMYBySection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgMYBySection());
             wellCoordinatesResponse.setAvgDirectionAngle(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDirectionAngle());

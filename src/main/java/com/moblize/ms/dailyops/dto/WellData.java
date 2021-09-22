@@ -19,13 +19,13 @@ public class WellData {
     @JsonProperty("fpday")
     private SectionData footagePerDay = new SectionData();
     @JsonProperty("aDls")
-    private SectionData avgDLSBySection;
+    private SectionData avgDLSBySection = new SectionData();
     @JsonProperty("mYld")
-    private SectionData avgMYBySection;
+    private SectionData avgMYBySection = new SectionData();
     @JsonProperty("aDirAng")
-    private SectionData avgDirectionAngle;
+    private SectionData avgDirectionAngle = new SectionData();
     @JsonProperty("aDir")
-    private SectionDataDirection avgDirection;
+    private SectionDataDirection avgDirection = new SectionDataDirection();
     @JsonProperty("hs")
     private Map<String, RangeData> holeSectionRange = new HashMap<>();
 
