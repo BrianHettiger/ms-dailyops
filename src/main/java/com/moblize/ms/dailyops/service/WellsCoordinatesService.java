@@ -1,5 +1,7 @@
 package com.moblize.ms.dailyops.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moblize.ms.dailyops.dao.WellsCoordinatesDao;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.domain.PerformanceROP;
@@ -13,11 +15,13 @@ import com.moblize.ms.dailyops.repository.mongo.client.PerformanceCostRepository
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceROPRepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceWellRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
+import com.moblize.ms.dailyops.security.jwt.TokenProvider;
+import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
@@ -35,10 +39,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WellsCoordinatesService {
 
+    @Value("${CODE}")
+    String COMPANY_NAME;
+
     @Autowired
     private WellsCoordinatesDao wellsCoordinatesDao;
-    @Autowired
-    SimpMessagingTemplate simpMessagingTemplate;
     @Autowired
     private MongoWellRepository mongoWellRepository;
     @Autowired
@@ -50,8 +55,13 @@ public class WellsCoordinatesService {
     @Autowired
     private PerformanceWellRepository wellRepository;
     @Autowired
+    private RestClientService restClientService;
+    @Autowired
     @Lazy
     private CacheService cacheService;
+    ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    TokenProvider tokenProvider;
     public Map<String, List<BHA>> getWellBHAs(String wellUid) {
 
         List<PerformanceBHA> bhaList;
@@ -67,8 +77,8 @@ public class WellsCoordinatesService {
                 (k1, k2) -> k1));
     }
 
-    public List<WellCoordinatesResponse> getWellCoordinatesV1(String customer) {
-        Collection<WellCoordinatesResponseV2> v2List = getWellCoordinates(customer);
+    public List<WellCoordinatesResponse> getWellCoordinatesV1(String customer, String token) {
+        Collection<WellCoordinatesResponseV2> v2List = getWellCoordinates(customer, token);
         return v2List.stream().map(v2 -> {
             WellCoordinatesResponse res = new WellCoordinatesResponse();
             res.setUid(v2.getUid());
@@ -96,10 +106,11 @@ public class WellsCoordinatesService {
 
     public Collection<WellCoordinatesResponseV2> getWellCoordinates(MongoWell well) {
         Map<String, WellCoordinatesResponseV2> latLngMap = new HashMap<>();
-        final Map<String, ROPs> ropByWellUidMap = getWellROPsMap();
-        final Map<String, Cost> costByWellUidMap = getWellCostMap();
-        final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap();
-        final Map<String, WellData> wellMap = getWellDataMap();
+        final Map<String, ROPs> ropByWellUidMap = getWellROPsMap(well);
+        final Map<String, Cost> costByWellUidMap = getWellCostMap(well);
+        final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap(well);
+        final Map<String, WellData> wellMap = getWellDataMap(well);
+        log.info("bhaCountByUidMap:{}",bhaCountByUidMap);
         populateForWell(
             well,
             ropByWellUidMap,
@@ -110,34 +121,58 @@ public class WellsCoordinatesService {
         );
         HashMap<String, Float> drilledWellDepth = new HashMap<>();
         WellSurveyPlannedLatLong wellSurvey = wellsCoordinatesDao.findWellSurveyPlannedLatLong(well.getUid());
-        populateForSurvey(
-            wellSurvey,
-            drilledWellDepth,
-            latLngMap
-        );
-        latLngMap.get(well.getUid()).setProtoData();
+        if(wellSurvey != null) {
+            populateForSurvey(
+                wellSurvey,
+                drilledWellDepth,
+                latLngMap
+            );
+            latLngMap.get(well.getUid()).setProtoData();
+        }
         cacheService.getWellCoordinatesCache()
             .put(well.getUid(),latLngMap.get(well.getUid()));
         return latLngMap.values();
     }
-    public Collection<WellCoordinatesResponseV2> getWellCoordinates(String customer) {
+    public Collection<WellCoordinatesResponseV2> getWellCoordinates(String customer, String token) {
         RemoteCache<String, WellCoordinatesResponseV2> remoteCache = cacheService.getWellCoordinatesCache();
         Map<String, WellCoordinatesResponseV2> latLngMap = new HashMap<>();
+        List<MongoWell> mongoWells = null;
+        if(token != null) {
+            Claims claims = tokenProvider.getTokenClaims(token);
+            String email = (String) claims.get("email");
+            if (email != null && email.toLowerCase().contains("moblize")) {
+                mongoWells = mongoWellRepository.findAllByCustomer(customer);
+            }
+        }
+        if(mongoWells == null){
+            mongoWells = mongoWellRepository.findAllByCustomerAndIsHidden(customer, false);
+        }
         if(!remoteCache.isEmpty()) {
-            remoteCache.values().forEach(value -> {
-                value.setEntries();
-                latLngMap.put(value.getUid(), value);
+            mongoWells.forEach(mongoWell -> {
+                WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
+                if(value != null){
+                    value.setEntries();
+                    latLngMap.put(value.getUid(), value);
+                }
             });
+            if(latLngMap.isEmpty()) {
+                mongoWells.forEach(mongoWell -> {
+                    WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
+                    if(value != null) {
+                        value.setEntries();
+                        latLngMap.put(value.getUid(), value);
+                    }
+                });
+            }
             return latLngMap.values();
         }
 
-        List<MongoWell> mongoWell = cacheService.getMongoWellCache().values().stream().collect(Collectors.toList());
         final Map<String, ROPs> ropByWellUidMap = getWellROPsMap();
         final Map<String, Cost> costByWellUidMap = getWellCostMap();
         final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap();
         final Map<String, WellData> wellMap = getWellDataMap();
 
-        mongoWell.forEach(well -> populateForWell(
+        mongoWells.forEach(well -> populateForWell(
             well,
             ropByWellUidMap,
             costByWellUidMap,
@@ -244,13 +279,15 @@ public class WellsCoordinatesService {
             wellCoordinatesResponse.setSlidingROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getSlidingROP());
             wellCoordinatesResponse.setRotatingROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getRotatingROP());
             wellCoordinatesResponse.setEffectiveROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getEffectiveROP());
-            wellCoordinatesResponse.setCost(costByWellUidMap.get(well.getUid()));
-            wellCoordinatesResponse.setBhaCount(bhaCountByUidMap.get(well.getUid()));
+            wellCoordinatesResponse.setCost(costByWellUidMap.getOrDefault(well.getUid(), new Cost()));
+            wellCoordinatesResponse.setBhaCount(bhaCountByUidMap.getOrDefault(well.getUid(), new BHACount()));
             wellCoordinatesResponse.setTotalDays(wellMap.getOrDefault(well.getUid(), new WellData()).getTotalDays());
             wellCoordinatesResponse.setFootagePerDay(wellMap.getOrDefault(well.getUid(), new WellData()).getFootagePerDay());
             wellCoordinatesResponse.setSlidingPercentage(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getSlidingPercentage());
             wellCoordinatesResponse.setFootageDrilled(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getFootageDrilled());
-            wellCoordinatesResponse.setHoleSectionRange(wellMap.getOrDefault(well.getUid(), new WellData()).getHoleSectionRange());
+            if(wellMap.get(well.getUid()) != null) {
+                wellCoordinatesResponse.setHoleSectionRange(wellMap.get(well.getUid()).getHoleSectionRange());
+            }
             wellCoordinatesResponse.setAvgDLSBySection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDLSBySection());
             wellCoordinatesResponse.setAvgMYBySection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgMYBySection());
             wellCoordinatesResponse.setAvgDirectionAngle(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDirectionAngle());
@@ -271,6 +308,13 @@ public class WellsCoordinatesService {
                 (k1, k2) -> k1));
     }
 
+    private Map<String, WellData> getWellDataMap(MongoWell well) {
+        final PerformanceWell performanceWell = wellRepository.findFirstByUid(well.getUid());
+
+        return performanceWell!=null?Map.of(performanceWell.getUid(), WellsCoordinatesService.performanceWellToDto(performanceWell)): Collections.emptyMap();
+    }
+
+
     private Map<String, BHACount> getWellBHACountMap() {
         final List<PerformanceBHA> bhaList = bhaRepository.findAll();
 
@@ -279,6 +323,11 @@ public class WellsCoordinatesService {
                 PerformanceBHA::getUid,
                 WellsCoordinatesService::bhaSectionCountToDto,
                 (k1, k2) -> k1));
+    }
+
+    private Map<String, BHACount> getWellBHACountMap(MongoWell well) {
+        final PerformanceBHA bha = bhaRepository.findFirstByUid(well.getUid());
+        return bha != null?Map.of(bha.getUid(), WellsCoordinatesService.bhaSectionCountToDto(bha)):Collections.emptyMap();
     }
 
     private Map<String, Cost> getWellCostMap() {
@@ -291,6 +340,11 @@ public class WellsCoordinatesService {
                     (k1, k2) -> k1));
     }
 
+    private Map<String, Cost> getWellCostMap(MongoWell well) {
+        final PerformanceCost cost = costRepository.findFirstByUid(well.getUid());
+        return cost!=null?Map.of(cost.getUid(), WellsCoordinatesService.costToDto(cost)):Collections.emptyMap();
+    }
+
     private Map<String, ROPs> getWellROPsMap() {
         final List<PerformanceROP> ropList = ropRepository.findAll();
         return ropList.stream()
@@ -299,6 +353,12 @@ public class WellsCoordinatesService {
                 WellsCoordinatesService::ropDomainToDto,
                 (k1, k2) -> k1));
     }
+
+    private Map<String, ROPs> getWellROPsMap(MongoWell well) {
+        final PerformanceROP rop = ropRepository.findByUid(well.getUid());
+        return rop!=null?Map.of(rop.getUid(), WellsCoordinatesService.ropDomainToDto(rop)):Collections.emptyMap();
+    }
+
 
     public String loadScript() {
         StringBuilder sb = new StringBuilder();
@@ -425,16 +485,17 @@ public class WellsCoordinatesService {
             if (null != ropDomain.getFootageDrilled()&& null != ropDomain.getFootageDrilled().getSection()) {
                 final Section footageDrilledSection = new Section();
                 footageDrilledSection.setAll(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getAll()));
-                footageDrilledSection.setSurface(dataRound(ropDomain.getFootageDrilled().getSection().getSurface()).doubleValue());
-                footageDrilledSection.setIntermediate(dataRound(ropDomain.getFootageDrilled().getSection().getIntermediate()).doubleValue());
-                footageDrilledSection.setCurve(dataRound(ropDomain.getFootageDrilled().getSection().getCurve()).doubleValue());
-                footageDrilledSection.setLateral(dataRound(ropDomain.getFootageDrilled().getSection().getLateral()).doubleValue());
+                footageDrilledSection.setSurface(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getSurface()));
+                footageDrilledSection.setIntermediate(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getIntermediate()));
+                footageDrilledSection.setCurve(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getCurve()));
+                footageDrilledSection.setLateral(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getLateral()));
                 ROP footageDrilled = new ROP();
                 footageDrilled.setSection(footageDrilledSection);
                 ropDto.setFootageDrilled(footageDrilled);
             }
         } catch (Exception e) {
-            log.error("Error in ropDomainToDto for UID: {}",ropDomain.getUid());
+            log.error("Error in ropDomainToDto for UID: {}",ropDomain.getUid(), e);
+
         }
         return ropDto;
     }
@@ -651,11 +712,20 @@ public class WellsCoordinatesService {
     }
 
     public void sendWellUpdates(Set<String> wells) {
-        Map<String, MongoWell> mongoWells =cacheService.getMongoWellCache().getAll(wells);
-        mongoWells.forEach((uid, well) -> {
-            log.info("send update for: {}", uid);
-            simpMessagingTemplate.convertAndSend("/topic/wellActivity", getWellCoordinates(well));
-            log.info("sent update for: {}", uid);
+
+        List<MongoWell> mongoWells = mongoWellRepository.findAllByUidIn(List.copyOf(wells));
+        mongoWells.forEach((well) -> {
+            log.info("send update for: {}", well.getUid());
+            try {
+                if(null != well && null != well.getCustomer() && well.getCustomer().equalsIgnoreCase(COMPANY_NAME)){
+                    restClientService.sendMessage("wellActivity", objectMapper.writeValueAsString(getWellCoordinates(well)));
+                }  else {
+                    log.error("Not a valid well {} for customer {}", well.getUid(), COMPANY_NAME);
+                }
+            } catch (JsonProcessingException e) {
+               log.error("Error occur for sendWellUpdates ", e );
+            }
+            log.info("sent update for: {}", well.getUid());
         });
     }
 }

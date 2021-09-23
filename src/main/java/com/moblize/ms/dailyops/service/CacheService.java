@@ -1,8 +1,11 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
+import com.moblize.ms.dailyops.domain.mongo.WellPerformanceMetaData;
 import com.moblize.ms.dailyops.dto.TrueRopCache;
 import com.moblize.ms.dailyops.dto.WellCoordinatesResponseV2;
+import com.moblize.ms.dailyops.repository.mongo.client.WellPerformanceMetaDataRepository;
+import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.infinispan.client.hotrod.DefaultTemplate;
 import org.infinispan.client.hotrod.RemoteCache;
@@ -27,16 +30,23 @@ public class CacheService {
     WellsCoordinatesService wellsCoordinatesService;
     @Autowired
     TrueRopCacheListener trueRopCacheListener;
-
+    @Autowired
+    private WellPerformanceMetaDataRepository metaDataRepository;
+    @Autowired
+    private RestClientService restClientService;
+    @Autowired
+    private MongoWellRepository mongoWellRepository;
     @Value("${CODE}")
     String COMPANY_NAME;
     @EventListener(ApplicationReadyEvent.class)
     @Async
     public void subscribe() {
         getWellCoordinatesCache().clear();
-        wellsCoordinatesService.getWellCoordinates(COMPANY_NAME);
+        wellsCoordinatesService.getWellCoordinates(COMPANY_NAME, null);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
     }
+
+
 
 
     public RemoteCache<String, TrueRopCache> getTrueRopMetaCache() {
