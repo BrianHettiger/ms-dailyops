@@ -67,7 +67,7 @@ public class WellCoordinatesResponseV2 {
     @JsonProperty("aDir")
     SectionDataDirection avgDirection;
     @JsonProperty("hs")
-    Map<String, RangeData> holeSectionRange;
+    Map<String, RangeData> holeSectionRange = Map.of("a", new RangeData(), "c", new RangeData(),"i", new RangeData(),"l", new RangeData(),"s", new RangeData());
     @ProtoField(number = 21)
     Cost cost;
     @ProtoField(number = 22)
@@ -90,16 +90,18 @@ public class WellCoordinatesResponseV2 {
         if(rangeDataKeys == null) {
             rangeDataKeys = new ArrayList<>();
             rangeDataValues = new ArrayList<>();
-            holeSectionRange.forEach((k, v) -> {
-                rangeDataKeys.add(k);
-                rangeDataValues.add(v);
-            });
+            if(holeSectionRange != null) {
+                holeSectionRange.forEach((k, v) -> {
+                    rangeDataKeys.add(k);
+                    rangeDataValues.add(v);
+                });
+            }
         }
         setProtoCoordData(drilledData, protoDrilledData);
         setProtoCoordData(plannedData, protoPlannedData);
     }
     public void setEntries() {
-        if(holeSectionRange == null && rangeDataKeys != null) {
+        if(rangeDataKeys != null && !rangeDataKeys.isEmpty()) {
             holeSectionRange = new HashMap<>();
             for(int i = 0; i < rangeDataKeys.size(); i++) {
                 holeSectionRange.put(rangeDataKeys.get(i), rangeDataValues.get(i));
@@ -109,7 +111,7 @@ public class WellCoordinatesResponseV2 {
         setEntriesCoord(protoPlannedData, plannedData);
     }
     public void setProtoCoordData(List<List<Double>> input, DepthCoordinate output) {
-        if(output.getProtoCoordiantes().isEmpty() && !input.isEmpty()) {
+        if(output.getProtoCoordiantes().isEmpty() && input != null && !input.isEmpty()) {
             input.forEach((values) -> {
                 if(!values.isEmpty()) {
                     Location location = new Location();
@@ -121,7 +123,7 @@ public class WellCoordinatesResponseV2 {
         }
     }
     public void setEntriesCoord(DepthCoordinate input, List<List<Double>> output) {
-        if(output.isEmpty() && !input.getProtoCoordiantes().isEmpty()) {
+        if(output.isEmpty() && input != null && !input.getProtoCoordiantes().isEmpty()) {
             input.getProtoCoordiantes().forEach(location ->{
                 List<Double> coordinate = new ArrayList<>();
                 coordinate.add(location.getLat());

@@ -13,17 +13,17 @@ public class BHASectionCount implements Serializable {
 
     @ProtoField(number = 1)
     @JsonProperty("a")
-    Integer all;
+    Integer all = 0;
     @ProtoField(number = 2)
     @JsonProperty("s")
-    Integer surface;
+    Integer surface = 0;
     @ProtoField(number = 3)
     @JsonProperty("i")
-    Integer intermediate;
+    Integer intermediate = 0;
     @ProtoField(number = 4)
     @JsonProperty("c")
-    Integer curve;
+    Integer curve = 0;
     @ProtoField(number = 5)
     @JsonProperty("l")
-    public Integer lateral;
+    public Integer lateral = 0;
 }

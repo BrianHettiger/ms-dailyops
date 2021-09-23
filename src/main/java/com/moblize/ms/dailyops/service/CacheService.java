@@ -42,28 +42,11 @@ public class CacheService {
     @Async
     public void subscribe() {
         getWellCoordinatesCache().clear();
-        log.debug("Cache service start");
-        metaDataRepository.findAll().stream().forEach(metaData -> {
-            processBuildAndWalk(metaData);
-        });
-        log.debug("Cache service end");
         wellsCoordinatesService.getWellCoordinates(COMPANY_NAME, null);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
     }
 
-    private void processBuildAndWalk(WellPerformanceMetaData metaData) {
-        try {
-            if (metaData.getBldWlkMeasureDepth() == 0 || metaData.getBldWlkMetaData().isEmpty()) {
-                log.debug("Cache service process well {}", metaData.getWellUid());
-                MongoWell mongoWell = mongoWellRepository.findByUid(metaData.getWellUid());
-                    if(mongoWell != null){
-                        restClientService.processWell(mongoWell);
-                    }
-            }
-        } catch (Exception e) {
-            log.error("Error occur in recalculate performance B&W ", e);
-        }
-    }
+
 
 
     public RemoteCache<String, TrueRopCache> getTrueRopMetaCache() {

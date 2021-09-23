@@ -9,8 +9,7 @@ import org.infinispan.client.hotrod.annotation.ClientListener;
 import org.infinispan.client.hotrod.event.ClientCacheEntryCreatedEvent;
 import org.infinispan.client.hotrod.event.ClientCacheEntryModifiedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @ClientListener
@@ -20,7 +19,9 @@ public class TrueRopCacheListener {
     @Autowired
     private MongoWellRepository mongoWellRepository;
     @Autowired
-    RestClientService restClientService;
+    private RestClientService restClientService;
+    @Value("${CODE}")
+    private String customer;
     @ClientCacheEntryCreated
     public void entryCreated(ClientCacheEntryCreatedEvent<String> event) {
         updateData(event.getKey());
@@ -33,9 +34,12 @@ public class TrueRopCacheListener {
     public void updateData(String key) {
         String wellUid = key;
         MongoWell mongoWell = mongoWellRepository.findByUid(key);
-        log.debug("processWell {}", wellUid);
-        restClientService.
-            processWell(mongoWell);
+        log.debug("processWell {}, {}", wellUid, customer);
+        if(mongoWell != null && mongoWell.getCustomer() != null && mongoWell.getCustomer().equalsIgnoreCase(customer)){
+            restClientService.processWell(mongoWell);
+        } else {
+            log.error("Update Data not a valid well {} for customer {}", wellUid, customer);
+        }
     }
 
 
