@@ -18,6 +18,6 @@ public class BHACount {
 
     @ProtoField(number = 1)
     @JsonProperty("sec")
-    public BHASectionCount section;
+    public BHASectionCount section = new BHASectionCount();
 
 }
