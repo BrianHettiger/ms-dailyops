@@ -67,7 +67,7 @@ public class WellCoordinatesResponseV2 {
     @JsonProperty("aDir")
     SectionDataDirection avgDirection;
     @JsonProperty("hs")
-    Map<String, RangeData> holeSectionRange;
+    Map<String, RangeData> holeSectionRange = Map.of("a", new RangeData(), "c", new RangeData(),"i", new RangeData(),"l", new RangeData(),"s", new RangeData());
     @ProtoField(number = 21)
     Cost cost;
     @ProtoField(number = 22)
@@ -90,16 +90,18 @@ public class WellCoordinatesResponseV2 {
         if(rangeDataKeys == null) {
             rangeDataKeys = new ArrayList<>();
             rangeDataValues = new ArrayList<>();
-            holeSectionRange.forEach((k, v) -> {
-                rangeDataKeys.add(k);
-                rangeDataValues.add(v);
-            });
+            if(holeSectionRange != null) {
+                holeSectionRange.forEach((k, v) -> {
+                    rangeDataKeys.add(k);
+                    rangeDataValues.add(v);
+                });
+            }
         }
         setProtoCoordData(drilledData, protoDrilledData);
         setProtoCoordData(plannedData, protoPlannedData);
     }
     public void setEntries() {
-        if(holeSectionRange == null && rangeDataKeys != null) {
+        if(rangeDataKeys != null && !rangeDataKeys.isEmpty()) {
             holeSectionRange = new HashMap<>();
             for(int i = 0; i < rangeDataKeys.size(); i++) {
                 holeSectionRange.put(rangeDataKeys.get(i), rangeDataValues.get(i));

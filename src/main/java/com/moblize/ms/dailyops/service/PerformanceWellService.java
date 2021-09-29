@@ -27,9 +27,7 @@ public class PerformanceWellService {
     }
 
     public void deletePerformanceWell(String uid){
-        cacheService.getTrueRopMetaCache().remove(uid);
         cacheService.getWellCoordinatesCache().remove(uid);
-        cacheService.getMongoWellCache().remove(uid);
         performanceWellDao.deletePerformanceWell(uid);
     }
 }
