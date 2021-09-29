@@ -6,11 +6,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.infinispan.protostream.annotations.ProtoField;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class SurveyTortuosity {
+public class SurveyTortuosity  implements Serializable {
     @ProtoField(number = 1)
     Double md;
     @ProtoField(number = 2)
