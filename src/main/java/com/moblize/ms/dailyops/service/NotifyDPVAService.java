@@ -37,6 +37,7 @@ public class NotifyDPVAService {
     private KpiDashboardClient kpiDashboardClient;
 
 
+
     @Value("${CODE}")
     private String code;
 
@@ -81,14 +82,26 @@ public class NotifyDPVAService {
     }
 
     public void notifyDPVAJobForSurveyData(String wellUid, String wellStatus) {
+        wellStatus = getWellStatus(wellUid, wellStatus);
         List<SurveyRecord> surveyData = getSurveyRecords(wellUid, wellStatus);
         List<WellPlan> planData = getPlanRecords(wellUid, wellStatus);
         TargetWindowDPVA targetWindow = targetWindowDPVAService.getTargetWindowDetail(wellUid);
         sendData(targetWindow, surveyData, planData, "survey", wellUid, wellStatus);
     }
 
+    private String getWellStatus(String wellUid, String wellStatus) {
+        try {
+            MongoWell mongoWell = mongoWellRepository.findByUid(wellUid);
+            wellStatus = mongoWell.getStatusWell();
+        } catch (Exception e) {
+            log.error("Get wells updated status", e);
+        }
+        return wellStatus;
+    }
+
     public void notifyDPVAJobForPlanData(String wellUid, String wellStatus) {
         List<WellPlan> planData = getPlanRecords(wellUid, wellStatus);
+        wellStatus = getWellStatus(wellUid, wellStatus);
         List<SurveyRecord> surveyData = getSurveyRecords(wellUid, wellStatus);
         TargetWindowDPVA targetWindow = targetWindowDPVAService.getTargetWindowDetail(wellUid);
         sendData(targetWindow, surveyData, planData, "plan", wellUid, wellStatus);
