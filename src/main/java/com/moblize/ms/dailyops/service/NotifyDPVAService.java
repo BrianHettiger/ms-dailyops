@@ -7,10 +7,14 @@ import com.moblize.ms.dailyops.domain.mongo.DailyOpsLoadConfig;
 import com.moblize.ms.dailyops.domain.mongo.TargetWindowDPVA;
 import com.moblize.ms.dailyops.repository.mongo.client.DPVALoadConfigRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
-import com.moblize.ms.dailyops.service.dto.*;
+import com.moblize.ms.dailyops.service.dto.ProcessPerFeetRequestDTO;
+import com.moblize.ms.dailyops.service.dto.SurveyRecord;
+import com.moblize.ms.dailyops.service.dto.WellPlan;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +39,8 @@ public class NotifyDPVAService {
     private DPVALoadConfigRepository dpvaLoadConfigRepository;
     @Autowired
     private KpiDashboardClient kpiDashboardClient;
+    @Autowired
+    private DiscoveryClient discoveryClient;
 
 
 
@@ -43,6 +49,9 @@ public class NotifyDPVAService {
 
     public void loadDPVAData(String customer,DailyOpsLoadConfig dailyOpsLoadConfig) {
         try {
+            while(!retryKPIDashboardService()) {
+                Thread.sleep(60000L);
+            }
             if (dailyOpsLoadConfig != null && !dailyOpsLoadConfig.getIsDPVACalculated()) {
                 mongoWellRepository.findAllByCustomer(customer).forEach(well -> {
                     notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(well.getUid()), well.getStatusWell());
@@ -53,6 +62,16 @@ public class NotifyDPVAService {
         } catch (Exception e) {
             log.error("Error occur in loadDPVAData ", e);
         }
+
+    }
+
+    private boolean retryKPIDashboardService()  {
+        List<ServiceInstance> serviceInstanceList = discoveryClient.getInstances("KPIDASHBOARD");
+        if (serviceInstanceList == null || serviceInstanceList.isEmpty()) {
+            log.error("KPIDASHBOARD service not found. Will retry after 1 minute.");
+            return false;
+        }
+        return true;
     }
 
     public DailyOpsLoadConfig getDailyOpsLoadConfig(String customer) {
