@@ -135,10 +135,8 @@ public class NotifyDPVAService {
     }
 
     public void sendData(TargetWindowDPVA targetWindow, List<SurveyRecord> surveyData, List<WellPlan> plannedData, String dataUpdate, String wellUid, String wellStatus) {
-        if (plannedData != null && !plannedData.isEmpty()) {
-            ProcessPerFeetRequestDTO processPerFeetRequestDTO = new ProcessPerFeetRequestDTO(targetWindow, surveyData, plannedData, dataUpdate, wellUid, code, wellStatus,getLateralLength(wellUid));
-            restClientService.processPerFeetData(processPerFeetRequestDTO);
-        }
+        ProcessPerFeetRequestDTO processPerFeetRequestDTO = new ProcessPerFeetRequestDTO(targetWindow, surveyData, plannedData, dataUpdate, wellUid, code, wellStatus, getLateralLength(wellUid));
+        restClientService.processPerFeetData(processPerFeetRequestDTO);
     }
 
     public Float getLateralLength(String wellUid) {
