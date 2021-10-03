@@ -313,12 +313,12 @@ public class DPVAService {
                     Double drilledDepth = previousMD != null ? survey.getMd() - previousMD : 0;
 
                     Double distance = survey.getSvDistance();
-                    distance = distance == null ? 0d : distance;
+                    distance = distance == null ? -1d : distance;
                     donutProcess(map, distance, drilledDepth, "section");
                     wrapper.totalDistance += distance;
 
                     distance = survey.getPvDistance();
-                    distance = distance == null ? 0d : distance;
+                    distance = distance == null ? -1d : distance;
                     donutProcess(map, distance, drilledDepth, "plan");
                     wrapper.totalDistance += distance;
 
@@ -335,7 +335,7 @@ public class DPVAService {
     }
 
     private void donutProcess(Map<String, DistanceDTO> map, Double distance, Double drilledDepth, String viewType) {
-        if (distance <= 10d) {
+        if (distance >= 0 && distance <= 10d) {
             calculateDistanceDonut(map, drilledDepth, "0-10", viewType);
         } else if (distance > 10d && distance <= 20d) {
             calculateDistanceDonut(map, drilledDepth, "10-20", viewType);
