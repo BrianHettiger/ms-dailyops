@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -206,6 +207,13 @@ public class DPVAService {
             dpvaData.setWellUid(dpvaRequestDTO.getPrimaryWell());
             if(null != plannedDataDpva) {
                 dpvaData.setPlannedData(plannedDataDpva.getScaledPlannedData());
+            } else {
+                dpvaData.setPlannedData(Collections.emptyList());
+            }
+            if(null != surveyDataDpva.getScaledSurveyData()) {
+                dpvaData.setSurveyData(surveyDataDpva.getScaledSurveyData());
+            } else {
+                dpvaData.setSurveyData(Collections.emptyList());
             }
             dpvaData.setSurveyTortuosityList(surveyTortuosityDPVA != null ? surveyTortuosityDPVA.getSurveyTortuosityList() : new ArrayList<>());
             if(targetWindowDPVA.getIsEnable()) {
@@ -241,6 +249,7 @@ public class DPVAService {
         }
         if (primaryMongoWell.getStatusWell().equalsIgnoreCase(ACTIVE_STATUS)) {
             dpvaData.setWellUid(dpvaRequestDTO.getPrimaryWell());
+
             dpvaData.setPlannedData(cacheService.getPerFeetPlanDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new PlannedPerFeetDTO()).getScaledPlannedData());
             SurveyPerFeetDTO surveyPerFeetCache = cacheService.getPerFeetSurveyDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new SurveyPerFeetDTO());
             dpvaData.setSurveyData(surveyPerFeetCache.getScaledSurveyData());
