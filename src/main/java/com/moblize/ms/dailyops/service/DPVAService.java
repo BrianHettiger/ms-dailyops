@@ -1,21 +1,39 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
-import com.moblize.ms.dailyops.domain.mongo.*;
+import com.moblize.ms.dailyops.domain.mongo.PlannedDataDpva;
+import com.moblize.ms.dailyops.domain.mongo.SurveyDataDpva;
+import com.moblize.ms.dailyops.domain.mongo.SurveyTortuosityDPVA;
+import com.moblize.ms.dailyops.domain.mongo.TargetWindowDPVA;
+import com.moblize.ms.dailyops.domain.mongo.TargetWindowPerFootDPVA;
 import com.moblize.ms.dailyops.dto.DPVARequestDTO;
 import com.moblize.ms.dailyops.repository.mongo.client.PlannedDataDPVARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.SurveyDataDPVARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.SurveyTortuosityDPVARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.TargetWindowPerFootRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
-import com.moblize.ms.dailyops.service.dto.*;
+import com.moblize.ms.dailyops.service.dto.DPVAData;
+import com.moblize.ms.dailyops.service.dto.DPVAResult;
+import com.moblize.ms.dailyops.service.dto.DonutDistanceDTO;
+import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
+import com.moblize.ms.dailyops.service.dto.SectionPlanView;
+import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
+import com.moblize.ms.dailyops.service.dto.SurveyRecord;
+import com.moblize.ms.dailyops.service.dto.TargetWindowPerFootDTO;
+import com.moblize.ms.dailyops.service.dto.TargetWindowsData;
+import com.moblize.ms.dailyops.service.dto.TortuosityDTO;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 
 @Service
 @Slf4j
@@ -187,8 +205,16 @@ public class DPVAService {
             TargetWindowPerFootDPVA targetWindowPerFootDPVA = targetWindowPerFootRepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
             SurveyTortuosityDPVA surveyTortuosityDPVA = surveyTortuosityDPVARepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
             dpvaData.setWellUid(dpvaRequestDTO.getPrimaryWell());
-            dpvaData.setPlannedData(plannedDataDpva.getScaledPlannedData());
-            dpvaData.setSurveyData(surveyDataDpva.getScaledSurveyData());
+            if(null != plannedDataDpva) {
+                dpvaData.setPlannedData(plannedDataDpva.getScaledPlannedData());
+            } else {
+                dpvaData.setPlannedData(Collections.emptyList());
+            }
+            if(null != surveyDataDpva.getScaledSurveyData()) {
+                dpvaData.setSurveyData(surveyDataDpva.getScaledSurveyData());
+            } else {
+                dpvaData.setSurveyData(Collections.emptyList());
+            }
             dpvaData.setSurveyTortuosityList(surveyTortuosityDPVA != null ? surveyTortuosityDPVA.getSurveyTortuosityList() : new ArrayList<>());
             if(targetWindowDPVA.getIsEnable()) {
                 SectionPlanView sectionView = new SectionPlanView();
@@ -223,6 +249,7 @@ public class DPVAService {
         }
         if (primaryMongoWell.getStatusWell().equalsIgnoreCase(ACTIVE_STATUS)) {
             dpvaData.setWellUid(dpvaRequestDTO.getPrimaryWell());
+
             dpvaData.setPlannedData(cacheService.getPerFeetPlanDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new PlannedPerFeetDTO()).getScaledPlannedData());
             SurveyPerFeetDTO surveyPerFeetCache = cacheService.getPerFeetSurveyDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new SurveyPerFeetDTO());
             dpvaData.setSurveyData(surveyPerFeetCache.getScaledSurveyData());
@@ -286,12 +313,12 @@ public class DPVAService {
                     Double drilledDepth = previousMD != null ? survey.getMd() - previousMD : 0;
 
                     Double distance = survey.getSvDistance();
-                    distance = distance == null ? 0d : distance;
+                    distance = distance == null ? -1d : distance;
                     donutProcess(map, distance, drilledDepth, "section");
                     wrapper.totalDistance += distance;
 
                     distance = survey.getPvDistance();
-                    distance = distance == null ? 0d : distance;
+                    distance = distance == null ? -1d : distance;
                     donutProcess(map, distance, drilledDepth, "plan");
                     wrapper.totalDistance += distance;
 
@@ -308,7 +335,7 @@ public class DPVAService {
     }
 
     private void donutProcess(Map<String, DistanceDTO> map, Double distance, Double drilledDepth, String viewType) {
-        if (distance <= 10d) {
+        if (distance >= 0 && distance <= 10d) {
             calculateDistanceDonut(map, drilledDepth, "0-10", viewType);
         } else if (distance > 10d && distance <= 20d) {
             calculateDistanceDonut(map, drilledDepth, "10-20", viewType);
