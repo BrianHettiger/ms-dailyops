@@ -305,13 +305,16 @@ public class DPVAService {
 
                     Double distance = survey.getSvDistance();
                     distance = distance == null ? -1d : distance;
-                    donutProcess(map, distance, drilledDepth, "section");
-                    wrapper.totalDistance += distance;
-
+                    if(distance >= 0) {
+                        donutProcess(map, distance, drilledDepth, "section");
+                        wrapper.totalDistance += distance;
+                    }
                     distance = survey.getPvDistance();
                     distance = distance == null ? -1d : distance;
-                    donutProcess(map, distance, drilledDepth, "plan");
-                    wrapper.totalDistance += distance;
+                    if(distance > 0) {
+                        donutProcess(map, distance, drilledDepth, "plan");
+                        wrapper.totalDistance += distance;
+                    }
 
                     trajectoryStack.push(survey.getMd());
                 }
