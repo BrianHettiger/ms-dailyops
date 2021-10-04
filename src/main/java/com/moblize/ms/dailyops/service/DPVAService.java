@@ -311,7 +311,7 @@ public class DPVAService {
                     }
                     distance = survey.getPvDistance();
                     distance = distance == null ? -1d : distance;
-                    if(distance > 0) {
+                    if(distance >= 0) {
                         donutProcess(map, distance, drilledDepth, "plan");
                         wrapper.totalDistance += distance;
                     }
