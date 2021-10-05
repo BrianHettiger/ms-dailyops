@@ -49,6 +49,7 @@ public class NotifyDPVAService {
 
     public void loadDPVAData(String customer,DailyOpsLoadConfig dailyOpsLoadConfig) {
         try {
+            Thread.sleep(1000*120); // Process will be start after 2 min
             while(!retryKPIDashboardService() || !retryAlarmDetailService()) {
                 Thread.sleep(60000L);
             }
