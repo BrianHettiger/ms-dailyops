@@ -7,6 +7,7 @@ import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
 import com.moblize.ms.dailyops.dto.*;
 import com.moblize.ms.dailyops.service.*;
 import com.moblize.ms.dailyops.service.dto.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@Slf4j
 public class DailyopsController {
 
     @Autowired
@@ -387,8 +389,16 @@ public class DailyopsController {
 
     @Transactional
     @PostMapping("/api/v1/savePerFootTargetWindowDpva")
-    public TargetWindowPerFootDTO savePerFootTargetWindowDpva(@RequestBody TargetWindowPerFootDTO targetWindowPerFootDTO) {
-        return dpvaService.savePerFootTargetWindowDpva(targetWindowPerFootDTO);
+    public void savePerFootTargetWindowDpva(@RequestBody TargetWindowPerFootDTO targetWindowPerFootDTO) {
+        try {
+            if (targetWindowPerFootDTO.getWellStatus().equalsIgnoreCase("active")) {
+                dpvaService.updatePerFootDPVAForActiveWell(targetWindowPerFootDTO);
+            } else {
+                dpvaService.updatePerFootDPVAForNonActiveWell(targetWindowPerFootDTO);
+            }
+        } catch (Exception e) {
+            log.error("Error occur in savePerFootTargetWindowDpva ", e);
+        }
     }
 
     @Transactional

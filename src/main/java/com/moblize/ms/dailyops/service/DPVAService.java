@@ -26,6 +26,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -69,7 +70,7 @@ public class DPVAService {
 
                 cacheService.getPerFeetSurveyDataCache().put(surveyPerFeetDTO.getWellUid(), surveyPerFeetDTO);
 
-                log.debug("SaveSurveyDataDpva end for well uid: {} and took {} second",surveyPerFeetDTO.getWellUid(), (System.currentTimeMillis()-startTime)/1000);
+                log.debug("SaveSurveyDataDpva end for well uid: {} and took {} milliseconds",surveyPerFeetDTO.getWellUid(), (System.currentTimeMillis()-startTime));
             } else {
                 SurveyDataDpva surveyDataDpvaDB = surveyDataDPVARepository.findFirstByWellUid(surveyPerFeetDTO.getWellUid());
                 if (null != surveyDataDpvaDB) {
@@ -105,7 +106,7 @@ public class DPVAService {
 
                 cacheService.getPerFeetPlanDataCache().put(plannedPerFeetDTO.getWellUid(), plannedPerFeetDTO);
 
-                log.debug("SavePlannedDataDpva end for well uid: {} and took {} second", plannedPerFeetDTO.getWellUid(), (System.currentTimeMillis() - startTime) / 1000);
+                log.debug("SavePlannedDataDpva end for well uid: {} and took {} milliseconds", plannedPerFeetDTO.getWellUid(), (System.currentTimeMillis() - startTime) );
             } else {
                 PlannedDataDpva plannedDataDpvaDB = plannedDataDPVARepository.findFirstByWellUid(plannedPerFeetDTO.getWellUid());
                 if (null != plannedDataDpvaDB) {
@@ -127,48 +128,44 @@ public class DPVAService {
     }
 
 
-    public TargetWindowPerFootDTO savePerFootTargetWindowDpva(TargetWindowPerFootDTO targetWindowPerFootDTO) {
-        try {
-            if (targetWindowPerFootDTO.getWellStatus().equalsIgnoreCase("active")) {
-                long startTime = System.currentTimeMillis();
-                log.debug("SavePerFootTargetWindowDpva start for well uid: {}", targetWindowPerFootDTO.getWellUid());
-
-                targetWindowPerFootDTO.setProtoData();
-                cacheService.getPerFeetTargetWindowDataCache().put(targetWindowPerFootDTO.getWellUid(), targetWindowPerFootDTO);
-
-                DPVARequestDTO dpvaRequestDTO = new DPVARequestDTO();
-                dpvaRequestDTO.setPrimaryWell(targetWindowPerFootDTO.getWellUid());
-                restClientService.pushRealTimeDataToNodeSocket(getDPVAData(dpvaRequestDTO));
-
-                log.debug("SavePerFootTargetWindowDpva end for well uid: {} and took {} second", targetWindowPerFootDTO.getWellUid(), (System.currentTimeMillis() - startTime) / 1000);
-            } else {
-                TargetWindowPerFootDPVA targetWindowPerFootDPVADB = targetWindowPerFootRepository.findFirstByWellUid(targetWindowPerFootDTO.getWellUid());
-                if (null == targetWindowPerFootDPVADB) {
-                    targetWindowPerFootDPVADB = new TargetWindowPerFootDPVA();
-                }
-                targetWindowPerFootDPVADB.setWellStatus(targetWindowPerFootDTO.getWellStatus());
-                targetWindowPerFootDPVADB.setCustomer(targetWindowPerFootDTO.getCustomer());
-                targetWindowPerFootDPVADB.setWellUid(targetWindowPerFootDTO.getWellUid());
-                targetWindowPerFootDPVADB.setBasic(targetWindowPerFootDTO.getBasic());
-                targetWindowPerFootDPVADB.setAdvance(targetWindowPerFootDTO.getAdvance());
-                targetWindowPerFootDPVADB.setPvFirstLine(targetWindowPerFootDTO.getPvFirstLine());
-                targetWindowPerFootDPVADB.setPvCenterLine(targetWindowPerFootDTO.getPvCenterLine());
-                targetWindowPerFootDPVADB.setPvLastLine(targetWindowPerFootDTO.getPvLastLine());
-                targetWindowPerFootDPVADB.setPvSideLine(targetWindowPerFootDTO.getPvSideLine());
-                targetWindowPerFootDPVADB.setSvFirstLine(targetWindowPerFootDTO.getSvFirstLine());
-                targetWindowPerFootDPVADB.setSvCenterLine(targetWindowPerFootDTO.getSvCenterLine());
-                targetWindowPerFootDPVADB.setSvLastLine(targetWindowPerFootDTO.getSvLastLine());
-                targetWindowPerFootDPVADB.setSvSideLine(targetWindowPerFootDTO.getSvSideLine());
-                targetWindowPerFootDPVADB.setSvIntersections(targetWindowPerFootDTO.getSvIntersections());
-                targetWindowPerFootDPVADB.setPvIntersections(targetWindowPerFootDTO.getPvIntersections());
-                targetWindowPerFootRepository.save(targetWindowPerFootDPVADB);
-            }
-        } catch (Exception e) {
-            log.error("Error occur in savePerFootTargetWindowDpva ", e);
+    @Async
+    public void updatePerFootDPVAForNonActiveWell(TargetWindowPerFootDTO targetWindowPerFootDTO) {
+        TargetWindowPerFootDPVA targetWindowPerFootDPVADB = targetWindowPerFootRepository.findFirstByWellUid(targetWindowPerFootDTO.getWellUid());
+        if (null == targetWindowPerFootDPVADB) {
+            targetWindowPerFootDPVADB = new TargetWindowPerFootDPVA();
         }
-        return targetWindowPerFootDTO;
+        targetWindowPerFootDPVADB.setWellStatus(targetWindowPerFootDTO.getWellStatus());
+        targetWindowPerFootDPVADB.setCustomer(targetWindowPerFootDTO.getCustomer());
+        targetWindowPerFootDPVADB.setWellUid(targetWindowPerFootDTO.getWellUid());
+        targetWindowPerFootDPVADB.setBasic(targetWindowPerFootDTO.getBasic());
+        targetWindowPerFootDPVADB.setAdvance(targetWindowPerFootDTO.getAdvance());
+        targetWindowPerFootDPVADB.setPvFirstLine(targetWindowPerFootDTO.getPvFirstLine());
+        targetWindowPerFootDPVADB.setPvCenterLine(targetWindowPerFootDTO.getPvCenterLine());
+        targetWindowPerFootDPVADB.setPvLastLine(targetWindowPerFootDTO.getPvLastLine());
+        targetWindowPerFootDPVADB.setPvSideLine(targetWindowPerFootDTO.getPvSideLine());
+        targetWindowPerFootDPVADB.setSvFirstLine(targetWindowPerFootDTO.getSvFirstLine());
+        targetWindowPerFootDPVADB.setSvCenterLine(targetWindowPerFootDTO.getSvCenterLine());
+        targetWindowPerFootDPVADB.setSvLastLine(targetWindowPerFootDTO.getSvLastLine());
+        targetWindowPerFootDPVADB.setSvSideLine(targetWindowPerFootDTO.getSvSideLine());
+        targetWindowPerFootDPVADB.setSvIntersections(targetWindowPerFootDTO.getSvIntersections());
+        targetWindowPerFootDPVADB.setPvIntersections(targetWindowPerFootDTO.getPvIntersections());
+        targetWindowPerFootRepository.save(targetWindowPerFootDPVADB);
     }
 
+    @Async
+    public void updatePerFootDPVAForActiveWell(TargetWindowPerFootDTO targetWindowPerFootDTO) {
+        long startTime = System.currentTimeMillis();
+        log.debug("SavePerFootTargetWindowDpva start for well uid: {}", targetWindowPerFootDTO.getWellUid());
+
+        targetWindowPerFootDTO.setProtoData();
+        cacheService.getPerFeetTargetWindowDataCache().put(targetWindowPerFootDTO.getWellUid(), targetWindowPerFootDTO);
+
+        DPVARequestDTO dpvaRequestDTO = new DPVARequestDTO();
+        dpvaRequestDTO.setPrimaryWell(targetWindowPerFootDTO.getWellUid());
+        restClientService.pushRealTimeDataToNodeSocket(getDPVAData(dpvaRequestDTO));
+
+        log.debug("SavePerFootTargetWindowDpva end for well uid: {} and took {} milliseconds", targetWindowPerFootDTO.getWellUid(), (System.currentTimeMillis() - startTime) );
+    }
 
 
     public DPVAResult getDPVAData(DPVARequestDTO dpvaRequestDTO) {
