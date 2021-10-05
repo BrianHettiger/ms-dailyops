@@ -21,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 
 @Service
 @Slf4j
-@EnableAsync
 public class RestClientService {
     private RestTemplate restTemplate = new RestTemplate();
     @Value("${rest.wellformationetl.url}")

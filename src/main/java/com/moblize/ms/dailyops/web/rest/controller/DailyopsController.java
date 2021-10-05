@@ -359,7 +359,7 @@ public class DailyopsController {
         return targetWindowDPVA;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @PostMapping("/api/v1/saveTargetWindow/{wellStatus}")
     public TargetWindowDPVA saveTargetWindow(@RequestBody TargetWindowDPVA targetWindowDPVA, @PathVariable String wellStatus) {
         return targetWindowDPVAService.saveTargetWindowDetail(targetWindowDPVA, wellStatus);
@@ -371,25 +371,25 @@ public class DailyopsController {
        return  tortuosityService.getTortuosityIndex(tortuosityRequestDTO);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @PostMapping("/api/v1/saveSurveyDataDpva")
     public SurveyPerFeetDTO saveSurveyDataDpva(@RequestBody SurveyPerFeetDTO surveyPerFeetDTO) {
         return dpvaService.saveSurveyDataDpva(surveyPerFeetDTO);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @PostMapping("/api/v1/savePlannedDataDpva")
     public PlannedPerFeetDTO savePlannedDataDpva(@RequestBody PlannedPerFeetDTO plannedPerFeetDTO) {
         return dpvaService.savePlannedDataDpva(plannedPerFeetDTO);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @PostMapping("/api/v1/savePerFootTargetWindowDpva")
     public TargetWindowPerFootDTO savePerFootTargetWindowDpva(@RequestBody TargetWindowPerFootDTO targetWindowPerFootDTO) {
         return dpvaService.savePerFootTargetWindowDpva(targetWindowPerFootDTO);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @PostMapping("/api/v1/saveTortuosityData")
     public TortuosityDTO saveTortuosityData(@RequestBody TortuosityDTO tortuosityDTO) {
         return dpvaService.saveTortuosityData(tortuosityDTO);
@@ -402,14 +402,14 @@ public class DailyopsController {
     }
 
 
-    @Transactional(readOnly = true)
-    @GetMapping("/api/v1/resetDPVAWell/{wellUid}")
+    @Transactional
+    @PostMapping("/api/v1/resetDPVAWell/{wellUid}")
     public void resetDPVAWell(@PathVariable String wellUid) {
          notifyDPVAService.resetDPVAWell(wellUid);
     }
 
-    @Transactional(readOnly = true)
-    @GetMapping("/api/v1/resetAllDPVAWell/{customer}")
+    @Transactional
+    @PostMapping("/api/v1/resetAllDPVAWell/{customer}")
     public void resetAllDPVAWell(@PathVariable String customer) {
         notifyDPVAService.resetAllDPVAWell(customer);
     }
