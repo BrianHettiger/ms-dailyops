@@ -50,10 +50,9 @@ public class NotifyDPVAService {
     @Value("${CODE}")
     private String code;
 
+    @Async
     public void loadDPVAData(String customer,DailyOpsLoadConfig dailyOpsLoadConfig) {
         try {
-
-
             if (dailyOpsLoadConfig != null && !dailyOpsLoadConfig.getIsDPVACalculated()) {
 
                 cacheService.getTortuosityDataCache().clear();
