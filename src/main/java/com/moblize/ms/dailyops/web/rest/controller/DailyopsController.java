@@ -411,9 +411,9 @@ public class DailyopsController {
     }
 
     @Transactional
-    @PostMapping("/api/v1/resetAllDPVAWell/{customer}")
-    public void resetAllDPVAWell(@PathVariable String customer) {
-        notifyDPVAService.resetAllDPVAWell(customer);
+    @PostMapping("/api/v1/resetAllDPVAWell")
+    public void resetAllDPVAWell() {
+        notifyDPVAService.resetAllDPVAWell();
     }
 
     @Transactional(readOnly = true)

@@ -179,21 +179,21 @@ public class NotifyDPVAService {
 
             notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(mongoWell.getUid()), mongoWell.getStatusWell());
         } catch (Exception e) {
-            log.error("Error in resetDPVAWell for well uid: ",wellUid, e);
+            log.error("Error in resetDPVAWell for well uid: {}",wellUid, e);
         }
     }
 
-    public void resetAllDPVAWell(String customer) {
+    public void resetAllDPVAWell() {
         try {
-            DailyOpsLoadConfig dailyOpsLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(customer);
+            DailyOpsLoadConfig dailyOpsLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(code);
             if (dailyOpsLoadConfig == null) {
                 dailyOpsLoadConfig = new DailyOpsLoadConfig();
             }
-            dailyOpsLoadConfig.setCustomer(customer);
+            dailyOpsLoadConfig.setCustomer(code);
             dailyOpsLoadConfig.setIsDPVACalculated(false);
             dailyOpsLoadConfig.setIsPerformanceMapCalculated(true);
             dailyOpsLoadConfig =   dpvaLoadConfigRepository.save(dailyOpsLoadConfig);
-            loadDPVAData(customer, dailyOpsLoadConfig);
+            loadDPVAData(code, dailyOpsLoadConfig);
         } catch (Exception e) {
             log.error("Error occur in resetAllDPVAWell ", e);
         }
