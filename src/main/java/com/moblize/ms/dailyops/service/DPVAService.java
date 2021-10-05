@@ -62,6 +62,7 @@ public class DPVAService {
     private final static String ACTIVE_STATUS = "active";
     private final static String COMPLETED_STATUS = "Completed";
 
+    @Async
     public SurveyPerFeetDTO saveSurveyDataDpva(SurveyPerFeetDTO surveyPerFeetDTO) {
         try {
             if (surveyPerFeetDTO.getWellStatus().equalsIgnoreCase("active")) {
@@ -97,6 +98,7 @@ public class DPVAService {
         return surveyPerFeetDTO;
     }
 
+    @Async
     public PlannedPerFeetDTO savePlannedDataDpva(PlannedPerFeetDTO plannedPerFeetDTO) {
         try {
 
@@ -370,6 +372,7 @@ public class DPVAService {
         map.put(depthRange, distanceDTO);
     }
 
+    @Async
     public TortuosityDTO saveTortuosityData(TortuosityDTO tortuosityDTO) {
         if (tortuosityDTO.getWellStatus().equalsIgnoreCase(ACTIVE_STATUS)) {
             cacheService.getTortuosityDataCache().put(tortuosityDTO.getWellUid(), tortuosityDTO);
