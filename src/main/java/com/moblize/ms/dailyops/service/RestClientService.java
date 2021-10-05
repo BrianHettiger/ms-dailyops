@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -20,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 
 @Service
 @Slf4j
+@EnableAsync
 public class RestClientService {
     private RestTemplate restTemplate = new RestTemplate();
     @Value("${rest.wellformationetl.url}")
@@ -78,6 +80,7 @@ public class RestClientService {
         }};
     }
 
+    @Async
     public ResponseEntity processPerFeetData(ProcessPerFeetRequestDTO processPerFeetRequestDTO){
        final Long startIndex = System.currentTimeMillis();
         ResponseEntity responseEntity = null;

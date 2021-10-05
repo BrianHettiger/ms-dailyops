@@ -210,7 +210,7 @@ public class DPVAService {
             } else {
                 dpvaData.setPlannedData(Collections.emptyList());
             }
-            if(null != surveyDataDpva.getScaledSurveyData()) {
+            if(null != surveyDataDpva) {
                 dpvaData.setSurveyData(surveyDataDpva.getScaledSurveyData());
             } else {
                 dpvaData.setSurveyData(Collections.emptyList());

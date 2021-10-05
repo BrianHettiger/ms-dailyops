@@ -49,7 +49,7 @@ public class NotifyDPVAService {
 
     public void loadDPVAData(String customer,DailyOpsLoadConfig dailyOpsLoadConfig) {
         try {
-            while(!retryKPIDashboardService()) {
+            while(!retryKPIDashboardService() || !retryAlarmDetailService()) {
                 Thread.sleep(60000L);
             }
             if (dailyOpsLoadConfig != null && !dailyOpsLoadConfig.getIsDPVACalculated()) {
@@ -69,6 +69,15 @@ public class NotifyDPVAService {
         List<ServiceInstance> serviceInstanceList = discoveryClient.getInstances("KPIDASHBOARD");
         if (serviceInstanceList == null || serviceInstanceList.isEmpty()) {
             log.error("KPIDASHBOARD service not found. Will retry after 1 minute.");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean retryAlarmDetailService()  {
+        List<ServiceInstance> serviceInstanceList = discoveryClient.getInstances("ALARMDETAIL");
+        if (serviceInstanceList == null || serviceInstanceList.isEmpty()) {
+            log.error("ALARMDETAIL service not found. Will retry after 1 minute.");
             return false;
         }
         return true;
@@ -146,7 +155,7 @@ public class NotifyDPVAService {
                 return lateralDepth.get();
             }
         } catch (Exception e) {
-            log.error("Error in getLateralLength ", e);
+            log.error("Lateral hole section is not configure for Well UID {} ", wellUid);
         }
         return null;
     }
