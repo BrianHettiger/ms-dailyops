@@ -87,7 +87,7 @@ public class RestClientService {
             final String resetUrl = analyticsServiceUrl + processPerFeetData;
             final HttpEntity<ProcessPerFeetRequestDTO> request = new HttpEntity<ProcessPerFeetRequestDTO>(processPerFeetRequestDTO, createHeaders(analyticsServiceUser, analyticsServicePassword));
             responseEntity = restTemplate.exchange(resetUrl, HttpMethod.POST, request, String.class);
-            log.info("Process per feet data API took {}",System.currentTimeMillis()-startIndex);
+            log.info("Process per feet data API took {} for well UID {}",System.currentTimeMillis()-startIndex, processPerFeetRequestDTO.getWellUid());
         } catch (RestClientException e) {
             log.error("Error occur in processPerFeetData API call {}", processPerFeetRequestDTO.getWellUid(), e);
         }

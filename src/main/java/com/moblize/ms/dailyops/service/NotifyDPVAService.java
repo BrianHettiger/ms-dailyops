@@ -106,7 +106,7 @@ public class NotifyDPVAService {
 
             sendData(targetWindow, surveyData, planData, "targetWindow", wellUid, wellStatus);
         } catch (Exception e) {
-            log.error("Error occur in notifyDPVAJob ", e);
+            log.error("Error occur in notifyDPVAJob for wellUID: {}", targetWindow.getUid(), e);
         }
     }
 
@@ -123,7 +123,7 @@ public class NotifyDPVAService {
             MongoWell mongoWell = mongoWellRepository.findByUid(wellUid);
             wellStatus = mongoWell.getStatusWell();
         } catch (Exception e) {
-            log.error("Get wells updated status", e);
+            log.error("Error occur for well UID {} to get updated status", wellUid, e);
         }
         return wellStatus;
     }
@@ -167,7 +167,7 @@ public class NotifyDPVAService {
 
             notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(mongoWell.getUid()), mongoWell.getStatusWell());
         } catch (Exception e) {
-            log.error("Error in resetDPVAWell ", e);
+            log.error("Error in resetDPVAWell for well uid: ",wellUid, e);
         }
     }
 
@@ -200,7 +200,7 @@ public class NotifyDPVAService {
                 notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(mongoWell.getUid()), mongoWell.getStatusWell());
             }
         } catch (Exception e) {
-            log.error("Error occur in dpvaWellCompletedNotification service ", e);
+            log.error("Error occur in dpvaWellCompletedNotification service for well uid {}", wellUid, e);
         }
     }
 }
