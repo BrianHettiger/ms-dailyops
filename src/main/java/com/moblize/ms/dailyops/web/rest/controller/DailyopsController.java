@@ -362,7 +362,9 @@ public class DailyopsController {
     @Transactional
     @PostMapping("/api/v1/saveTargetWindow/{wellStatus}")
     public TargetWindowDPVA saveTargetWindow(@RequestBody TargetWindowDPVA targetWindowDPVA, @PathVariable String wellStatus) {
-        return targetWindowDPVAService.saveTargetWindowDetail(targetWindowDPVA, wellStatus);
+        TargetWindowDPVA  targetWindow = targetWindowDPVAService.saveTargetWindowDetail(targetWindowDPVA, wellStatus);
+        notifyDPVAService.notifyDPVAJobForSaveTargetWindow(targetWindow, wellStatus);
+        return targetWindow;
     }
 
     @Transactional(readOnly =true)
