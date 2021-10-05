@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
@@ -98,7 +99,16 @@ public class NotifyDPVAService {
         return dailyOpsLoadConfig;
     }
 
+    @Async
     public void notifyDPVAJob(TargetWindowDPVA targetWindow, String wellStatus) {
+        processDPVADataForWell(targetWindow, wellStatus);
+    }
+
+    public void notifyDPVAJobForSaveTargetWindow(TargetWindowDPVA targetWindow, String wellStatus) {
+        processDPVADataForWell(targetWindow, wellStatus);
+    }
+
+    private void processDPVADataForWell(TargetWindowDPVA targetWindow, String wellStatus) {
         try {
             List<SurveyRecord> surveyData = null;
             List<WellPlan> planData = null;

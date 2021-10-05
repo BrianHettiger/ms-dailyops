@@ -58,7 +58,7 @@ public class TargetWindowDPVAService {
             } else {
                 Obj = targetWindowDPVARepository.save(targetWindow);
             }
-            notifyDPVAService.notifyDPVAJob(targetWindow, wellStatus);
+            notifyDPVAService.notifyDPVAJobForSaveTargetWindow(targetWindow, wellStatus);
         } catch (Exception e) {
             log.error("Error occur in saveTarget window service", e);
         }

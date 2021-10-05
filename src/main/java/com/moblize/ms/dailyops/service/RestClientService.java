@@ -79,7 +79,6 @@ public class RestClientService {
         }};
     }
 
-    @Async
     public ResponseEntity processPerFeetData(ProcessPerFeetRequestDTO processPerFeetRequestDTO){
        final Long startIndex = System.currentTimeMillis();
         ResponseEntity responseEntity = null;
