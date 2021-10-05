@@ -53,10 +53,7 @@ public class CacheService {
     @EventListener(ApplicationReadyEvent.class)
     @Async
     public void subscribe() {
-        getTortuosityDataCache().clear();
-        getPerFeetTargetWindowDataCache().clear();
-        getPerFeetSurveyDataCache().clear();
-        getPerFeetPlanDataCache().clear();
+
         getWellCoordinatesCache().clear();
         log.info("Cache service start");
         DailyOpsLoadConfig dailyOpsLoadConfig = notifyDPVAService.getDailyOpsLoadConfig(COMPANY_NAME);

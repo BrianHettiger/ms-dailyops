@@ -52,11 +52,20 @@ public class NotifyDPVAService {
 
     public void loadDPVAData(String customer,DailyOpsLoadConfig dailyOpsLoadConfig) {
         try {
-            Thread.sleep(1000*120); // Process will be start after 2 min
-            while(!retryKPIDashboardService() || !retryAlarmDetailService()) {
-                Thread.sleep(60000L);
-            }
+
+
             if (dailyOpsLoadConfig != null && !dailyOpsLoadConfig.getIsDPVACalculated()) {
+
+                cacheService.getTortuosityDataCache().clear();
+                cacheService.getPerFeetTargetWindowDataCache().clear();
+                cacheService.getPerFeetSurveyDataCache().clear();
+                cacheService.getPerFeetPlanDataCache().clear();
+                Thread.sleep(1000*120); // Process will be start after 2 min
+
+                while(!retryKPIDashboardService() || !retryAlarmDetailService()) {
+                    Thread.sleep(60000L);
+                }
+
                 mongoWellRepository.findAllByCustomer(customer).forEach(well -> {
                     notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(well.getUid()), well.getStatusWell());
                 });
