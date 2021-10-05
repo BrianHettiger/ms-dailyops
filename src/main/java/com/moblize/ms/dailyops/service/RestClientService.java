@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 
 @Service
 @Slf4j
+@EnableAsync
 public class RestClientService {
     private RestTemplate restTemplate = new RestTemplate();
     @Value("${rest.wellformationetl.url}")
@@ -63,6 +64,15 @@ public class RestClientService {
         return restTemplate.exchange(stompUrl, HttpMethod.POST, request, String.class);
     }
 
+    @Async
+    void pushRealTimeDataToNodeSocket(DPVAResult dpvaResult) {
+        try {
+            sendDataToNodeSocket(dpvaResult);
+        } catch (Exception e) {
+            log.error("Error occur while sending data to node socket for well uid: {}", dpvaResult.getPrimaryWellDPVAData().getWellUid());
+        }
+    }
+
     public ResponseEntity sendDataToNodeSocket(DPVAResult dpvaResult) {
         final String stompUrl = nodedrillingUrl + nodedrillingStomp+"dpvaData" ;
         final HttpEntity<DPVAData> request = new HttpEntity<>(dpvaResult.getPrimaryWellDPVAData(), createHeaders(nodedrillingUser, nodedrillingPassword));
@@ -86,7 +96,7 @@ public class RestClientService {
             final String resetUrl = analyticsServiceUrl + processPerFeetData;
             final HttpEntity<ProcessPerFeetRequestDTO> request = new HttpEntity<ProcessPerFeetRequestDTO>(processPerFeetRequestDTO, createHeaders(analyticsServiceUser, analyticsServicePassword));
             responseEntity = restTemplate.exchange(resetUrl, HttpMethod.POST, request, String.class);
-            log.info("Process per feet data API took {} for well UID {}",System.currentTimeMillis()-startIndex, processPerFeetRequestDTO.getWellUid());
+            log.info("Process per feet data API took {} second for well UID {}",(System.currentTimeMillis()-startIndex)/1000, processPerFeetRequestDTO.getWellUid());
         } catch (RestClientException e) {
             log.error("Error occur in processPerFeetData API call {}", processPerFeetRequestDTO.getWellUid(), e);
         }

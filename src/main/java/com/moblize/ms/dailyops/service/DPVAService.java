@@ -64,7 +64,12 @@ public class DPVAService {
     public SurveyPerFeetDTO saveSurveyDataDpva(SurveyPerFeetDTO surveyPerFeetDTO) {
         try {
             if (surveyPerFeetDTO.getWellStatus().equalsIgnoreCase("active")) {
+                long startTime = System.currentTimeMillis();
+                log.debug("SaveSurveyDataDpva start for well uid: {}",surveyPerFeetDTO.getWellUid());
+
                 cacheService.getPerFeetSurveyDataCache().put(surveyPerFeetDTO.getWellUid(), surveyPerFeetDTO);
+
+                log.debug("SaveSurveyDataDpva end for well uid: {} and took {} second",surveyPerFeetDTO.getWellUid(), (System.currentTimeMillis()-startTime)/1000);
             } else {
                 SurveyDataDpva surveyDataDpvaDB = surveyDataDPVARepository.findFirstByWellUid(surveyPerFeetDTO.getWellUid());
                 if (null != surveyDataDpvaDB) {
@@ -95,7 +100,12 @@ public class DPVAService {
         try {
 
             if (plannedPerFeetDTO.getWellStatus().equalsIgnoreCase("active")) {
+                long startTime = System.currentTimeMillis();
+                log.debug("SavePlannedDataDpva start for well uid: {}", plannedPerFeetDTO.getWellUid());
+
                 cacheService.getPerFeetPlanDataCache().put(plannedPerFeetDTO.getWellUid(), plannedPerFeetDTO);
+
+                log.debug("SavePlannedDataDpva end for well uid: {} and took {} second", plannedPerFeetDTO.getWellUid(), (System.currentTimeMillis() - startTime) / 1000);
             } else {
                 PlannedDataDpva plannedDataDpvaDB = plannedDataDPVARepository.findFirstByWellUid(plannedPerFeetDTO.getWellUid());
                 if (null != plannedDataDpvaDB) {
@@ -120,9 +130,17 @@ public class DPVAService {
     public TargetWindowPerFootDTO savePerFootTargetWindowDpva(TargetWindowPerFootDTO targetWindowPerFootDTO) {
         try {
             if (targetWindowPerFootDTO.getWellStatus().equalsIgnoreCase("active")) {
+                long startTime = System.currentTimeMillis();
+                log.debug("SavePerFootTargetWindowDpva start for well uid: {}", targetWindowPerFootDTO.getWellUid());
+
                 targetWindowPerFootDTO.setProtoData();
                 cacheService.getPerFeetTargetWindowDataCache().put(targetWindowPerFootDTO.getWellUid(), targetWindowPerFootDTO);
-                pushDataToUI(targetWindowPerFootDTO.getWellUid());
+
+                DPVARequestDTO dpvaRequestDTO = new DPVARequestDTO();
+                dpvaRequestDTO.setPrimaryWell(targetWindowPerFootDTO.getWellUid());
+                restClientService.pushRealTimeDataToNodeSocket(getDPVAData(dpvaRequestDTO));
+
+                log.debug("SavePerFootTargetWindowDpva end for well uid: {} and took {} second", targetWindowPerFootDTO.getWellUid(), (System.currentTimeMillis() - startTime) / 1000);
             } else {
                 TargetWindowPerFootDPVA targetWindowPerFootDPVADB = targetWindowPerFootRepository.findFirstByWellUid(targetWindowPerFootDTO.getWellUid());
                 if (null == targetWindowPerFootDPVADB) {
@@ -151,16 +169,7 @@ public class DPVAService {
         return targetWindowPerFootDTO;
     }
 
-    private void pushDataToUI(String wellUid) {
-        try {
-            DPVARequestDTO dpvaRequestDTO = new DPVARequestDTO();
-            dpvaRequestDTO.setPrimaryWell(wellUid);
-            DPVAResult dpvaResult =  getDPVAData(dpvaRequestDTO);
-            restClientService.sendDataToNodeSocket(dpvaResult);
-        } catch (Exception e) {
-          log.error("Error occur while using data to node socket");
-        }
-    }
+
 
     public DPVAResult getDPVAData(DPVARequestDTO dpvaRequestDTO) {
 
