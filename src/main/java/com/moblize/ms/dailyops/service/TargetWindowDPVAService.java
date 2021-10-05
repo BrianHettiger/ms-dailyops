@@ -1,6 +1,5 @@
 package com.moblize.ms.dailyops.service;
 
-import com.moblize.ms.dailyops.client.KpiDashboardClient;
 import com.moblize.ms.dailyops.domain.mongo.TargetWindowDPVA;
 import com.moblize.ms.dailyops.repository.mongo.client.TargetWindowDPVARepository;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -16,9 +14,6 @@ public class TargetWindowDPVAService {
 
     @Autowired
     private TargetWindowDPVARepository targetWindowDPVARepository;
-
-    @Autowired
-    private NotifyDPVAService notifyDPVAService;
 
 
 
@@ -40,7 +35,7 @@ public class TargetWindowDPVAService {
                 targetWindowDPVA = targetWindowDPVARepository.save(targetWindowDPVA);
             }
         } catch (Exception e) {
-            log.error("Error occur in getTargetWindowDetail", e);
+            log.error("Error occur in getTargetWindowDetail for well uid: {}", wellUID, e);
         }
         return targetWindowDPVA;
     }
@@ -58,9 +53,9 @@ public class TargetWindowDPVAService {
             } else {
                 Obj = targetWindowDPVARepository.save(targetWindow);
             }
-            notifyDPVAService.notifyDPVAJob(targetWindow, wellStatus);
+
         } catch (Exception e) {
-            log.error("Error occur in saveTarget window service", e);
+            log.error("Error occur in saveTarget window service for well uid: {}", targetWindow.getUid(), e);
         }
         return Obj;
     }

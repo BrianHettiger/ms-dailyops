@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +25,7 @@ import java.util.Optional;
 
 @Service
 @Slf4j
+@EnableAsync
 public class NotifyDPVAService {
     @Autowired
     @Lazy
@@ -47,12 +50,21 @@ public class NotifyDPVAService {
     @Value("${CODE}")
     private String code;
 
+    @Async
     public void loadDPVAData(String customer,DailyOpsLoadConfig dailyOpsLoadConfig) {
         try {
-            while(!retryKPIDashboardService()) {
-                Thread.sleep(60000L);
-            }
             if (dailyOpsLoadConfig != null && !dailyOpsLoadConfig.getIsDPVACalculated()) {
+
+                cacheService.getTortuosityDataCache().clear();
+                cacheService.getPerFeetTargetWindowDataCache().clear();
+                cacheService.getPerFeetSurveyDataCache().clear();
+                cacheService.getPerFeetPlanDataCache().clear();
+                Thread.sleep(1000*120); // Process will be start after 2 min
+
+                while(!retryKPIDashboardService() || !retryAlarmDetailService()) {
+                    Thread.sleep(60000L);
+                }
+
                 mongoWellRepository.findAllByCustomer(customer).forEach(well -> {
                     notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(well.getUid()), well.getStatusWell());
                 });
@@ -74,6 +86,15 @@ public class NotifyDPVAService {
         return true;
     }
 
+    private boolean retryAlarmDetailService()  {
+        List<ServiceInstance> serviceInstanceList = discoveryClient.getInstances("ALARMDETAIL");
+        if (serviceInstanceList == null || serviceInstanceList.isEmpty()) {
+            log.error("ALARMDETAIL service not found. Will retry after 1 minute.");
+            return false;
+        }
+        return true;
+    }
+
     public DailyOpsLoadConfig getDailyOpsLoadConfig(String customer) {
         DailyOpsLoadConfig dailyOpsLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(customer);
         if(dailyOpsLoadConfig == null){
@@ -86,7 +107,16 @@ public class NotifyDPVAService {
         return dailyOpsLoadConfig;
     }
 
+    @Async
     public void notifyDPVAJob(TargetWindowDPVA targetWindow, String wellStatus) {
+        processDPVADataForWell(targetWindow, wellStatus);
+    }
+
+    public void notifyDPVAJobForSaveTargetWindow(TargetWindowDPVA targetWindow, String wellStatus) {
+        processDPVADataForWell(targetWindow, wellStatus);
+    }
+
+    private void processDPVADataForWell(TargetWindowDPVA targetWindow, String wellStatus) {
         try {
             List<SurveyRecord> surveyData = null;
             List<WellPlan> planData = null;
@@ -96,7 +126,7 @@ public class NotifyDPVAService {
 
             sendData(targetWindow, surveyData, planData, "targetWindow", wellUid, wellStatus);
         } catch (Exception e) {
-            log.error("Error occur in notifyDPVAJob ", e);
+            log.error("Error occur in notifyDPVAJob for wellUID: {}", targetWindow.getUid(), e);
         }
     }
 
@@ -113,7 +143,7 @@ public class NotifyDPVAService {
             MongoWell mongoWell = mongoWellRepository.findByUid(wellUid);
             wellStatus = mongoWell.getStatusWell();
         } catch (Exception e) {
-            log.error("Get wells updated status", e);
+            log.error("Error occur for well UID {} to get updated status", wellUid, e);
         }
         return wellStatus;
     }
@@ -146,7 +176,7 @@ public class NotifyDPVAService {
                 return lateralDepth.get();
             }
         } catch (Exception e) {
-            log.error("Error in getLateralLength ", e);
+            log.error("Lateral hole section is not configure for Well UID {} ", wellUid);
         }
         return null;
     }
@@ -157,21 +187,21 @@ public class NotifyDPVAService {
 
             notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(mongoWell.getUid()), mongoWell.getStatusWell());
         } catch (Exception e) {
-            log.error("Error in resetDPVAWell ", e);
+            log.error("Error in resetDPVAWell for well uid: {}",wellUid, e);
         }
     }
 
-    public void resetAllDPVAWell(String customer) {
+    public void resetAllDPVAWell() {
         try {
-            DailyOpsLoadConfig dailyOpsLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(customer);
+            DailyOpsLoadConfig dailyOpsLoadConfig = dpvaLoadConfigRepository.findFirstByCustomer(code);
             if (dailyOpsLoadConfig == null) {
                 dailyOpsLoadConfig = new DailyOpsLoadConfig();
             }
-            dailyOpsLoadConfig.setCustomer(customer);
+            dailyOpsLoadConfig.setCustomer(code);
             dailyOpsLoadConfig.setIsDPVACalculated(false);
             dailyOpsLoadConfig.setIsPerformanceMapCalculated(true);
             dailyOpsLoadConfig =   dpvaLoadConfigRepository.save(dailyOpsLoadConfig);
-            loadDPVAData(customer, dailyOpsLoadConfig);
+            loadDPVAData(code, dailyOpsLoadConfig);
         } catch (Exception e) {
             log.error("Error occur in resetAllDPVAWell ", e);
         }
@@ -190,7 +220,7 @@ public class NotifyDPVAService {
                 notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(mongoWell.getUid()), mongoWell.getStatusWell());
             }
         } catch (Exception e) {
-            log.error("Error occur in dpvaWellCompletedNotification service ", e);
+            log.error("Error occur in dpvaWellCompletedNotification service for well uid {}", wellUid, e);
         }
     }
 }
