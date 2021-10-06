@@ -56,8 +56,6 @@ public class DPVAService {
     private NotifyDPVAService notifyDPVAService;
     @Autowired
     private SurveyTortuosityDPVARepository surveyTortuosityDPVARepository;
-    @Autowired
-    private RestClientService restClientService;
 
     private final static String ACTIVE_STATUS = "active";
     private final static String COMPLETED_STATUS = "Completed";
@@ -162,9 +160,10 @@ public class DPVAService {
         targetWindowPerFootDTO.setProtoData();
         cacheService.getPerFeetTargetWindowDataCache().put(targetWindowPerFootDTO.getWellUid(), targetWindowPerFootDTO);
 
-        DPVARequestDTO dpvaRequestDTO = new DPVARequestDTO();
+        //TODO: Commenting node socket call until we don't find any other solution.
+      /*  DPVARequestDTO dpvaRequestDTO = new DPVARequestDTO();
         dpvaRequestDTO.setPrimaryWell(targetWindowPerFootDTO.getWellUid());
-        restClientService.pushRealTimeDataToNodeSocket(getDPVAData(dpvaRequestDTO));
+        restClientService.pushRealTimeDataToNodeSocket(getDPVAData(dpvaRequestDTO));*/
 
         log.debug("SavePerFootTargetWindowDpva end for well uid: {} and took {} milliseconds", targetWindowPerFootDTO.getWellUid(), (System.currentTimeMillis() - startTime) );
     }
