@@ -69,7 +69,7 @@ public class RestClientService {
         try {
             sendDataToNodeSocket(dpvaResult);
         } catch (Exception e) {
-            log.error("Error occur while sending data to node socket for well uid: {}", dpvaResult.getPrimaryWellDPVAData().getWellUid());
+            log.error("Error occur while sending data to node socket for well uid: {}", dpvaResult.getPrimaryWellDPVAData().getWellUid(), e);
         }
     }
 
