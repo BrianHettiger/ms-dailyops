@@ -53,6 +53,7 @@ public class CacheService {
     @EventListener(ApplicationReadyEvent.class)
     @Async
     public void subscribe() {
+
         getWellCoordinatesCache().clear();
         log.info("Cache service start");
         DailyOpsLoadConfig dailyOpsLoadConfig = notifyDPVAService.getDailyOpsLoadConfig(COMPANY_NAME);

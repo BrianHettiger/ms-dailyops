@@ -55,7 +55,7 @@ hystrix:
     default:
       execution:
         isolation:
-          strategy: SEMAPHORE
+          strategy: THREAD
           # See https://github.com/spring-cloud/spring-cloud-netflix/issues/1330
           thread:
              timeoutInMilliseconds: 10000
