@@ -2,14 +2,14 @@ package com.moblize.ms.dailyops.web.rest.controller;
 
 import com.moblize.ms.dailyops.domain.PerformanceROP;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
-import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
+import com.moblize.ms.dailyops.domain.mongo.*;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
-import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
-import com.moblize.ms.dailyops.dto.BHA;
-import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
-import com.moblize.ms.dailyops.dto.ResponseDTO;
+import com.moblize.ms.dailyops.dto.*;
 import com.moblize.ms.dailyops.service.*;
+import com.moblize.ms.dailyops.service.dto.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@Slf4j
 public class DailyopsController {
 
     @Autowired
@@ -38,6 +39,19 @@ public class DailyopsController {
 
     @Autowired
     private TrueROPDataService trueROPDataService;
+
+    @Autowired
+    private TargetWindowDPVAService targetWindowDPVAService;
+
+    @Autowired
+    private TortuosityService tortuosityService;
+    @Autowired
+    private DPVAService dpvaService;
+    @Autowired
+    private NotifyDPVAService notifyDPVAService;
+    @Autowired
+    @Lazy
+    private CacheService cacheService;
 
 
     @Transactional(readOnly = true)
@@ -333,6 +347,95 @@ public class DailyopsController {
             return null;
         }
         return trueROPDataService.getLastProcessUpTo(wellUid);
+    }
+
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/getTargetWindow/{wellUid}/{wellStatus}")
+    public TargetWindowDPVA getTargetWindow(@PathVariable String wellUid, @PathVariable String wellStatus, HttpServletResponse response) {
+        TargetWindowDPVA targetWindowDPVA =  targetWindowDPVAService.getTargetWindowDetail(wellUid);
+        if (targetWindowDPVA == null) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return null;
+        }
+        return targetWindowDPVA;
+    }
+
+    @Transactional
+    @PostMapping("/api/v1/saveTargetWindow/{wellStatus}")
+    public TargetWindowDPVA saveTargetWindow(@RequestBody TargetWindowDPVA targetWindowDPVA, @PathVariable String wellStatus) {
+        TargetWindowDPVA  targetWindow = targetWindowDPVAService.saveTargetWindowDetail(targetWindowDPVA, wellStatus);
+        notifyDPVAService.notifyDPVAJobForSaveTargetWindow(targetWindow, wellStatus);
+        return targetWindow;
+    }
+
+    @Transactional(readOnly =true)
+    @PostMapping("/api/v1/getTortuosityIndex")
+    public List<SurveyRecord> getTortuosityIndex(@RequestBody TortuosityRequestDTO tortuosityRequestDTO){
+       return  tortuosityService.getTortuosityIndex(tortuosityRequestDTO);
+    }
+
+    @Transactional
+    @PostMapping("/api/v1/saveSurveyDataDpva")
+    public SurveyPerFeetDTO saveSurveyDataDpva(@RequestBody SurveyPerFeetDTO surveyPerFeetDTO) {
+        return dpvaService.saveSurveyDataDpva(surveyPerFeetDTO);
+    }
+
+    @Transactional
+    @PostMapping("/api/v1/savePlannedDataDpva")
+    public PlannedPerFeetDTO savePlannedDataDpva(@RequestBody PlannedPerFeetDTO plannedPerFeetDTO) {
+        return dpvaService.savePlannedDataDpva(plannedPerFeetDTO);
+    }
+
+    @Transactional
+    @PostMapping("/api/v1/savePerFootTargetWindowDpva")
+    public void savePerFootTargetWindowDpva(@RequestBody TargetWindowPerFootDTO targetWindowPerFootDTO) {
+        try {
+            if (targetWindowPerFootDTO.getWellStatus().equalsIgnoreCase("active")) {
+                dpvaService.updatePerFootDPVAForActiveWell(targetWindowPerFootDTO);
+            } else {
+                dpvaService.updatePerFootDPVAForNonActiveWell(targetWindowPerFootDTO);
+            }
+        } catch (Exception e) {
+            log.error("Error occur in savePerFootTargetWindowDpva ", e);
+        }
+    }
+
+    @Transactional
+    @PostMapping("/api/v1/saveTortuosityData")
+    public TortuosityDTO saveTortuosityData(@RequestBody TortuosityDTO tortuosityDTO) {
+        return dpvaService.saveTortuosityData(tortuosityDTO);
+    }
+
+    @Transactional(readOnly = true)
+    @PostMapping("/api/v1/getDPVAData")
+    public DPVAResult getDPVAData(@RequestBody DPVARequestDTO dpvaRequestDTO) {
+        return dpvaService.getDPVAData(dpvaRequestDTO);
+    }
+
+
+    @Transactional
+    @PostMapping("/api/v1/resetDPVAWell/{wellUid}")
+    public void resetDPVAWell(@PathVariable String wellUid) {
+         notifyDPVAService.resetDPVAWell(wellUid);
+    }
+
+    @Transactional
+    @PostMapping("/api/v1/resetAllDPVAWell")
+    public void resetAllDPVAWell() {
+        notifyDPVAService.resetAllDPVAWell();
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/resetAllPFWell")
+    public void resetAllPFWell() {
+        cacheService.resetPerformanceMapData();
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/dpvaWellCompletedNotification/{wellUid}")
+    public void dpvaWellCompletedNotification(@PathVariable String wellUid) {
+        notifyDPVAService.dpvaWellCompletedNotification(wellUid);
     }
 
 

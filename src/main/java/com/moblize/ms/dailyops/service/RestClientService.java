@@ -1,22 +1,27 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
+import com.moblize.ms.dailyops.service.dto.DPVAData;
+import com.moblize.ms.dailyops.service.dto.DPVAResult;
+import com.moblize.ms.dailyops.service.dto.ProcessPerFeetRequestDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
 
 @Service
 @Slf4j
+@EnableAsync
 public class RestClientService {
     private RestTemplate restTemplate = new RestTemplate();
     @Value("${rest.wellformationetl.url}")
@@ -32,6 +37,16 @@ public class RestClientService {
     @Value("${rest.nodedrilling.pwd}")
     private String nodedrillingPassword;
     private String processPerformanceMapPath = "performance/well";
+
+    @Value("${rest.analytics.service.url}")
+    private String analyticsServiceUrl;
+    @Value("${rest.analytics.service.user}")
+    private String analyticsServiceUser;
+    @Value("${rest.analytics.service.pwd}")
+    private String analyticsServicePassword;
+    @Value("${rest.analytics.service.processPerFeetData}")
+    private String processPerFeetData;
+
     private String nodedrillingStomp = "stomp/";
     @Value("${CODE}")
     private String customer;
@@ -49,6 +64,21 @@ public class RestClientService {
         return restTemplate.exchange(stompUrl, HttpMethod.POST, request, String.class);
     }
 
+    @Async
+    void pushRealTimeDataToNodeSocket(DPVAResult dpvaResult) {
+        try {
+            sendDataToNodeSocket(dpvaResult);
+        } catch (Exception e) {
+            log.error("Error occur while sending data to node socket for well uid: {}", dpvaResult.getPrimaryWellDPVAData().getWellUid(), e);
+        }
+    }
+
+    public ResponseEntity sendDataToNodeSocket(DPVAResult dpvaResult) {
+        final String stompUrl = nodedrillingUrl + nodedrillingStomp+"dpvaData" ;
+        final HttpEntity<DPVAData> request = new HttpEntity<>(dpvaResult.getPrimaryWellDPVAData(), createHeaders(nodedrillingUser, nodedrillingPassword));
+        return restTemplate.exchange(stompUrl, HttpMethod.POST, request, String.class);
+    }
+
     private HttpHeaders createHeaders(String username, String password) {
         return new HttpHeaders() {{
             String auth = username + ":" + password;
@@ -57,5 +87,19 @@ public class RestClientService {
             set("Authorization", authHeader);
             set("Content-Type", "application/json");
         }};
+    }
+
+    public ResponseEntity processPerFeetData(ProcessPerFeetRequestDTO processPerFeetRequestDTO){
+       final Long startIndex = System.currentTimeMillis();
+        ResponseEntity responseEntity = null;
+        try {
+            final String resetUrl = analyticsServiceUrl + processPerFeetData;
+            final HttpEntity<ProcessPerFeetRequestDTO> request = new HttpEntity<ProcessPerFeetRequestDTO>(processPerFeetRequestDTO, createHeaders(analyticsServiceUser, analyticsServicePassword));
+            responseEntity = restTemplate.exchange(resetUrl, HttpMethod.POST, request, String.class);
+            log.info("Process per feet data API took {} milliseconds for well UID {}",(System.currentTimeMillis()-startIndex), processPerFeetRequestDTO.getWellUid());
+        } catch (RestClientException e) {
+            log.error("Error occur in processPerFeetData API call {}", processPerFeetRequestDTO.getWellUid(), e);
+        }
+        return responseEntity;
     }
 }

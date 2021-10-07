@@ -43,11 +43,11 @@ ribbon:
 feign:
   hystrix:
     enabled: true
-  # client:
-  #     config:
-  #         default:
-  #             connectTimeout: 5000
-  #             readTimeout: 5000
+  client:
+    config:
+      default:
+        connectTimeout: 10000
+        readTimeout: 10000
 
 # See https://github.com/Netflix/Hystrix/wiki/Configuration
 hystrix:
@@ -55,10 +55,10 @@ hystrix:
     default:
       execution:
         isolation:
-          strategy: SEMAPHORE
+          strategy: THREAD
           # See https://github.com/spring-cloud/spring-cloud-netflix/issues/1330
-          # thread:
-          #     timeoutInMilliseconds: 10000
+          thread:
+             timeoutInMilliseconds: 10000
   shareSecurityContext: true
 
 management:
@@ -239,6 +239,11 @@ rest:
     url: ${api.defaulttenant.nodedrilling.base.url}
     user: ${api.defaulttenant.nodedrilling.user}
     pwd: ${api.defaulttenant.nodedrilling.pwd}
+  analytics.service:
+    url: ${api.central.ms.analytics.service.base.url}
+    user: ${api.central.ms.analytics.service.user}
+    pwd: ${api.central.ms.analytics.service.pwd}
+    processPerFeetData: "api/v1/processPerFeetData"
 
 infinispan:
   server: ${app.infinispan.server}
