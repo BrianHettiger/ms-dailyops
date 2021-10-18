@@ -3,6 +3,7 @@ package com.moblize.ms.dailyops.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.infinispan.protostream.annotations.ProtoField;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
@@ -15,22 +16,8 @@ import java.io.Serializable;
 @Document
 public class BHACount {
 
+    @ProtoField(number = 1)
     @JsonProperty("sec")
-    public Section section;
+    public BHASectionCount section = new BHASectionCount();
 
-    @Getter
-    @Setter
-    public static class Section implements Serializable {
-
-        @JsonProperty("a")
-        public int all;
-        @JsonProperty("s")
-        public int surface;
-        @JsonProperty("i")
-        public int intermediate;
-        @JsonProperty("c")
-        public int curve;
-        @JsonProperty("l")
-        public int lateral;
-    }
 }

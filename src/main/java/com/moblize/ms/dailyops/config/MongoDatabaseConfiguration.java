@@ -37,13 +37,13 @@ public class MongoDatabaseConfiguration {
     @Primary
     @Bean(name = "mongoTemplate")
     public MongoTemplate mongoTemplate(@Qualifier("clientProperties") MongoProperties properties) throws Exception {
-        log.info("Configuring clientMongoTemplate datasource");
+        log.debug("Configuring clientMongoTemplate datasource");
         return new MongoTemplate(clientFactory(properties));
     }
 
     @Bean(name = "mobMongoTemplate")
     public MongoTemplate mobMongoTemplate(@Qualifier("mobProperties") MongoProperties properties) throws Exception {
-        log.info("Configuring mobMongoTemplate datasource");
+        log.debug("Configuring mobMongoTemplate datasource");
         return new MongoTemplate(mobFactory(properties));
     }
 

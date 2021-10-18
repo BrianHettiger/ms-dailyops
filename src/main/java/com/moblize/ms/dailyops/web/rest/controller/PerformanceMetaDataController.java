@@ -3,27 +3,26 @@ package com.moblize.ms.dailyops.web.rest.controller;
 import com.moblize.ms.dailyops.domain.mongo.WellPerformanceMetaData;
 import com.moblize.ms.dailyops.dto.ResponseDTO;
 import com.moblize.ms.dailyops.service.WellPerformanceMetaDataService;
-import lombok.SneakyThrows;
+import com.moblize.ms.dailyops.service.WellsCoordinatesService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.util.List;
+import java.util.Set;
 
 @RestController
+@CrossOrigin
 public class PerformanceMetaDataController {
 
     @Autowired
     private WellPerformanceMetaDataService metaDataService;
+    @Autowired
+    private WellsCoordinatesService wellsCoordinatesService;
 
-    
     @Transactional
     @PostMapping("/api/v1/metadata")
     public ResponseDTO save(@Valid @RequestBody WellPerformanceMetaData metaData, HttpServletResponse response) {
@@ -35,7 +34,7 @@ public class PerformanceMetaDataController {
         }
     }
 
-    
+
     @Transactional
     @PutMapping("/api/v1/metadata")
     public ResponseDTO update(@Valid @RequestBody WellPerformanceMetaData metaData, HttpServletResponse response) {
@@ -47,7 +46,7 @@ public class PerformanceMetaDataController {
         }
     }
 
-    
+
     @Transactional(readOnly = true)
     @GetMapping("/api/v1/metadata/{wellUid}")
     public ResponseDTO find(@PathVariable String wellUid, HttpServletResponse response) {
@@ -59,7 +58,7 @@ public class PerformanceMetaDataController {
         }
     }
 
-    
+
     @Transactional
     @DeleteMapping("/api/v1/metadata/{wellUid}")
     public ResponseDTO delete(@PathVariable String wellUid, HttpServletResponse response) {
@@ -70,5 +69,14 @@ public class PerformanceMetaDataController {
             metaDataService.deleteWellPerformanceMetaData(wellUid);
             return ResponseDTO.complete("Well Performance metadata has deleted successfully", wellUid);
         }
+    }
+
+    @Transactional(readOnly = true)
+    @Async
+    @PostMapping("notifyPMComplete")
+    public void notifyPMComplete(
+        @RequestBody Set<String> wells
+    ) {
+        wellsCoordinatesService.sendWellUpdates(wells);
     }
 }

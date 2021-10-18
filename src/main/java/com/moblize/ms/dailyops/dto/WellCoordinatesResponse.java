@@ -20,8 +20,8 @@ public class WellCoordinatesResponse {
     private Location location;
     private ROP avgROP;
     private Cost cost;
-    private List<Object> drilledData = new ArrayList<>();
-    private List<Object> plannedData = new ArrayList<>();
+    private List<List<Double>> drilledData;
+    private List<List<Double>> plannedData;
     private Integer distinctBHAsUsedCount = 0;
     private String activeRigName;
     @JsonIgnore
@@ -33,9 +33,9 @@ public class WellCoordinatesResponse {
     @AllArgsConstructor
     public static class Location implements Serializable {
 
-        private Float lng = 0.0f;
+        private Double lng = 0.0;
 
-        private Float lat = 0.0f;
+        private Double lat = 0.0;
 
     }
 

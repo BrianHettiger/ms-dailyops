@@ -4,6 +4,7 @@ package com.moblize.ms.dailyops.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.*;
+import org.infinispan.protostream.annotations.ProtoField;
 
 @JsonPropertyOrder({
     "a",
@@ -19,15 +20,20 @@ import lombok.*;
 @NoArgsConstructor
 public class Section {
 
+    @ProtoField(number = 1)
     @JsonProperty("a")
-    public Number all = null;
+    public Double all = null;
+    @ProtoField(number = 2)
     @JsonProperty("s")
-    public Number surface = null;
+    public Double surface = null;
+    @ProtoField(number = 3)
     @JsonProperty("i")
-    public Number intermediate = null;
+    public Double intermediate = null;
+    @ProtoField(number = 4)
     @JsonProperty("c")
-    public Number curve = null;
+    public Double curve = null;
+    @ProtoField(number = 5)
     @JsonProperty("l")
-    public Number lateral = null;
+    public Double lateral = null;
 
 }

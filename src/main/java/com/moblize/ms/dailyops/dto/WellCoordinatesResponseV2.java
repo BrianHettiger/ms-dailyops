@@ -1,14 +1,11 @@
 package com.moblize.ms.dailyops.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.infinispan.protostream.annotations.ProtoField;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 @Setter
@@ -17,55 +14,122 @@ import java.util.Map;
 @NoArgsConstructor
 public class WellCoordinatesResponseV2 {
 
-    private String uid;
-    private String name;
+    @ProtoField(number = 1)
+    String uid;
+    @ProtoField(number = 2)
+    String name;
     @JsonProperty("sDate")
-    private Float spudDate;
-    private Integer distinctBHAsUsedCount = 0;
-    private String activeRigName;
-    private Location location;
+    @ProtoField(number = 3)
+    Float spudDate;
+    @ProtoField(number = 4)
+    Integer distinctBHAsUsedCount = 0;
+    @ProtoField(number = 5)
+    String activeRigName;
+    @ProtoField(number = 6)
+    Location location;
+    @ProtoField(number = 7)
     @JsonIgnore
-    private String statusWell;
+    String statusWell;
+    @ProtoField(number = 8)
     @JsonProperty("aRop")
-    private ROPs.ROP avgROP;
+    ROP avgROP;
+    @ProtoField(number = 9)
     @JsonProperty("sRop")
-    private ROPs.ROP slidingROP;
+    ROP slidingROP;
+    @ProtoField(number = 10)
     @JsonProperty("rRop")
-    private ROPs.ROP rotatingROP;
+    ROP rotatingROP;
+    @ProtoField(number = 11)
     @JsonProperty("eRop")
-    private ROPs.ROP effectiveROP;
+    ROP effectiveROP;
+    @ProtoField(number = 12)
     @JsonProperty("tday")
-    private WellData.SectionData totalDays;
+    SectionData totalDays;
+    @ProtoField(number = 13)
     @JsonProperty("fpday")
-    private WellData.SectionData footagePerDay;
+    SectionData footagePerDay;
+    @ProtoField(number = 14)
     @JsonProperty("sp")
-    private ROPs.ROP slidingPercentage;
+    ROP slidingPercentage;
+    @ProtoField(number = 15)
     @JsonProperty("fd")
-    private ROPs.ROP footageDrilled;
+    ROP footageDrilled;
+    @ProtoField(number = 16)
     @JsonProperty("aDls")
-    private WellData.SectionData avgDLSBySection;
+    SectionData avgDLSBySection;
+    @ProtoField(number = 17)
     @JsonProperty("mYld")
-    private WellData.SectionData avgMYBySection;
+    SectionData avgMYBySection;
+    @ProtoField(number = 18)
     @JsonProperty("aDirAng")
-    private WellData.SectionData avgDirectionAngle;
+    SectionData avgDirectionAngle;
+    @ProtoField(number = 19)
     @JsonProperty("aDir")
-    private WellData.SectionDataDirection avgDirection;
+    SectionDataDirection avgDirection;
     @JsonProperty("hs")
-    private Map<String, WellData.RangeData> holeSectionRange;
-    private Cost cost;
-    private BHACount bhaCount;
-    private List<Object> drilledData = new ArrayList<>();
-    private List<Object> plannedData = new ArrayList<>();
-
-
-    @Getter
-    @Setter
-    @AllArgsConstructor
-    public static class Location implements Serializable {
-
-        private Float lng = 0.0f;
-
-        private Float lat = 0.0f;
-
+    Map<String, RangeData> holeSectionRange = Map.of("a", new RangeData(), "c", new RangeData(),"i", new RangeData(),"l", new RangeData(),"s", new RangeData());
+    @ProtoField(number = 21)
+    Cost cost;
+    @ProtoField(number = 22)
+    BHACount bhaCount;
+    List<List<Double>> drilledData = new ArrayList<>();
+    List<List<Double>> plannedData = new ArrayList<>();
+    @JsonIgnore
+    @ProtoField(number = 23)
+    DepthCoordinate protoDrilledData = new DepthCoordinate();
+    @JsonIgnore
+    @ProtoField(number = 24)
+    DepthCoordinate protoPlannedData = new DepthCoordinate();
+    @ProtoField(number = 20, collectionImplementation = ArrayList.class)
+    @JsonIgnore
+    List<String> rangeDataKeys;
+    @ProtoField(number = 25, collectionImplementation = ArrayList.class)
+    @JsonIgnore
+    List<RangeData> rangeDataValues;
+    public void setProtoData() {
+        if(rangeDataKeys == null) {
+            rangeDataKeys = new ArrayList<>();
+            rangeDataValues = new ArrayList<>();
+            if(holeSectionRange != null) {
+                holeSectionRange.forEach((k, v) -> {
+                    rangeDataKeys.add(k);
+                    rangeDataValues.add(v);
+                });
+            }
+        }
+        setProtoCoordData(drilledData, protoDrilledData);
+        setProtoCoordData(plannedData, protoPlannedData);
+    }
+    public void setEntries() {
+        if(rangeDataKeys != null && !rangeDataKeys.isEmpty()) {
+            holeSectionRange = new HashMap<>();
+            for(int i = 0; i < rangeDataKeys.size(); i++) {
+                holeSectionRange.put(rangeDataKeys.get(i), rangeDataValues.get(i));
+            }
+        }
+        setEntriesCoord(protoDrilledData, drilledData);
+        setEntriesCoord(protoPlannedData, plannedData);
+    }
+    public void setProtoCoordData(List<List<Double>> input, DepthCoordinate output) {
+        if(output.getProtoCoordiantes().isEmpty() && input != null && !input.isEmpty()) {
+            input.forEach((values) -> {
+                if(!values.isEmpty()) {
+                    Location location = new Location();
+                    location.setLat(values.get(0));
+                    location.setLng(values.get(1));
+                    output.getProtoCoordiantes().add(location);
+                }
+            });
+        }
+    }
+    public void setEntriesCoord(DepthCoordinate input, List<List<Double>> output) {
+        if(output.isEmpty() && input != null && !input.getProtoCoordiantes().isEmpty()) {
+            input.getProtoCoordiantes().forEach(location ->{
+                List<Double> coordinate = new ArrayList<>();
+                coordinate.add(location.getLat());
+                coordinate.add(location.getLng());
+                output.add(coordinate);
+            });
+        }
     }
 }

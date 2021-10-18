@@ -10,6 +10,9 @@ import java.util.List;
 public interface MongoWellRepository extends MongoRepository<MongoWell, String> {
     public List<MongoWell> findAllByUidIn(List<String> iterable);
 
+    public List<MongoWell> findAllByUidInAndStatusWell(List<String> iterable, String statusWell);
+    public List<MongoWell> findAllByUidInAndStatusWellNotContains(List<String> iterable, String statusWell);
+
     public List<MongoWell> findAllByCustomer(String customer);
 
     public List<MongoWell> findAllByCustomerAndIsHidden(String customer, Boolean isHidden);
