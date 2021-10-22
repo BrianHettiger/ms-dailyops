@@ -28,7 +28,6 @@ public class WellCoordinatesResponseV2 {
     @ProtoField(number = 6)
     Location location;
     @ProtoField(number = 7)
-    @JsonIgnore
     String statusWell;
     @ProtoField(number = 8)
     @JsonProperty("aRop")
