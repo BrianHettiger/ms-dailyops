@@ -1,4 +1,4 @@
-package com.moblize.ms.dailyops.dto;
+package com.moblize.ms.dailyops.domain.mongo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -37,7 +37,7 @@ import lombok.*;
     "RigState",
     "offSetWellUid"
 })
-public class DepthLogReponse {
+public class DepthLogResponse {
 
     @JsonProperty("index")
     public Double index;
@@ -50,7 +50,7 @@ public class DepthLogReponse {
     @JsonProperty("BlockPostion")
     public Double blockPostion;
     @JsonProperty("ROPAvg")
-    public Double rOPAvg;
+    public Double ropAvg;
     @JsonProperty("HookloadMax")
     public Double hookloadMax;
     @JsonProperty("WeightonBitMax")

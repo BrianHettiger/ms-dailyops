@@ -3,12 +3,10 @@ package com.moblize.ms.dailyops.web.rest.controller;
 import com.moblize.ms.dailyops.domain.PerformanceROP;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
 import com.moblize.ms.dailyops.domain.mongo.*;
-import com.moblize.ms.dailyops.domain.mongo.BCWDepthLog;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
 import com.moblize.ms.dailyops.dto.*;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
-import com.moblize.ms.dailyops.dto.*;
 import com.moblize.ms.dailyops.service.*;
 import com.moblize.ms.dailyops.service.dto.*;
 import lombok.extern.slf4j.Slf4j;
@@ -449,7 +447,7 @@ public class DailyopsController {
 
     @Transactional(readOnly = true)
     @PostMapping("/api/v1/getBCWDepthPlotLog")
-    public List<DepthLogReponse> getBCWDepthPlotLog(@RequestBody BCWDepthPlotDTO bcwDepthPlotDTO, HttpServletResponse response) {
+    public List<DepthLogResponse> getBCWDepthPlotLog(@RequestBody BCWDepthPlotDTO bcwDepthPlotDTO, HttpServletResponse response) {
         if (bcwDepthPlotDTO == null || bcwDepthPlotDTO.getPrimaryWellUid() == null
             || bcwDepthPlotDTO.getOffsetWellUids() == null || bcwDepthPlotDTO.getOffsetWellUids().isEmpty()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

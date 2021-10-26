@@ -13,6 +13,8 @@ import java.util.List;
 @NoArgsConstructor
 public class BCWDepthPlotDTO {
 
+    private String bcwId;
+    private String actionType;
     private String primaryWellUid;
     private List<String> offsetWellUids = new ArrayList<>();
     private int startIndex;

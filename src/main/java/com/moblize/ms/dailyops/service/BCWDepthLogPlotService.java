@@ -6,7 +6,10 @@ import com.moblize.ms.dailyops.client.WitsmlLogsClient;
 import com.moblize.ms.dailyops.dao.WellFormationDAO;
 import com.moblize.ms.dailyops.domain.FormationMarker;
 import com.moblize.ms.dailyops.domain.mongo.BCWDepthLog;
+import com.moblize.ms.dailyops.domain.mongo.BCWSmoothLogData;
+import com.moblize.ms.dailyops.domain.mongo.DepthLogResponse;
 import com.moblize.ms.dailyops.dto.*;
+import com.moblize.ms.dailyops.repository.mongo.client.BCWSmoothLogDataRepository;
 import com.moblize.ms.dailyops.utils.NumberParserUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,10 +46,7 @@ public class BCWDepthLogPlotService {
     private WellFormationDAO wellFormationDAO;
 
     @Autowired
-    private WitsmlLogsClient witsmlLogsClient;
-
-    @Autowired
-    private BCWDepthLogService bcwDepthLogService;
+    private BCWSmoothLogDataRepository bcwSmoothLogDataRepository;
 
     @Value("${ALTERNATE_LOCALHOST:172.31.3.62}")
     public String ALTERNATE_LOCALHOST;
@@ -66,7 +66,7 @@ public class BCWDepthLogPlotService {
         }
     }
 
-    public List<DepthLogReponse> getBCWDepthLog(BCWDepthPlotDTO bcwDepthPlotDTO) {
+    public List<DepthLogResponse> getBCWDepthLog(BCWDepthPlotDTO bcwDepthPlotDTO) {
 
         //Get Drilling log Map data
         //Extract formationBcwData and sort by measure depth
@@ -74,19 +74,63 @@ public class BCWDepthLogPlotService {
 
         //filter out the offset well by using start and end index
 
-        List<DepthLogReponse> bcwDepthLog = this.getOffSetLog1(ls, bcwDepthPlotDTO.getEndIndex(), bcwDepthPlotDTO.getStartIndex());
+        List<DepthLogResponse> bcwDepthLog = new ArrayList<>();
+        if (bcwDepthPlotDTO.getBcwId() != null && !bcwDepthPlotDTO.getBcwId().isEmpty()
+            && bcwDepthPlotDTO.getActionType() != null && !bcwDepthPlotDTO.getActionType().isEmpty()) {
 
+            log.debug("BCW Smooth Action Type: {} for Well UID: {} and BCW ID: {}", bcwDepthPlotDTO.getActionType(),
+                bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthPlotDTO.getBcwId());
 
+            if (bcwDepthPlotDTO.getActionType().equalsIgnoreCase("select")) {
+                BCWSmoothLogData dbObj = findSmoothData(bcwDepthPlotDTO);
+                if(dbObj != null){
+                    bcwDepthLog = dbObj.getDepthLogResponseList();
+                }
+            } else if (bcwDepthPlotDTO.getActionType().equalsIgnoreCase("create")
+                || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("update")
+                || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("refresh")) {
+                bcwDepthLog = this.getOffSetLog1(ls, bcwDepthPlotDTO.getEndIndex(), bcwDepthPlotDTO.getStartIndex(), true);
+                bcwDepthLog = smoothData(bcwDepthLog);
+                saveUpdateSmoothData(bcwDepthPlotDTO, bcwDepthLog);
+            }
+        }
+
+        if(bcwDepthLog.isEmpty()){
+            log.debug("No Smoothing data found for well UID: {} Hence it's going to get sampled data",
+                bcwDepthPlotDTO.getPrimaryWellUid());
+
+            bcwDepthLog = this.getOffSetLog1(ls, bcwDepthPlotDTO.getEndIndex(), bcwDepthPlotDTO.getStartIndex(), false);
+        }
 
         //  saveBCWDepthLog(bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthLog);
 
-        return  smoothData(bcwDepthLog);
+        return bcwDepthLog;
+    }
+
+    private void saveUpdateSmoothData(BCWDepthPlotDTO bcwDepthPlotDTO, List<DepthLogResponse> bcwDepthLog) {
+        BCWSmoothLogData dbObj = findSmoothData(bcwDepthPlotDTO);
+        if (dbObj == null) {
+            log.debug("SAVE: Smooth data for well id {}, BCW ID: {}",bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthPlotDTO.getBcwId());
+
+            dbObj = new BCWSmoothLogData();
+            dbObj.setBcwId(bcwDepthPlotDTO.getBcwId());
+            dbObj.setUid(bcwDepthPlotDTO.getPrimaryWellUid());
+            dbObj.setDepthLogResponseList(bcwDepthLog);
+        } else {
+            log.debug("UPDATE: Smooth data for well id {}, BCW ID: {}",bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthPlotDTO.getBcwId());
+            dbObj.setDepthLogResponseList(bcwDepthLog);
+        }
+        bcwSmoothLogDataRepository.save(dbObj);
+    }
+
+    private BCWSmoothLogData findSmoothData(BCWDepthPlotDTO bcwDepthPlotDTO) {
+        return bcwSmoothLogDataRepository.findBCWSmoothLogDataByBcwId(bcwDepthPlotDTO.getBcwId());
     }
 
 
-    public List<DepthLogReponse> smoothData(List<DepthLogReponse> bcwDepthLog) {
+    public List<DepthLogResponse> smoothData(List<DepthLogResponse> bcwDepthLog) {
 
-        List<DepthLogReponse> smoothedBCWData = new ArrayList<>();
+        List<DepthLogResponse> smoothedBCWData = new ArrayList<>();
 
         final List<Double> highestRopList = new ArrayList<>();
         final List<Double> rpmaList = new ArrayList<>();
@@ -100,30 +144,51 @@ public class BCWDepthLogPlotService {
             Double firstDepth = bcwDepthLog.get(0).getHoleDepth();
             Double lastDepth = bcwDepthLog.get(bcwDepthLog.size() - 1).getHoleDepth();
             double firstDepthRounded = ((Math.round(firstDepth) + 99) / 100) * 100;
-            System.out.println(firstDepth + " " + firstDepthRounded + " " + lastDepth);
+            log.info(firstDepth + " " + firstDepthRounded + " " + lastDepth);
             long rangeStart = Math.round(firstDepthRounded) / 100;
             long rangeEnd = Math.round(lastDepth) / 100;
 
             DepthClass depthClass = new DepthClass();
             bcwDepthLog
-                .forEach(i -> {
+                .forEach(depthLogObj -> {
                     if (depthClass.holeDepth < 0d) {
-                        depthClass.holeDepth = i.getHoleDepth();
+                        depthClass.holeDepth = depthLogObj.getHoleDepth();
                         depthClass.holeDepthFirstRound = ((Math.round(firstDepth) + 99) / 100) * 100;
                         depthClass.holeDepthNextRound = depthClass.holeDepthFirstRound + 100;
+                        log.debug("depthLogObj :"+depthLogObj.getHoleDepth()+" HoleDepth " + depthClass.holeDepth + " holeDepthFirstRound: " + depthClass.holeDepthFirstRound + " holeDepthNextRound: " + depthClass.holeDepthNextRound);
                     }
-                    if (i.getHoleDepth() % 100 == 0 ||
-                        (i.getHoleDepth() > depthClass.holeDepthFirstRound && i.getHoleDepth() <= depthClass.holeDepthNextRound)
-                        || i.getHoleDepth() == lastDepth) {
+                    if (depthLogObj.getHoleDepth() % 100 == 0 ||
+                        (depthLogObj.getHoleDepth() > depthClass.holeDepthFirstRound && depthLogObj.getHoleDepth() <= depthClass.holeDepthNextRound)
+                       || (depthLogObj.getHoleDepth() > depthClass.holeDepthFirstRound && depthLogObj.getHoleDepth() >= depthClass.holeDepthNextRound)
+                        || depthLogObj.getHoleDepth() == lastDepth) {
 
-                        log.debug("HoleDepth " + depthClass.holeDepth + " DepthClass.holeDepthFirstRound: " + depthClass.holeDepthFirstRound + " DepthClass.holeDepthNextRound: " + depthClass.holeDepthNextRound);
 
                         BCWDepthLog bcwDepthLog1Object = smoothDataForPerHundredFeet(depthClass.holeDepth, highestRopList, rpmaList, diffpressureList, mudFlowList, pumpPressureList, surfaceTorqueMaxList, weightonBitMaxList);
-                    //    smoothedBCWData.add(bcwDepthLogService.saveUpdateBCWDepthLog(bcwDepthLog1Object));
-
-                        depthClass.holeDepth = Double.valueOf(depthClass.holeDepthFirstRound);
+                        depthLogObj.setRopAvg(bcwDepthLog1Object.getHighestRopAvg());
+                        depthLogObj.setRpma(bcwDepthLog1Object.getRpmaAvg());
+                        depthLogObj.setDiffPressure(bcwDepthLog1Object.getDiffPressureAvg());
+                        depthLogObj.setMudFlowInAvg(bcwDepthLog1Object.getMudFlowAvg());
+                        depthLogObj.setPumpPressure(bcwDepthLog1Object.getPumpPressureAvg());
+                        depthLogObj.setSurfaceTorqueMax(bcwDepthLog1Object.getSurfaceTorqueAvg());
+                        depthLogObj.setWeightonBitMax(bcwDepthLog1Object.getWeightOnBitAvg());
+                        //TODO check the save logic
+                        //  smoothedBCWData.add(bcwDepthLogService.saveUpdateBCWDepthLog(bcwDepthLog1Object));
+                        smoothedBCWData.add(depthLogObj);
+                        if (depthLogObj.getHoleDepth() > depthClass.holeDepthNextRound) {
+                            depthClass.holeDepth = Double.valueOf(depthClass.holeDepthFirstRound);
+                            depthClass.holeDepthFirstRound = ((Math.round(depthLogObj.getHoleDepth())) / 100) * 100;
+                            depthClass.holeDepthNextRound = depthClass.holeDepthFirstRound + 100;
+                        } else {
+                            depthClass.holeDepth = Double.valueOf(depthClass.holeDepthFirstRound);
+                            depthClass.holeDepthFirstRound = depthClass.holeDepthNextRound;
+                            depthClass.holeDepthNextRound = depthClass.holeDepthNextRound + 100;
+                        }
+                        log.debug("depthLogObj :"+depthLogObj.getHoleDepth()+" HoleDepth " + depthClass.holeDepth + " holeDepthFirstRound: " + depthClass.holeDepthFirstRound + " holeDepthNextRound: " + depthClass.holeDepthNextRound);
+                       /* depthClass.holeDepth = Double.valueOf(depthClass.holeDepthFirstRound);
                         depthClass.holeDepthFirstRound = depthClass.holeDepthNextRound;
-                        depthClass.holeDepthNextRound = depthClass.holeDepthNextRound+ 100;
+                        depthClass.holeDepthNextRound = depthClass.holeDepthNextRound+ 100;*/
+
+
 
                         highestRopList.clear();
                         rpmaList.clear();
@@ -133,56 +198,42 @@ public class BCWDepthLogPlotService {
                         surfaceTorqueMaxList.clear();
                         weightonBitMaxList.clear();
                     }
-                    if (i.getROPAvg() != null) {
-                        highestRopList.add(i.getROPAvg());
+                    if (depthLogObj.getRopAvg() != null) {
+                        highestRopList.add(depthLogObj.getRopAvg());
                     } else {
-                        log.debug("Heighest ROP null : log index {}", i.getIndex());
+                        log.debug("Heighest ROP null : log index {}", depthLogObj.getIndex());
                     }
-                    if (i.getRpma() != null) {
-                        rpmaList.add(i.getRpma());
+                    if (depthLogObj.getRpma() != null) {
+                        rpmaList.add(depthLogObj.getRpma());
                     } else {
-                        log.debug("RPMA ROP null : log index {}", i.getIndex());
+                        log.debug("RPMA ROP null : log index {}", depthLogObj.getIndex());
                     }
-                    if (i.getDiffPressure() != null) {
-                        diffpressureList.add(i.getDiffPressure());
+                    if (depthLogObj.getDiffPressure() != null) {
+                        diffpressureList.add(depthLogObj.getDiffPressure());
                     } else {
-                        log.debug("Diff Pressure ROP null : log index {}", i.getIndex());
+                        log.debug("Diff Pressure ROP null : log index {}", depthLogObj.getIndex());
                     }
-                    if (i.getMudFlowInAvg() != null) {
-                        mudFlowList.add(i.getMudFlowInAvg());
+                    if (depthLogObj.getMudFlowInAvg() != null) {
+                        mudFlowList.add(depthLogObj.getMudFlowInAvg());
                     } else {
-                        log.debug("Mud Flow ROP null : log index {}", i.getIndex());
+                        log.debug("Mud Flow ROP null : log index {}", depthLogObj.getIndex());
                     }
-                    if (i.getPumpPressure() != null) {
-                        pumpPressureList.add(i.getPumpPressure());
+                    if (depthLogObj.getPumpPressure() != null) {
+                        pumpPressureList.add(depthLogObj.getPumpPressure());
                     } else {
-                        log.debug("Pump pressure ROP null : log index {}", i.getIndex());
+                        log.debug("Pump pressure ROP null : log index {}", depthLogObj.getIndex());
                     }
-                    if (i.getSurfaceTorqueMax() != null) {
-                        surfaceTorqueMaxList.add(i.getSurfaceTorqueMax());
+                    if (depthLogObj.getSurfaceTorqueMax() != null) {
+                        surfaceTorqueMaxList.add(depthLogObj.getSurfaceTorqueMax());
                     } else {
-                        log.debug("Surface Torque null : log index {}", i.getIndex());
+                        log.debug("Surface Torque null : log index {}", depthLogObj.getIndex());
                     }
-                    if (i.getWeightonBitMax() != null) {
-                        weightonBitMaxList.add(i.getWeightonBitMax());
+                    if (depthLogObj.getWeightonBitMax() != null) {
+                        weightonBitMaxList.add(depthLogObj.getWeightonBitMax());
                     } else {
-                        log.debug("Weight On Bit Max null : log index {}", i.getIndex());
+                        log.debug("Weight On Bit Max null : log index {}", depthLogObj.getIndex());
                     }
                 });
-
-
-           /* Map<Double, DepthLogReponse> depthMap = bcwDepthLog.parallelStream().collect(Collectors.toMap(DepthLogReponse::getHoleDepth, Function.identity()));
-
-            LongStream.rangeClosed(rangeStart, rangeEnd)
-                .map(i -> i * 100)
-                .map(i -> {
-                        bcwDepthLog.stream()
-                            .filter(depth -> depth.getHoleDepth() >= i - 100 && depth.getHoleDepth() < i)
-                            .collect(Collectors.summarizingDouble(DepthLogReponse::getHoleDepth));
-                        return i;
-                    }
-                )
-                .forEach(System.out::println);*/
 
         }
 
@@ -207,7 +258,7 @@ public class BCWDepthLogPlotService {
             final int count = highestRopList.size();
             bcwDepthLogObject.setHighestRopCount(count);
             bcwDepthLogObject.setHighestRopSum(sum.floatValue());
-            bcwDepthLogObject.setROPAvg(sum / count);
+            bcwDepthLogObject.setHighestRopAvg(sum / count);
         }
 
         if (!rpmaList.isEmpty()) {
@@ -215,7 +266,7 @@ public class BCWDepthLogPlotService {
             final int count = rpmaList.size();
             bcwDepthLogObject.setRpmaCount(count);
             bcwDepthLogObject.setRpmaSum(sum.floatValue());
-            bcwDepthLogObject.setRpma(sum / count);
+            bcwDepthLogObject.setRpmaAvg(sum / count);
         }
 
         if (!diffpressureList.isEmpty()) {
@@ -223,7 +274,7 @@ public class BCWDepthLogPlotService {
             final int count = diffpressureList.size();
             bcwDepthLogObject.setDiffPressureCount(count);
             bcwDepthLogObject.setDiffPressureSum(sum.floatValue());
-            bcwDepthLogObject.setDiffPressure(sum / count);
+            bcwDepthLogObject.setDiffPressureAvg(sum / count);
         }
 
         if (!mudFlowList.isEmpty()) {
@@ -231,7 +282,7 @@ public class BCWDepthLogPlotService {
             final int count = mudFlowList.size();
             bcwDepthLogObject.setMudFlowCount(count);
             bcwDepthLogObject.setMudFlowSum(sum.floatValue());
-            bcwDepthLogObject.setMudFlowInAvg(sum / count);
+            bcwDepthLogObject.setMudFlowAvg(sum / count);
         }
 
         if (!pumpPressureList.isEmpty()) {
@@ -239,7 +290,7 @@ public class BCWDepthLogPlotService {
             final int count = pumpPressureList.size();
             bcwDepthLogObject.setPumpPressureCount(count);
             bcwDepthLogObject.setPumpPressureSum(sum.floatValue());
-            bcwDepthLogObject.setPumpPressure(sum / count);
+            bcwDepthLogObject.setPumpPressureAvg(sum / count);
 
         }
 
@@ -248,7 +299,7 @@ public class BCWDepthLogPlotService {
             final int count = surfaceTorqueMaxList.size();
             bcwDepthLogObject.setSurfaceTorqueCount(count);
             bcwDepthLogObject.setSurfaceTorqueSum(sum.floatValue());
-            bcwDepthLogObject.setSurfaceTorqueMax(sum / count);
+            bcwDepthLogObject.setSurfaceTorqueAvg(sum / count);
         }
 
         if (!weightonBitMaxList.isEmpty()) {
@@ -256,7 +307,7 @@ public class BCWDepthLogPlotService {
             final int count = weightonBitMaxList.size();
             bcwDepthLogObject.setWeightOnBitCount(count);
             bcwDepthLogObject.setWeightOnBitSum(sum.floatValue());
-            bcwDepthLogObject.setWeightonBitMax(sum / count);
+            bcwDepthLogObject.setWeightOnBitAvg(sum / count);
         }
 
         return bcwDepthLogObject;
@@ -368,13 +419,13 @@ public class BCWDepthLogPlotService {
         return consolidateList;
     }
 
-    private List<DepthLogReponse> getOffSetLog1(List<DrillingRoadMapWells> offSetList, int lastOffSetEndIndex, int lastOffSetStartIndex) {
+    private List<DepthLogResponse> getOffSetLog1(List<DrillingRoadMapWells> offSetList, int lastOffSetEndIndex, int lastOffSetStartIndex, boolean disableReduce) {
 
         List<LogDataRequestDTO> requestDTOList = setStartAndEndIndex(offSetList, lastOffSetEndIndex, lastOffSetStartIndex);
 
-        List<List<DepthLogReponse>> logList = requestDTOList.parallelStream()
+        List<List<DepthLogResponse>> logList = requestDTOList.parallelStream()
             .map(ls -> {
-                    List<DepthLogReponse> logData = getLogData1("depth", ls.getWellUID(), String.valueOf(ls.getStartIndex()), String.valueOf(ls.getEndIndex()), 1000, false, true, null);
+                    List<DepthLogResponse> logData = getDepthLogData("depth", ls.getWellUID(), String.valueOf(ls.getStartIndex()), String.valueOf(ls.getEndIndex()), 1000, disableReduce, true, null);
                     try {
                         logData = logData.parallelStream().filter(
                             k -> k.getHoleDepth() >= ls.getStartIndex()
@@ -384,13 +435,13 @@ public class BCWDepthLogPlotService {
                         return logData;
                     } catch (Exception e) {
                         e.printStackTrace();
-                        List<DepthLogReponse> logData1 = new ArrayList<>();
+                        List<DepthLogResponse> logData1 = new ArrayList<>();
                         return logData1;
                     }
                 }
             ).collect(Collectors.toList());
 
-        List<DepthLogReponse> consolidateList = logList.stream()
+        List<DepthLogResponse> consolidateList = logList.stream()
             .flatMap(List::stream)
             .collect(Collectors.toList());
         logList.size();
@@ -400,27 +451,27 @@ public class BCWDepthLogPlotService {
 
     private List<LogDataRequestDTO> setStartAndEndIndex(List<DrillingRoadMapWells> offSetList, int lastOffSetEndIndex, int lastOffSetStartIndex) {
         List<LogDataRequestDTO> requestDTOList = new LinkedList<>();
-        log.info(" StartIndex: " + lastOffSetStartIndex + " EndIndex: " + lastOffSetEndIndex);
+        log.debug(" StartIndex: " + lastOffSetStartIndex + " EndIndex: " + lastOffSetEndIndex);
         for (int listIndex = 0; listIndex < offSetList.size(); listIndex++) {
-            DrillingRoadMapWells obj = offSetList.get(listIndex);
-            DrillingRoadMapWells obj1 = listIndex + 1 == offSetList.size() ? obj : offSetList.get(listIndex + 1);
-            log.info("obj.getWellUid() " + obj.getWellUid() + " MD: " + obj.getMD() + "  obj1.getWellUid(): " + obj1.getWellUid() + "  MD: " + obj1.getMD());
+            DrillingRoadMapWells startIndexObj = offSetList.get(listIndex);
+            DrillingRoadMapWells endIndexObj = listIndex + 1 == offSetList.size() ? startIndexObj : offSetList.get(listIndex + 1);
+            log.debug("startIndexObj.getWellUid() " + startIndexObj.getWellUid() + " MD: " + startIndexObj.getMD() + "  endIndexObj.getWellUid(): " + endIndexObj.getWellUid() + "  MD: " + endIndexObj.getMD());
             LogDataRequestDTO logDataRequestDTO = new LogDataRequestDTO();
-            logDataRequestDTO.setWellUID(obj.getWellUid());
+            logDataRequestDTO.setWellUID(startIndexObj.getWellUid());
             if (listIndex == 0) {
                 if (listIndex == offSetList.size() - 1) {
                     logDataRequestDTO.setStartIndex(lastOffSetStartIndex);
                     logDataRequestDTO.setEndIndex(lastOffSetEndIndex);
                 } else {
-                    logDataRequestDTO.setStartIndex(NumberParserUtils.intParse(obj.getMD()) < lastOffSetStartIndex ? lastOffSetStartIndex : NumberParserUtils.intParse(obj.getMD()));
-                    logDataRequestDTO.setEndIndex(NumberParserUtils.intParse(obj1.getMD()));
+                    logDataRequestDTO.setStartIndex(NumberParserUtils.intParse(startIndexObj.getMD()) < lastOffSetStartIndex ? lastOffSetStartIndex : NumberParserUtils.intParse(startIndexObj.getMD()));
+                    logDataRequestDTO.setEndIndex(NumberParserUtils.intParse(endIndexObj.getMD()));
                 }
             } else if (listIndex == offSetList.size() - 1) {
-                logDataRequestDTO.setStartIndex(NumberParserUtils.intParse(obj.getMD()));
+                logDataRequestDTO.setStartIndex(NumberParserUtils.intParse(startIndexObj.getMD()));
                 logDataRequestDTO.setEndIndex(lastOffSetEndIndex);
             } else {
-                logDataRequestDTO.setStartIndex(NumberParserUtils.intParse(obj.getMD()));
-                logDataRequestDTO.setEndIndex(NumberParserUtils.intParse(obj1.getMD()));
+                logDataRequestDTO.setStartIndex(NumberParserUtils.intParse(startIndexObj.getMD()));
+                logDataRequestDTO.setEndIndex(NumberParserUtils.intParse(endIndexObj.getMD()));
 
             }
             requestDTOList.add(logDataRequestDTO);
@@ -472,8 +523,8 @@ public class BCWDepthLogPlotService {
         return logObj;
     }
 
-    private List<DepthLogReponse> getLogData1(String type, String wellUid, String startIndex, String endIndex,
-                                              Integer limit, Boolean disableReduce, Boolean useUserUOMSettings, List<String> channels) {
+    private List<DepthLogResponse> getDepthLogData(String type, String wellUid, String startIndex, String endIndex,
+                                                   Integer limit, Boolean disableReduce, Boolean useUserUOMSettings, List<String> channels) {
         long startTime = System.currentTimeMillis();
 
         if (type.equals("time")) {
@@ -501,7 +552,7 @@ public class BCWDepthLogPlotService {
                 log.error("Bad channels", e);
             }
         }
-        List<DepthLogReponse> logObj = null;
+        List<DepthLogResponse> logObj = null;
         ResponseEntity<LogResponse> response = getLatestCustomChannel1(params);
 
         if (response.getStatusCode().is2xxSuccessful()) {
