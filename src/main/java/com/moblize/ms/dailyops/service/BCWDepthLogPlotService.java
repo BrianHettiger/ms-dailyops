@@ -48,23 +48,15 @@ public class BCWDepthLogPlotService {
     @Autowired
     private BCWSmoothLogDataRepository bcwSmoothLogDataRepository;
 
-    @Value("${ALTERNATE_LOCALHOST:172.31.3.62}")
-    public String ALTERNATE_LOCALHOST;
-    @Value("${api.central.nodedrilling.user}")
+    @Value("${rest.nodedrilling.user}")
     public String NODE_USER_NAME;
-    @Value("${api.central.nodedrilling.pwd}")
+    @Value("${rest.nodedrilling.pwd}")
     public String NODE_PASSWORD;
-    @Value("${api.defaulttenant.nodedrilling.base.url}")
+    @Value("${rest.nodedrilling.url}")
     public String NODE_DRILLING_SERVER_BASE_URL;
 
     String LOGDATA_PATH = "log";
 
-    @PostConstruct
-    public void initRestClientService() {
-        if (ALTERNATE_LOCALHOST != null) {
-            NODE_DRILLING_SERVER_BASE_URL = NODE_DRILLING_SERVER_BASE_URL.replace("localhost", ALTERNATE_LOCALHOST);
-        }
-    }
 
     public List<DepthLogResponse> getBCWDepthLog(BCWDepthPlotDTO bcwDepthPlotDTO) {
 
