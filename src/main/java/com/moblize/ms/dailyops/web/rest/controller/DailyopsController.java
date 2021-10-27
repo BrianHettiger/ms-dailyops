@@ -447,7 +447,7 @@ public class DailyopsController {
 
     @Transactional(readOnly = true)
     @PostMapping("/api/v1/getBCWDepthPlotLog")
-    public List<DepthLogResponse> getBCWDepthPlotLog(@RequestBody BCWDepthPlotDTO bcwDepthPlotDTO, HttpServletResponse response) {
+    public BCWDepthPlotResponse getBCWDepthPlotLog(@RequestBody BCWDepthPlotDTO bcwDepthPlotDTO, HttpServletResponse response) {
         if (bcwDepthPlotDTO == null || bcwDepthPlotDTO.getPrimaryWellUid() == null
             || bcwDepthPlotDTO.getOffsetWellUids() == null || bcwDepthPlotDTO.getOffsetWellUids().isEmpty()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -455,7 +455,7 @@ public class DailyopsController {
         } else {
             return bcwDepthLogPlotService.getBCWDepthLog(bcwDepthPlotDTO);
         }
-            return Collections.emptyList();
+            return null;
         }
 
 

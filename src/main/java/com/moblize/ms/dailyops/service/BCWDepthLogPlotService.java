@@ -2,7 +2,7 @@ package com.moblize.ms.dailyops.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.moblize.ms.dailyops.client.WitsmlLogsClient;
+import com.moblize.ms.dailyops.client.KpiDashboardClient;
 import com.moblize.ms.dailyops.dao.WellFormationDAO;
 import com.moblize.ms.dailyops.domain.FormationMarker;
 import com.moblize.ms.dailyops.domain.mongo.BCWDepthLog;
@@ -10,6 +10,7 @@ import com.moblize.ms.dailyops.domain.mongo.BCWSmoothLogData;
 import com.moblize.ms.dailyops.domain.mongo.DepthLogResponse;
 import com.moblize.ms.dailyops.dto.*;
 import com.moblize.ms.dailyops.repository.mongo.client.BCWSmoothLogDataRepository;
+import com.moblize.ms.dailyops.service.dto.HoleSection;
 import com.moblize.ms.dailyops.utils.NumberParserUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +26,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -48,6 +49,9 @@ public class BCWDepthLogPlotService {
     @Autowired
     private BCWSmoothLogDataRepository bcwSmoothLogDataRepository;
 
+    @Autowired
+    private KpiDashboardClient kpiDashboardClient;
+
     @Value("${rest.nodedrilling.user}")
     public String NODE_USER_NAME;
     @Value("${rest.nodedrilling.pwd}")
@@ -58,44 +62,75 @@ public class BCWDepthLogPlotService {
     String LOGDATA_PATH = "log";
 
 
-    public List<DepthLogResponse> getBCWDepthLog(BCWDepthPlotDTO bcwDepthPlotDTO) {
+    public BCWDepthPlotResponse getBCWDepthLog(BCWDepthPlotDTO bcwDepthPlotDTO) {
+        BCWDepthPlotResponse bcwDepthPlotResponse = new BCWDepthPlotResponse();
 
-        //Get Drilling log Map data
-        //Extract formationBcwData and sort by measure depth
-        List<DrillingRoadMapWells> ls = this.getDrillingRoadmap(bcwDepthPlotDTO);
-
-        //filter out the offset well by using start and end index
-
-        List<DepthLogResponse> bcwDepthLog = new ArrayList<>();
-        if (bcwDepthPlotDTO.getBcwId() != null && !bcwDepthPlotDTO.getBcwId().isEmpty()
-            && bcwDepthPlotDTO.getActionType() != null && !bcwDepthPlotDTO.getActionType().isEmpty()) {
-
-            log.debug("BCW Smooth Action Type: {} for Well UID: {} and BCW ID: {}", bcwDepthPlotDTO.getActionType(),
-                bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthPlotDTO.getBcwId());
-
-            if (bcwDepthPlotDTO.getActionType().equalsIgnoreCase("select")) {
-                BCWSmoothLogData dbObj = findSmoothData(bcwDepthPlotDTO);
-                if(dbObj != null){
-                    bcwDepthLog = dbObj.getDepthLogResponseList();
-                }
-            } else if (bcwDepthPlotDTO.getActionType().equalsIgnoreCase("create")
-                || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("update")
-                || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("refresh")) {
-                bcwDepthLog = this.getOffSetLog1(ls, bcwDepthPlotDTO.getEndIndex(), bcwDepthPlotDTO.getStartIndex(), true);
-                bcwDepthLog = smoothData(bcwDepthLog);
-                saveUpdateSmoothData(bcwDepthPlotDTO, bcwDepthLog);
+        try {
+            if(bcwDepthPlotDTO.getActionType() == null){
+                bcwDepthPlotDTO.setActionType("select");
             }
+
+            if (bcwDepthPlotDTO.getActionType().equalsIgnoreCase("create")
+                || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("update")
+                || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("refresh")){
+                bcwDepthPlotDTO.setStartIndex(0);
+                bcwDepthPlotDTO.setEndIndex(50000);
+            }
+
+            //Get Drilling log Map data
+            //Extract formationBcwData and sort by measure depth
+            List<DrillingRoadMapWells> ls = this.getDrillingRoadmap(bcwDepthPlotDTO);
+
+            //filter out the offset well by using start and end index
+
+            List<DepthLogResponse> bcwDepthLog = new ArrayList<>();
+            if (bcwDepthPlotDTO.getBcwId() != null && !bcwDepthPlotDTO.getBcwId().isEmpty()
+                && bcwDepthPlotDTO.getActionType() != null && !bcwDepthPlotDTO.getActionType().isEmpty()) {
+
+                log.debug("BCW Smooth Action Type: {} for Well UID: {} and BCW ID: {}", bcwDepthPlotDTO.getActionType(),
+                    bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthPlotDTO.getBcwId());
+
+                if (bcwDepthPlotDTO.getActionType().equalsIgnoreCase("select")) {
+                    BCWSmoothLogData dbObj = findSmoothData(bcwDepthPlotDTO);
+                    if(dbObj != null){
+                        bcwDepthLog = dbObj.getDepthLogResponseList();
+                    } else {
+                        log.debug("No smoothed data found in DB, Get depth log for smoothing and saved it");
+                        bcwDepthLog = processSmoothingAndSave(bcwDepthPlotDTO, ls);
+                    }
+                } else if (bcwDepthPlotDTO.getActionType().equalsIgnoreCase("create")
+                    || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("update")
+                    || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("refresh")) {
+                    bcwDepthLog = processSmoothingAndSave(bcwDepthPlotDTO, ls);
+                }
+            }
+
+            if(bcwDepthLog.isEmpty()){
+                log.debug("No Smoothing data found for well UID: {} Hence it's going to get sampled data",
+                    bcwDepthPlotDTO.getPrimaryWellUid());
+
+                bcwDepthLog = this.getOffSetLog1(ls, bcwDepthPlotDTO.getEndIndex(), bcwDepthPlotDTO.getStartIndex(), false);
+            }
+
+            //  saveBCWDepthLog(bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthLog);
+            bcwDepthPlotResponse.setStatus("success");
+            bcwDepthPlotResponse.setMessage("success");
+            bcwDepthPlotResponse.setData(bcwDepthLog);
+        } catch (Exception e) {
+            log.error("Error occur in getBCWDepthLog for well uid {}", bcwDepthPlotDTO.getPrimaryWellUid(),e);
+            bcwDepthPlotResponse.setStatus("invalid");
+            bcwDepthPlotResponse.setMessage(e.getMessage());
+            bcwDepthPlotResponse.setData(null);
         }
 
-        if(bcwDepthLog.isEmpty()){
-            log.debug("No Smoothing data found for well UID: {} Hence it's going to get sampled data",
-                bcwDepthPlotDTO.getPrimaryWellUid());
+        return bcwDepthPlotResponse;
+    }
 
-            bcwDepthLog = this.getOffSetLog1(ls, bcwDepthPlotDTO.getEndIndex(), bcwDepthPlotDTO.getStartIndex(), false);
-        }
-
-        //  saveBCWDepthLog(bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthLog);
-
+    private List<DepthLogResponse> processSmoothingAndSave(BCWDepthPlotDTO bcwDepthPlotDTO, List<DrillingRoadMapWells> ls) {
+        List<DepthLogResponse> bcwDepthLog;
+        bcwDepthLog = this.getOffSetLog1(ls, bcwDepthPlotDTO.getEndIndex(), bcwDepthPlotDTO.getStartIndex(), true);
+        bcwDepthLog = smoothData(bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthLog);
+        saveUpdateSmoothData(bcwDepthPlotDTO, bcwDepthLog);
         return bcwDepthLog;
     }
 
@@ -116,11 +151,18 @@ public class BCWDepthLogPlotService {
     }
 
     private BCWSmoothLogData findSmoothData(BCWDepthPlotDTO bcwDepthPlotDTO) {
-        return bcwSmoothLogDataRepository.findBCWSmoothLogDataByBcwId(bcwDepthPlotDTO.getBcwId());
+        BCWSmoothLogData bcwSmoothLogData = bcwSmoothLogDataRepository.findBCWSmoothLogDataByBcwId(bcwDepthPlotDTO.getBcwId());
+        if(bcwSmoothLogData != null && !bcwSmoothLogData.getDepthLogResponseList().isEmpty()) {
+            bcwSmoothLogData.setDepthLogResponseList(bcwSmoothLogData.getDepthLogResponseList().stream()
+                .filter(log -> log.getHoleDepth() >= bcwDepthPlotDTO.getStartIndex()
+                    && log.holeDepth <= bcwDepthPlotDTO.getEndIndex()).collect(Collectors.toList()));
+        }
+        return bcwSmoothLogData;
+
     }
 
 
-    public List<DepthLogResponse> smoothData(List<DepthLogResponse> bcwDepthLog) {
+    public List<DepthLogResponse> smoothData(String wellUid, List<DepthLogResponse> bcwDepthLog) {
 
         List<DepthLogResponse> smoothedBCWData = new ArrayList<>();
 
@@ -133,6 +175,13 @@ public class BCWDepthLogPlotService {
         final List<Double> weightonBitMaxList = new ArrayList<>();
 
         if (null != bcwDepthLog && !bcwDepthLog.isEmpty()) {
+
+            Map<HoleSection.HoleSectionType,HoleSection> holeSectionMap = new HashMap<>();
+            List<HoleSection> holeSectionList =  kpiDashboardClient.getHoleSections(wellUid);
+            if(holeSectionList != null && !holeSectionList.isEmpty()) {
+                holeSectionMap = holeSectionList.stream().collect(Collectors.toMap(x -> x.getSection(), Function.identity()));
+            }
+
             Double firstDepth = bcwDepthLog.get(0).getHoleDepth();
             Double lastDepth = bcwDepthLog.get(bcwDepthLog.size() - 1).getHoleDepth();
             double firstDepthRounded = ((Math.round(firstDepth) + 99) / 100) * 100;
@@ -141,13 +190,27 @@ public class BCWDepthLogPlotService {
             long rangeEnd = Math.round(lastDepth) / 100;
 
             DepthClass depthClass = new DepthClass();
-            bcwDepthLog
+            Map<HoleSection.HoleSectionType, HoleSection> finalHoleSectionMap = holeSectionMap;
+            bcwDepthLog.stream()
+                .filter(log -> {
+                    HoleSection holeSection = finalHoleSectionMap.get(HoleSection.HoleSectionType.CURVE);
+                    if (holeSection == null && !log.getRigState().equalsIgnoreCase("SLIDE DRILLING")) {
+                        return true;
+                    } else if (holeSection != null && log.getHoleDepth() > holeSection.getFromDepth() && log.getHoleDepth() <= holeSection.getToDepth()) {
+                        return true;
+                    } else if (holeSection != null
+                        && (log.getHoleDepth() <= holeSection.getFromDepth() || log.getHoleDepth() > holeSection.getToDepth())
+                        && !log.getRigState().equalsIgnoreCase("SLIDE DRILLING")) {
+                        return true;
+                    }
+                    return false;
+                    })
                 .forEach(depthLogObj -> {
                     if (depthClass.holeDepth < 0d) {
                         depthClass.holeDepth = depthLogObj.getHoleDepth();
                         depthClass.holeDepthFirstRound = ((Math.round(firstDepth) + 99) / 100) * 100;
                         depthClass.holeDepthNextRound = depthClass.holeDepthFirstRound + 100;
-                        log.debug("depthLogObj :"+depthLogObj.getHoleDepth()+" HoleDepth " + depthClass.holeDepth + " holeDepthFirstRound: " + depthClass.holeDepthFirstRound + " holeDepthNextRound: " + depthClass.holeDepthNextRound);
+                        log.debug("DepthLogObj :"+depthLogObj.getHoleDepth()+" HoleDepth " + depthClass.holeDepth + " holeDepthFirstRound: " + depthClass.holeDepthFirstRound + " holeDepthNextRound: " + depthClass.holeDepthNextRound);
                     }
                     if (depthLogObj.getHoleDepth() % 100 == 0 ||
                         (depthLogObj.getHoleDepth() > depthClass.holeDepthFirstRound && depthLogObj.getHoleDepth() <= depthClass.holeDepthNextRound)
