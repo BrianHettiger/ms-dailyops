@@ -1,20 +1,14 @@
 package com.moblize.ms.dailyops.domain.mongo;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @Setter
 @NoArgsConstructor
-@Document(collection = "bcwDepthLog")
-@JsonIgnoreProperties(value = {"id", "addedAt", "updatedAt"})
 public class BCWDepthLog {
 
-    @Id
     private String id;
     public String uid;
     public Double holeDepth;
