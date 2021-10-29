@@ -8,7 +8,11 @@ import com.moblize.ms.dailyops.domain.FormationMarker;
 import com.moblize.ms.dailyops.domain.mongo.BCWDepthLog;
 import com.moblize.ms.dailyops.domain.mongo.BCWSmoothLogData;
 import com.moblize.ms.dailyops.domain.mongo.DepthLogResponse;
-import com.moblize.ms.dailyops.dto.*;
+import com.moblize.ms.dailyops.dto.BCWDepthPlotDTO;
+import com.moblize.ms.dailyops.dto.BCWDepthPlotResponse;
+import com.moblize.ms.dailyops.dto.DrillingRoadMapWells;
+import com.moblize.ms.dailyops.dto.LogDataRequestDTO;
+import com.moblize.ms.dailyops.dto.LogResponse;
 import com.moblize.ms.dailyops.repository.mongo.client.BCWSmoothLogDataRepository;
 import com.moblize.ms.dailyops.service.dto.HoleSection;
 import com.moblize.ms.dailyops.utils.NumberParserUtils;
@@ -28,7 +32,16 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -294,6 +307,10 @@ public class BCWDepthLogPlotService {
 
         return smoothedBCWData;
 
+    }
+
+    public Object deleteBCWDepthLog(final String bcwId, final String uid) {
+        return bcwSmoothLogDataRepository.deleteByBcwIdAndUid(bcwId, uid);
     }
 
     public class DepthClass {

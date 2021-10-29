@@ -2,22 +2,52 @@ package com.moblize.ms.dailyops.web.rest.controller;
 
 import com.moblize.ms.dailyops.domain.PerformanceROP;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
-import com.moblize.ms.dailyops.domain.mongo.*;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
-import com.moblize.ms.dailyops.dto.*;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
-import com.moblize.ms.dailyops.service.*;
-import com.moblize.ms.dailyops.service.dto.*;
+import com.moblize.ms.dailyops.domain.mongo.TargetWindowDPVA;
+import com.moblize.ms.dailyops.dto.BCWDepthPlotDTO;
+import com.moblize.ms.dailyops.dto.BCWDepthPlotResponse;
+import com.moblize.ms.dailyops.dto.BHA;
+import com.moblize.ms.dailyops.dto.DPVARequestDTO;
+import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
+import com.moblize.ms.dailyops.dto.ResponseDTO;
+import com.moblize.ms.dailyops.dto.TortuosityRequestDTO;
+import com.moblize.ms.dailyops.service.AnalyticsWellMetaDataService;
+import com.moblize.ms.dailyops.service.BCWDepthLogPlotService;
+import com.moblize.ms.dailyops.service.CacheService;
+import com.moblize.ms.dailyops.service.DPVAService;
+import com.moblize.ms.dailyops.service.NotifyDPVAService;
+import com.moblize.ms.dailyops.service.PerformanceBHAService;
+import com.moblize.ms.dailyops.service.PerformanceCostService;
+import com.moblize.ms.dailyops.service.PerformanceROPService;
+import com.moblize.ms.dailyops.service.PerformanceWellService;
+import com.moblize.ms.dailyops.service.TargetWindowDPVAService;
+import com.moblize.ms.dailyops.service.TortuosityService;
+import com.moblize.ms.dailyops.service.TrueROPDataService;
+import com.moblize.ms.dailyops.service.WellsCoordinatesService;
+import com.moblize.ms.dailyops.service.dto.DPVAResult;
+import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
+import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
+import com.moblize.ms.dailyops.service.dto.SurveyRecord;
+import com.moblize.ms.dailyops.service.dto.TargetWindowPerFootDTO;
+import com.moblize.ms.dailyops.service.dto.TortuosityDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -455,8 +485,13 @@ public class DailyopsController {
         } else {
             return bcwDepthLogPlotService.getBCWDepthLog(bcwDepthPlotDTO);
         }
-            return null;
-        }
+        return null;
+    }
+
+    @DeleteMapping("/api/v1/deleteBCWDepthPlotLog")
+    public Object deleteBCWDepthLogPlot(@RequestBody Map<String, String>  requestMap){
+        return bcwDepthLogPlotService.deleteBCWDepthLog(requestMap.get("bcwId"), requestMap.get("uid"));
+    }
 
 
 }
