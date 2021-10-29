@@ -9,5 +9,7 @@ public interface BCWSmoothLogDataRepository extends MongoRepository<BCWSmoothLog
 
     BCWSmoothLogData findBCWSmoothLogDataByBcwId(String bcwId);
 
+    BCWSmoothLogData findBCWSmoothLogDataByBcwIdAndUid(final String bcwId, final String uid);
+
     Object deleteByBcwIdAndUid(final String bcwId, final String uid);
 }
