@@ -97,7 +97,7 @@ public class BCWDepthLogPlotService {
             //filter out the offset well by using start and end index
 
             List<DepthLogResponse> bcwDepthLog = new ArrayList<>();
-            if (bcwDepthPlotDTO.getBcwId() != null && !bcwDepthPlotDTO.getBcwId().isEmpty()
+            if (bcwDepthPlotDTO.getBcwId() != null && !bcwDepthPlotDTO.getBcwId().isEmpty() && !bcwDepthPlotDTO.getBcwId().equalsIgnoreCase("default-bcw")
                 && bcwDepthPlotDTO.getActionType() != null && !bcwDepthPlotDTO.getActionType().isEmpty()) {
 
                 log.debug("BCW Smooth Action Type: {} for Well UID: {} and BCW ID: {}", bcwDepthPlotDTO.getActionType(),
