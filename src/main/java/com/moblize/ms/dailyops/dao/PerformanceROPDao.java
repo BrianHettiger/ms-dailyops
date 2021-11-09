@@ -30,15 +30,8 @@ public class PerformanceROPDao {
         if (null != dbObj) {
             performanceROPDTO.set_id(dbObj.get_id());
         }
-       return performanceROPRepository.save(performanceROPDTO);
-    }
-
-    public PerformanceROP updatePerformanceROP(PerformanceROP performanceROPDTO){
-        PerformanceROP dbObj =  performanceROPRepository.findByUid(performanceROPDTO.getUid());
-        performanceROPDTO.set_id(dbObj.get_id());
         return performanceROPRepository.save(performanceROPDTO);
     }
-
     public PerformanceROP findPerformanceROP(String uid) {
         return performanceROPRepository.findByUid(uid);
     }
