@@ -8,4 +8,8 @@ import org.springframework.stereotype.Repository;
 public interface BCWSmoothLogDataRepository extends MongoRepository<BCWSmoothLogData, String> {
 
     BCWSmoothLogData findBCWSmoothLogDataByBcwId(String bcwId);
+
+    BCWSmoothLogData findBCWSmoothLogDataByBcwIdAndUid(final String bcwId, final String uid);
+
+    Object deleteByBcwIdAndUid(final String bcwId, final String uid);
 }
