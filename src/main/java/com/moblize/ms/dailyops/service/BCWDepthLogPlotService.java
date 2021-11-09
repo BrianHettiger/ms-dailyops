@@ -118,7 +118,7 @@ public class BCWDepthLogPlotService {
                 }
             }
 
-            if(bcwDepthLog.isEmpty() && (bcwDepthPlotDTO.getBcwId() == null || bcwDepthPlotDTO.getBcwId().isEmpty())){
+            if(bcwDepthLog.isEmpty() && (bcwDepthPlotDTO.getBcwId() == null || bcwDepthPlotDTO.getBcwId().isEmpty() || bcwDepthPlotDTO.getBcwId().equalsIgnoreCase("default-bcw") )){
                 log.debug("No Smoothing data found for well UID: {} Hence it's going to get sampled data",
                     bcwDepthPlotDTO.getPrimaryWellUid());
 
