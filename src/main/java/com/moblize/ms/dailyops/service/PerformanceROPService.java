@@ -17,7 +17,7 @@ public class PerformanceROPService {
     }
 
     public PerformanceROP updatePerformanceROP(PerformanceROP performanceROPDTO){
-        return performanceROPDao.updatePerformanceROP(performanceROPDTO);
+        return performanceROPDao.savePerformanceROP(performanceROPDTO);
     }
 
     public PerformanceROP findPerformanceROP(String uid) {

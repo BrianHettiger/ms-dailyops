@@ -265,3 +265,4 @@ infinispan:
       force_return_values: false
       auth_realm: default
       auth_server_name: infinispan
+
