@@ -63,11 +63,11 @@ public class CacheService {
 
         DailyOpsLoadConfig dailyOpsLoadConfig = notifyDPVAService.getDailyOpsLoadConfig(COMPANY_NAME);
         processPerformanceMapData(dailyOpsLoadConfig);
-        log.info("Cache service end");
 
         notifyDPVAService.loadDPVAData(COMPANY_NAME, dailyOpsLoadConfig);
         getSurveyDataCache().addClientListener(surveyDataCacheListener);
         getPlanDataCache().addClientListener(wellPlanDataCacheListener);
+        log.info("Cache service end");
     }
 
     private void processPerformanceMapData(DailyOpsLoadConfig dailyOpsLoadConfig) {
