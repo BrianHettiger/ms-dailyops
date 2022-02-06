@@ -666,11 +666,11 @@ public class WellsCoordinatesService {
                 performanceBHA.getBha().forEach(bha -> {
                     if (bha.getSections().contains("surface")) {
                         section.getSurface().add(bha.getHoleSize());
-                    } else if (bha.getSections().contains("intermediate")) {
+                    }  if (bha.getSections().contains("intermediate")) {
                         section.getIntermediate().add(bha.getHoleSize());
-                    } else if (bha.getSections().contains("curve")) {
+                    }  if (bha.getSections().contains("curve")) {
                         section.getCurve().add(bha.getHoleSize());
-                    } else if (bha.getSections().contains("lateral")) {
+                    }  if (bha.getSections().contains("lateral")) {
                         section.getLateral().add(bha.getHoleSize());
                     }
                     section.getAll().add(bha.getHoleSize());
