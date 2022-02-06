@@ -124,7 +124,7 @@ public class WellsCoordinatesService {
         );
         HashMap<String, Float> drilledWellDepth = new HashMap<>();
         WellSurveyPlannedLatLong wellSurvey = wellsCoordinatesDao.findWellSurveyPlannedLatLong(well.getUid());
-        if (wellSurvey != null) {
+        if(wellSurvey != null) {
             populateForSurvey(
                 wellSurvey,
                 drilledWellDepth,
@@ -133,35 +133,35 @@ public class WellsCoordinatesService {
             latLngMap.get(well.getUid()).setProtoData();
         }
         cacheService.getWellCoordinatesCache()
-            .put(well.getUid(), latLngMap.get(well.getUid()));
+            .put(well.getUid(),latLngMap.get(well.getUid()));
         return latLngMap.values();
     }
     public Collection<WellCoordinatesResponseV2> getWellCoordinates(String customer, String token) {
         RemoteCache<String, WellCoordinatesResponseV2> remoteCache = cacheService.getWellCoordinatesCache();
         Map<String, WellCoordinatesResponseV2> latLngMap = new HashMap<>();
         List<MongoWell> mongoWells = null;
-        if (token != null) {
+        if(token != null) {
             Claims claims = tokenProvider.getTokenClaims(token);
             String email = (String) claims.get("email");
             if (email != null && email.toLowerCase().contains("moblize")) {
                 mongoWells = mongoWellRepository.findAllByCustomer(customer);
             }
         }
-        if (mongoWells == null) {
+        if(mongoWells == null){
             mongoWells = mongoWellRepository.findAllByCustomerAndIsHidden(customer, false);
         }
-        if (!remoteCache.isEmpty()) {
+        if(!remoteCache.isEmpty()) {
             mongoWells.forEach(mongoWell -> {
                 WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
-                if (value != null) {
+                if(value != null){
                     value.setEntries();
                     latLngMap.put(value.getUid(), value);
                 }
             });
-            if (latLngMap.isEmpty()) {
+            if(latLngMap.isEmpty()) {
                 mongoWells.forEach(mongoWell -> {
                     WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
-                    if (value != null) {
+                    if(value != null) {
                         value.setEntries();
                         latLngMap.put(value.getUid(), value);
                     }
@@ -492,7 +492,7 @@ public class WellsCoordinatesService {
                 effectiveROP.setSection(effectiveROPSection);
                 ropDto.setEffectiveROP(effectiveROP);
             }
-            if (null != ropDomain.getSlidePercentage() && null != ropDomain.getSlidePercentage().getSection()) {
+            if (null != ropDomain.getSlidePercentage()&& null != ropDomain.getSlidePercentage().getSection()) {
                 final Section slidePercentageSection = new Section();
                 slidePercentageSection.setAll(dataConvertTwoDecimal(ropDomain.getSlidePercentage().getSection().getAll()));
                 slidePercentageSection.setSurface(dataConvertTwoDecimal(ropDomain.getSlidePercentage().getSection().getSurface()));
@@ -503,7 +503,7 @@ public class WellsCoordinatesService {
                 sliderPercentage.setSection(slidePercentageSection);
                 ropDto.setSlidingPercentage(sliderPercentage);
             }
-            if (null != ropDomain.getFootageDrilled() && null != ropDomain.getFootageDrilled().getSection()) {
+            if (null != ropDomain.getFootageDrilled()&& null != ropDomain.getFootageDrilled().getSection()) {
                 final Section footageDrilledSection = new Section();
                 footageDrilledSection.setAll(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getAll()));
                 footageDrilledSection.setSurface(dataConvertTwoDecimal(ropDomain.getFootageDrilled().getSection().getSurface()));
@@ -515,7 +515,7 @@ public class WellsCoordinatesService {
                 ropDto.setFootageDrilled(footageDrilled);
             }
         } catch (Exception e) {
-            log.error("Error in ropDomainToDto for UID: {}", ropDomain.getUid(), e);
+            log.error("Error in ropDomainToDto for UID: {}",ropDomain.getUid(), e);
 
         }
         return ropDto;
@@ -633,7 +633,7 @@ public class WellsCoordinatesService {
                     });
                 }
             } catch (Exception e) {
-                log.error("Error in bhasToDto for UID: {}", performanceBHA.getUid());
+                log.error("Error in bhasToDto for UID: {}",performanceBHA.getUid());
             }
 
         return bhaList;
@@ -653,7 +653,7 @@ public class WellsCoordinatesService {
                 bhaCount.setSection(section);
             }
         } catch (Exception e) {
-            log.error("Error in bhaSectionCountToDto for UID: {}", performanceBHA.getUid());
+            log.error("Error in bhaSectionCountToDto for UID: {}",performanceBHA.getUid());
         }
         return bhaCount;
     }
@@ -731,7 +731,7 @@ public class WellsCoordinatesService {
             wellData = new WellData(performanceWell.getUid(), totalDays, footagePerDay, avgDLSBySection, avgMYBySection, avgDirectionAngle, avgDirection, holeSectionRange);
         } catch (Exception e) {
 
-            log.error("Error in performanceWellToDto for UID: {} {}", performanceWell.getUid(), e);
+           log.error("Error in performanceWellToDto for UID: {} {}",performanceWell.getUid(), e);
         }
         return wellData;
     }
@@ -764,13 +764,13 @@ public class WellsCoordinatesService {
         mongoWells.forEach((well) -> {
             log.info("send update for: {}", well.getUid());
             try {
-                if (null != well && null != well.getCustomer() && well.getCustomer().equalsIgnoreCase(COMPANY_NAME)) {
+                if(null != well && null != well.getCustomer() && well.getCustomer().equalsIgnoreCase(COMPANY_NAME)){
                     restClientService.sendMessage("wellActivity", objectMapper.writeValueAsString(getWellCoordinates(well)));
-                } else {
+                }  else {
                     log.error("Not a valid well {} for customer {}", well.getUid(), COMPANY_NAME);
                 }
             } catch (JsonProcessingException e) {
-                log.error("Error occur for sendWellUpdates ", e);
+               log.error("Error occur for sendWellUpdates ", e );
             }
             log.info("sent update for: {}", well.getUid());
         });
