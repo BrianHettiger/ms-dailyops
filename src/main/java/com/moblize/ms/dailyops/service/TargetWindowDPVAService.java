@@ -24,10 +24,10 @@ public class TargetWindowDPVAService {
             if (targetWindowDPVA == null) {
                 targetWindowDPVA = new TargetWindowDPVA();
                 targetWindowDPVA.setUid(wellUID);
-                targetWindowDPVA.setIsEnable(false);
+                targetWindowDPVA.setIsEnable(true);
                 targetWindowDPVA.setSelectedMode("basic");
-                TargetWindowDPVA.SectionView section = new TargetWindowDPVA.SectionView(15);
-                TargetWindowDPVA.PlanView plan = new TargetWindowDPVA.PlanView(30);
+                TargetWindowDPVA.SectionView section = new TargetWindowDPVA.SectionView(20);
+                TargetWindowDPVA.PlanView plan = new TargetWindowDPVA.PlanView(50);
                 TargetWindowDPVA.Basic basic = new TargetWindowDPVA.Basic(section, plan);
                 targetWindowDPVA.setBasic(basic);
                 targetWindowDPVA.setAdvance(new ArrayList<>());
