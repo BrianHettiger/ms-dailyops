@@ -57,6 +57,7 @@ public class PerformanceBHA {
         public float mdStart = 0f;
         public float mdEnd = 0f;
         public String motorType = "";
+        public Float holeSize = 0f;
         public List<String> sections = new ArrayList<>();
         public PerformanceROP.RopType avgRop = new PerformanceROP.RopType();
         public PerformanceROP.RopType rotatingROP = new PerformanceROP.RopType();

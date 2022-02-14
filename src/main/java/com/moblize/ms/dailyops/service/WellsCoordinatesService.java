@@ -108,16 +108,19 @@ public class WellsCoordinatesService {
         Map<String, WellCoordinatesResponseV2> latLngMap = new HashMap<>();
         final Map<String, ROPs> ropByWellUidMap = getWellROPsMap(well);
         final Map<String, Cost> costByWellUidMap = getWellCostMap(well);
-        final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap(well);
+        final PerformanceBHA bha = bhaRepository.findFirstByUid(well.getUid());
+        final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap(bha);
+        final Map<String, BHAHoleSize> bhaHoleSizeByUidMap = getWellBHAHoleSizeMap(bha);
         final Map<String, WellData> wellMap = getWellDataMap(well);
-        log.info("bhaCountByUidMap:{}",bhaCountByUidMap);
+        log.info("bhaCountByUidMap:{}", bhaCountByUidMap);
         populateForWell(
             well,
             ropByWellUidMap,
             costByWellUidMap,
             bhaCountByUidMap,
             wellMap,
-            latLngMap
+            latLngMap,
+            bhaHoleSizeByUidMap
         );
         HashMap<String, Float> drilledWellDepth = new HashMap<>();
         WellSurveyPlannedLatLong wellSurvey = wellsCoordinatesDao.findWellSurveyPlannedLatLong(well.getUid());
@@ -169,7 +172,9 @@ public class WellsCoordinatesService {
 
         final Map<String, ROPs> ropByWellUidMap = getWellROPsMap();
         final Map<String, Cost> costByWellUidMap = getWellCostMap();
-        final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap();
+        final List<PerformanceBHA> bhaList = bhaRepository.findAll();
+        final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap(bhaList);
+        final Map<String, BHAHoleSize> bhaHoleSizeByUidMap = getWellBHAHoleSizeMap(bhaList);
         final Map<String, WellData> wellMap = getWellDataMap();
 
         mongoWells.forEach(well -> populateForWell(
@@ -178,7 +183,8 @@ public class WellsCoordinatesService {
             costByWellUidMap,
             bhaCountByUidMap,
             wellMap,
-            latLngMap
+            latLngMap,
+            bhaHoleSizeByUidMap
         ));
 
         HashMap<String, Float> drilledWellDepth = new HashMap<>();
@@ -252,8 +258,9 @@ public class WellsCoordinatesService {
         Map<String, Cost> costByWellUidMap,
         Map<String, BHACount> bhaCountByUidMap,
         Map<String, WellData> wellMap,
-        Map<String, WellCoordinatesResponseV2> latLngMap
-        ) {
+        Map<String, WellCoordinatesResponseV2> latLngMap,
+        Map<String, BHAHoleSize> bhaHoleSizeByUidMap
+    ) {
         try {
             WellCoordinatesResponseV2 wellCoordinatesResponse = latLngMap.getOrDefault(well.getUid(), new WellCoordinatesResponseV2());
             wellCoordinatesResponse.setUid(well.getUid());
@@ -281,6 +288,7 @@ public class WellsCoordinatesService {
             wellCoordinatesResponse.setEffectiveROP(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getEffectiveROP());
             wellCoordinatesResponse.setCost(costByWellUidMap.getOrDefault(well.getUid(), new Cost()));
             wellCoordinatesResponse.setBhaCount(bhaCountByUidMap.getOrDefault(well.getUid(), new BHACount()));
+            wellCoordinatesResponse.setBhaHoleSize(bhaHoleSizeByUidMap.getOrDefault(well.getUid(), new BHAHoleSize()));
             wellCoordinatesResponse.setTotalDays(wellMap.getOrDefault(well.getUid(), new WellData()).getTotalDays());
             wellCoordinatesResponse.setFootagePerDay(wellMap.getOrDefault(well.getUid(), new WellData()).getFootagePerDay());
             wellCoordinatesResponse.setSlidingPercentage(ropByWellUidMap.getOrDefault(well.getUid(), new ROPs()).getSlidingPercentage());
@@ -315,9 +323,7 @@ public class WellsCoordinatesService {
     }
 
 
-    private Map<String, BHACount> getWellBHACountMap() {
-        final List<PerformanceBHA> bhaList = bhaRepository.findAll();
-
+    private Map<String, BHACount> getWellBHACountMap(List<PerformanceBHA> bhaList) {
         return bhaList.stream().filter(obj -> null != obj.getUid())
             .collect(Collectors.toMap(
                 PerformanceBHA::getUid,
@@ -325,9 +331,24 @@ public class WellsCoordinatesService {
                 (k1, k2) -> k1));
     }
 
-    private Map<String, BHACount> getWellBHACountMap(MongoWell well) {
-        final PerformanceBHA bha = bhaRepository.findFirstByUid(well.getUid());
-        return bha != null?Map.of(bha.getUid(), WellsCoordinatesService.bhaSectionCountToDto(bha)):Collections.emptyMap();
+    private Map<String, BHAHoleSize> getWellBHAHoleSizeMap(List<PerformanceBHA> bhaList) {
+
+        return bhaList.stream().filter(obj -> null != obj.getUid())
+            .collect(Collectors.toMap(
+                PerformanceBHA::getUid,
+                WellsCoordinatesService::bhaSectionHoleSizeToDto,
+                (k1, k2) -> k1));
+    }
+
+
+
+    private Map<String, BHACount> getWellBHACountMap(PerformanceBHA bha) {
+
+        return bha != null ? Map.of(bha.getUid(), WellsCoordinatesService.bhaSectionCountToDto(bha)) : Collections.emptyMap();
+    }
+
+    private Map<String, BHAHoleSize> getWellBHAHoleSizeMap(PerformanceBHA bha) {
+        return bha != null ? Map.of(bha.getUid(), WellsCoordinatesService.bhaSectionHoleSizeToDto(bha)) : Collections.emptyMap();
     }
 
     private Map<String, Cost> getWellCostMap() {
@@ -525,6 +546,7 @@ public class WellsCoordinatesService {
                         bha.setMdStart(Math.round(bhaMongo.getMdStart()));
                         bha.setMdEnd(Math.round(bhaMongo.getMdEnd()));
                         bha.setMotorType(bhaMongo.getMotorType());
+                        bha.setHoleSize(bhaMongo.getHoleSize());
                         bha.setSections(bhaMongo.getSections());
                         bha.setAvgRop(new BHA.RopType(
                             new BHA.Section(
@@ -634,6 +656,31 @@ public class WellsCoordinatesService {
             log.error("Error in bhaSectionCountToDto for UID: {}",performanceBHA.getUid());
         }
         return bhaCount;
+    }
+
+    private static BHAHoleSize bhaSectionHoleSizeToDto(final PerformanceBHA performanceBHA) {
+        BHAHoleSize bhaHoleSize = new BHAHoleSize();
+        try {
+            BHASectionHoleSize section = new BHASectionHoleSize();
+            if (null != performanceBHA.getUid()) {
+                performanceBHA.getBha().forEach(bha -> {
+                    if (bha.getSections().contains("surface")) {
+                        section.getSurface().add(bha.getHoleSize());
+                    }  if (bha.getSections().contains("intermediate")) {
+                        section.getIntermediate().add(bha.getHoleSize());
+                    }  if (bha.getSections().contains("curve")) {
+                        section.getCurve().add(bha.getHoleSize());
+                    }  if (bha.getSections().contains("lateral")) {
+                        section.getLateral().add(bha.getHoleSize());
+                    }
+                    section.getAll().add(bha.getHoleSize());
+                });
+                bhaHoleSize.setSection(section);
+            }
+        } catch (Exception e) {
+            log.error("Error in bhaSectionHoleSizeToDto for UID: {}", performanceBHA.getUid());
+        }
+        return bhaHoleSize;
     }
 
     private static WellData performanceWellToDto(final PerformanceWell performanceWell) {
