@@ -145,11 +145,13 @@ public class WellsCoordinatesService {
         if(token != null) {
             Claims claims = tokenProvider.getTokenClaims(token);
             String email = (String) claims.get("email");
-            List<String> restrictedUsers = Arrays.asList(new String[]{"luis_alzate_rodeojv@oxy.com", "jose_mondragon_rodeojv@oxy.com", "davidm@moblize.com"});
+            List<String> restrictedUsers = Arrays.asList(new String[]{"luis_alzate_rodeojv@oxy.com", "jose_mondragon_rodeojv@oxy.com", "davidc.morales2@gmail.com"});
             if(email != null && restrictedUsers.contains(email.toLowerCase(Locale.ROOT))) {
                 List<String> restrictedRigs = Arrays.asList(new String[]{"H-P 434", "H-P 480", "H-P 427", "H-P 617"});
                 List<String> restrictedRigIds = mobMongoQueryService.getRigIdsByName(restrictedRigs);
+                log.info("Rig ids: {}", restrictedRigIds);
                 mongoWells = mobMongoQueryService.getWellsByRigIds(restrictedRigIds);
+                log.info("mongoWells: {}", mongoWells);
             } else if (email != null && email.toLowerCase().contains("moblize")) {
                 mongoWells = mongoWellRepository.findAllByCustomer(customer);
             }
