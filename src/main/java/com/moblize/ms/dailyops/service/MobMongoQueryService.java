@@ -10,6 +10,8 @@ import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,13 +24,15 @@ public class MobMongoQueryService {
     public List<String> getRigIdsByName(final List<String> rigs) {
         final MatchOperation match = Aggregation.match(
             new Criteria("name").in(rigs));
-
-        final ProjectionOperation project = Aggregation.project().andInclude("_id");
-
+        final ProjectionOperation project = Aggregation.project().andInclude("_id.$oid").andExclude("_id");
         final Aggregation aggregation = Aggregation.newAggregation(match, project);
+        List<String> rigList = new ArrayList<>();
 
-        return mobMongoTemplate.aggregate(aggregation, "rigs", String.class)
-            .getMappedResults();
+        mobMongoTemplate.
+            aggregateStream(aggregation, "rigs", Map.class).forEachRemaining(rig -> {
+            rigList.add((String) rig.get("_id"));
+        });
+        return rigList;
     }
 
     public List<MongoWell> getWellsByRigIds(final List<String> rigIds) {
