@@ -23,7 +23,7 @@ public class MobMongoQueryService {
         final MatchOperation match = Aggregation.match(
             new Criteria("name").in(rigs));
 
-        final ProjectionOperation project = Aggregation.project("_id");
+        final ProjectionOperation project = Aggregation.project().andInclude("_id");
 
         final Aggregation aggregation = Aggregation.newAggregation(match, project);
 
