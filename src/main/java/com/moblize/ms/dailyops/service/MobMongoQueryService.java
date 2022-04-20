@@ -29,13 +29,12 @@ public class MobMongoQueryService {
         final MatchOperation match = Aggregation.match(
             new Criteria("name").in(rigs));
 
-        final GroupOperation group = Aggregation.group("id");
-        final Aggregation aggregation = Aggregation.newAggregation(match, group);
+        final Aggregation aggregation = Aggregation.newAggregation(match);
         List<String> rigList = new ArrayList<>();
 
         mobMongoTemplate.aggregateStream(aggregation, "rigs", Map.class).forEachRemaining(rig -> {
-            rigList.add(rig.get("_id").toString());
             log.info("rig: {}", rig);
+            rigList.add(rig.get("_id").toString());
         });
         return rigList;
     }
