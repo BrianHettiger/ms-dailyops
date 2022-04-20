@@ -18,6 +18,7 @@ import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.security.jwt.TokenProvider;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -148,7 +149,7 @@ public class WellsCoordinatesService {
             List<String> restrictedUsers = Arrays.asList(new String[]{"luis_alzate_rodeojv@oxy.com", "jose_mondragon_rodeojv@oxy.com", "davidc.morales2@gmail.com"});
             if(email != null && restrictedUsers.contains(email.toLowerCase(Locale.ROOT))) {
                 List<String> restrictedRigs = Arrays.asList(new String[]{"H-P 434", "H-P 480", "H-P 427", "H-P 617"});
-                List<String> restrictedRigIds = mobMongoQueryService.getRigIdsByName(restrictedRigs);
+                List<ObjectId> restrictedRigIds = mobMongoQueryService.getRigIdsByName(restrictedRigs);
                 log.info("Rig ids: {}", restrictedRigIds);
                 mongoWells = mobMongoQueryService.getWellsByRigIds(restrictedRigIds);
                 log.info("mongoWells: {}", mongoWells);
