@@ -26,22 +26,22 @@ public class MobMongoQueryService {
     @Autowired
     @Qualifier("mobMongoTemplate")
     private MongoTemplate mobMongoTemplate;
-    public List<ObjectId> getRigIdsByName(final List<String> rigs) {
+    public List<String> getRigIdsByName(final List<String> rigs) {
         final MatchOperation match = Aggregation.match(
             new Criteria("name").in(rigs));
 
         final Aggregation aggregation = Aggregation.newAggregation(match);
-        List<ObjectId> rigList = new ArrayList<>();
+        List<String> rigList = new ArrayList<>();
 
         mobMongoTemplate.aggregateStream(aggregation, "rigs", Map.class).forEachRemaining(rig -> {
             log.info("rig: {}", rig);
-            rigList.add((ObjectId) rig.get("_id"));
+            rigList.add((String) rig.get("_id"));
         });
         return rigList;
     }
 
-    public List<MongoWell> getWellsByRigIds(final List<ObjectId> rigIds) {
-        final MatchOperation match = Aggregation.match(Criteria.where("rigs.rigid").in(rigIds));
+    public List<MongoWell> getWellsByRigIds(final List<String> rigIds) {
+        final MatchOperation match = Aggregation.match(Criteria.where("rigs.rigId").in(rigIds));
         final Aggregation aggregation = Aggregation.newAggregation(match);
         return mobMongoTemplate.aggregate(aggregation, "wells", MongoWell.class)
             .getMappedResults();
