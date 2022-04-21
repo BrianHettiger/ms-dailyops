@@ -18,6 +18,7 @@ import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.security.jwt.TokenProvider;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,6 +57,8 @@ public class WellsCoordinatesService {
     private PerformanceWellRepository wellRepository;
     @Autowired
     private RestClientService restClientService;
+    @Autowired
+    private MobMongoQueryService mobMongoQueryService;
     @Autowired
     @Lazy
     private CacheService cacheService;
@@ -143,7 +146,12 @@ public class WellsCoordinatesService {
         if(token != null) {
             Claims claims = tokenProvider.getTokenClaims(token);
             String email = (String) claims.get("email");
-            if (email != null && email.toLowerCase().contains("moblize")) {
+            List<String> restrictedUsers = Arrays.asList(new String[]{"luis_alzate_rodeojv@oxy.com", "jose_mondragon_rodeojv@oxy.com", "davidc.morales2@gmail.com"});
+            if(email != null && restrictedUsers.contains(email.toLowerCase(Locale.ROOT))) {
+                List<String> restrictedRigs = Arrays.asList(new String[]{"H-P 434", "H-P 480", "H-P 427", "H-P 617"});
+                List<String> restrictedRigIds = mobMongoQueryService.getRigIdsByName(restrictedRigs);
+                mongoWells = mobMongoQueryService.getWellsByRigIds(restrictedRigIds);
+            } else if (email != null && email.toLowerCase().contains("moblize")) {
                 mongoWells = mongoWellRepository.findAllByCustomer(customer);
             }
         }
