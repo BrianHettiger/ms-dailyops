@@ -34,7 +34,6 @@ public class MobMongoQueryService {
         List<String> rigList = new ArrayList<>();
 
         mobMongoTemplate.aggregateStream(aggregation, "rigs", Map.class).forEachRemaining(rig -> {
-            log.info("rig: {}", rig);
             rigList.add(rig.get("_id").toString());
         });
         return rigList;

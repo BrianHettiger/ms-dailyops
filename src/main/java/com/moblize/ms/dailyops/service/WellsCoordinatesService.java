@@ -150,9 +150,7 @@ public class WellsCoordinatesService {
             if(email != null && restrictedUsers.contains(email.toLowerCase(Locale.ROOT))) {
                 List<String> restrictedRigs = Arrays.asList(new String[]{"H-P 434", "H-P 480", "H-P 427", "H-P 617"});
                 List<String> restrictedRigIds = mobMongoQueryService.getRigIdsByName(restrictedRigs);
-                log.info("Rig ids: {}", restrictedRigIds);
                 mongoWells = mobMongoQueryService.getWellsByRigIds(restrictedRigIds);
-                log.info("mongoWells: {}", mongoWells);
             } else if (email != null && email.toLowerCase().contains("moblize")) {
                 mongoWells = mongoWellRepository.findAllByCustomer(customer);
             }
