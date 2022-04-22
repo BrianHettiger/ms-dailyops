@@ -23,6 +23,8 @@ public class BHA {
     public int mdEnd;
     @JsonProperty("ds")
     public String motorType;
+    @JsonProperty("hs")
+    public Float holeSize;
     @JsonProperty("sec")
     public List<String> sections = new ArrayList<>();
     @JsonProperty("aRop")

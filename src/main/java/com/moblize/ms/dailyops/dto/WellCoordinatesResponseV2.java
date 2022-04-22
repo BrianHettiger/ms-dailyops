@@ -85,6 +85,9 @@ public class WellCoordinatesResponseV2 {
     @ProtoField(number = 25, collectionImplementation = ArrayList.class)
     @JsonIgnore
     List<RangeData> rangeDataValues;
+    @ProtoField(number = 26)
+    BHAHoleSize bhaHoleSize;
+
     public void setProtoData() {
         if(rangeDataKeys == null) {
             rangeDataKeys = new ArrayList<>();
