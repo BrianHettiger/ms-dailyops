@@ -9,5 +9,7 @@ public interface PerformanceROPRepository extends MongoRepository<PerformanceROP
 
     PerformanceROP findByUid(String uid);
 
-    public void deleteByUid(String uid);
+    PerformanceROP findFirstByUid(String uid);
+
+    void deleteByUid(String uid);
 }
