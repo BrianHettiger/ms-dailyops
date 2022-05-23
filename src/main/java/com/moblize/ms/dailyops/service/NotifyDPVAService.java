@@ -7,6 +7,7 @@ import com.moblize.ms.dailyops.domain.mongo.DailyOpsLoadConfig;
 import com.moblize.ms.dailyops.domain.mongo.TargetWindowDPVA;
 import com.moblize.ms.dailyops.repository.mongo.client.DPVALoadConfigRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
+import com.moblize.ms.dailyops.service.dto.HoleSection;
 import com.moblize.ms.dailyops.service.dto.ProcessPerFeetRequestDTO;
 import com.moblize.ms.dailyops.service.dto.SurveyRecord;
 import com.moblize.ms.dailyops.service.dto.WellPlan;
@@ -171,12 +172,16 @@ public class NotifyDPVAService {
 
     public Float getLateralLength(String wellUid) {
         try {
-            Optional<Float> lateralDepth = kpiDashboardClient.getHoleSections(wellUid).stream().filter(holeSection -> holeSection.getSection().name().equalsIgnoreCase("lateral")).map(holeSection -> holeSection.getFromDepth()).findFirst();
+            final List<HoleSection> holeSections  = kpiDashboardClient.getHoleSections(wellUid);
+            final Optional<Float> lateralDepth = holeSections.stream()
+                .filter(holeSection -> holeSection.getSection().name().equalsIgnoreCase("lateral"))
+                .map(HoleSection::getFromDepth)
+                .findFirst();
             if(lateralDepth.isPresent()){
                 return lateralDepth.get();
             }
         } catch (Exception e) {
-            log.error("Lateral hole section is not configure for Well UID {} ", wellUid);
+            log.error("Error while retrieving Lateral Hole section for Well UID {} ", wellUid, e);
         }
         return null;
     }
