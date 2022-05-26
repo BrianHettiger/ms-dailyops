@@ -25,15 +25,15 @@ public class PerformanceROPDao {
     private PerformanceROPRepository performanceROPRepository;
 
 
-    public PerformanceROP savePerformanceROP(PerformanceROP performanceROPDTO){
-        PerformanceROP dbObj =  performanceROPRepository.findByUid(performanceROPDTO.getUid());
+    public PerformanceROP savePerformanceROP(final PerformanceROP performanceROPDTO){
+        final PerformanceROP dbObj =  performanceROPRepository.findFirstByUid(performanceROPDTO.getUid());
         if (null != dbObj) {
             performanceROPDTO.set_id(dbObj.get_id());
         }
         return performanceROPRepository.save(performanceROPDTO);
     }
     public PerformanceROP findPerformanceROP(String uid) {
-        return performanceROPRepository.findByUid(uid);
+        return performanceROPRepository.findFirstByUid(uid);
     }
 
     public void deletePerformanceROP(String uid){
