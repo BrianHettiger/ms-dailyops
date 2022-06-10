@@ -9,7 +9,24 @@ import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
-import com.moblize.ms.dailyops.dto.*;
+import com.moblize.ms.dailyops.dto.BHA;
+import com.moblize.ms.dailyops.dto.BHACount;
+import com.moblize.ms.dailyops.dto.BHAHoleSize;
+import com.moblize.ms.dailyops.dto.BHASectionCount;
+import com.moblize.ms.dailyops.dto.BHASectionHoleSize;
+import com.moblize.ms.dailyops.dto.Cost;
+import com.moblize.ms.dailyops.dto.Location;
+import com.moblize.ms.dailyops.dto.ROP;
+import com.moblize.ms.dailyops.dto.ROPs;
+import com.moblize.ms.dailyops.dto.RangeData;
+import com.moblize.ms.dailyops.dto.Section;
+import com.moblize.ms.dailyops.dto.SectionData;
+import com.moblize.ms.dailyops.dto.SectionDataDirection;
+import com.moblize.ms.dailyops.dto.SectionDirection;
+import com.moblize.ms.dailyops.dto.WellCoordinatesResponse;
+import com.moblize.ms.dailyops.dto.WellCoordinatesResponseV2;
+import com.moblize.ms.dailyops.dto.WellData;
+import com.moblize.ms.dailyops.dto.WellDataSection;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceBHARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceCostRepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceROPRepository;
@@ -18,7 +35,6 @@ import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.security.jwt.TokenProvider;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.types.ObjectId;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +49,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -384,7 +408,7 @@ public class WellsCoordinatesService {
     }
 
     private Map<String, ROPs> getWellROPsMap(MongoWell well) {
-        final PerformanceROP rop = ropRepository.findByUid(well.getUid());
+        final PerformanceROP rop = ropRepository.findFirstByUid(well.getUid());
         return rop!=null?Map.of(rop.getUid(), WellsCoordinatesService.ropDomainToDto(rop)):Collections.emptyMap();
     }
 
