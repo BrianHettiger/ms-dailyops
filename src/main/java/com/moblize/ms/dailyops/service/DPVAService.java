@@ -59,11 +59,13 @@ public class DPVAService {
 
     private final static String ACTIVE_STATUS = "active";
     private final static String COMPLETED_STATUS = "Completed";
+    private final static String PAUSED_STATUS = "paused";
 
     @Async
     public SurveyPerFeetDTO saveSurveyDataDpva(SurveyPerFeetDTO surveyPerFeetDTO) {
         try {
-            if (surveyPerFeetDTO.getWellStatus().equalsIgnoreCase("active")) {
+            if (surveyPerFeetDTO.getWellStatus().equalsIgnoreCase(ACTIVE_STATUS)
+                || surveyPerFeetDTO.getWellStatus().equalsIgnoreCase(PAUSED_STATUS)) {
                 long startTime = System.currentTimeMillis();
                 log.debug("SaveSurveyDataDpva start for well uid: {}",surveyPerFeetDTO.getWellUid());
 
@@ -206,7 +208,7 @@ public class DPVAService {
 
 
         final DPVAData dpvaData = new DPVAData();
-        if (!primaryMongoWell.getStatusWell().equalsIgnoreCase(ACTIVE_STATUS)) {
+        if (!primaryMongoWell.getStatusWell().equalsIgnoreCase(ACTIVE_STATUS) || !primaryMongoWell.getStatusWell().equalsIgnoreCase(PAUSED_STATUS)) {
             final SurveyDataDpva surveyDataDpva = surveyDataDPVARepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
             final PlannedDataDpva plannedDataDpva = plannedDataDPVARepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
             final TargetWindowPerFootDPVA targetWindowPerFootDPVA = targetWindowPerFootRepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
@@ -242,7 +244,7 @@ public class DPVAService {
                 final TargetWindowsData planViewData = new TargetWindowsData();
                 if(null != targetWindowPerFootDPVA) {
                     planViewData.setFirstLine(targetWindowPerFootDPVA.getPvFirstLine());
-                    planViewData.setCenterLine(targetWindowPerFootDPVA.getPvCenterLine());
+                    //planViewData.setCenterLine(targetWindowPerFootDPVA.getPvCenterLine());
                     planViewData.setLastLine(targetWindowPerFootDPVA.getPvLastLine());
                     planViewData.setSideLines(targetWindowPerFootDPVA.getPvSideLine());
                     planViewData.setIntersections(targetWindowPerFootDPVA.getPvIntersections());
@@ -257,8 +259,8 @@ public class DPVAService {
             setDirectionalAngle(dpvaData, surveyRecordList);
             dpvaResult.setPrimaryWellDPVAData(dpvaData);
 
-        }
-        if (primaryMongoWell.getStatusWell().equalsIgnoreCase(ACTIVE_STATUS)) {
+        } else {
+            // Active & Paused wells
             dpvaData.setWellUid(dpvaRequestDTO.getPrimaryWell());
 
             dpvaData.setPlannedData(cacheService.getPerFeetPlanDataCache().getOrDefault(dpvaRequestDTO.getPrimaryWell(), new PlannedPerFeetDTO()).getScaledPlannedData());
