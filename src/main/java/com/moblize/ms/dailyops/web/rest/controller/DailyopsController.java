@@ -495,8 +495,8 @@ public class DailyopsController {
     }
 
     @Transactional(readOnly = true)
-    @GetMapping("/api/v1/getScaledPlannedDataList/{uid}/{customer}")
-    public List<ScaledPlannedData> getScaledPlannedDataList(@PathVariable String uid, @PathVariable String customer){
+    @GetMapping("/api/v1/getScaledPlannedDataList/{customer}/{uid}")
+    public List<ScaledPlannedData> getScaledPlannedDataList(@PathVariable String customer, @PathVariable String uid){
         return dpvaService.getScaledPlannedDataList(uid,customer);
     }
 
