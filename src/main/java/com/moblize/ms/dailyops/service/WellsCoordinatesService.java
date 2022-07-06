@@ -758,7 +758,7 @@ public class WellsCoordinatesService {
 
             Map<String, RangeData> holeSectionRange = new HashMap<>();
             performanceWell.getHoleSectionRange().entrySet().forEach(sec -> {
-                holeSectionRange.put(getSectionKey(sec.getKey()), new RangeData(Math.round(sec.getValue().getStart()), Math.round(sec.getValue().getEnd()), Math.round(sec.getValue().getDiff())));
+                holeSectionRange.put(getSectionKey(sec.getKey()), new RangeData(Math.round(sec.getValue().getStart()), Math.round(sec.getValue().getEnd()), Math.round(sec.getValue().getDiff()),Math.round(sec.getValue().getTvdStart()),Math.round(sec.getValue().getTvdEnd())));
             });
             wellData = new WellData(performanceWell.getUid(), totalDays, footagePerDay, avgDLSBySection, avgMYBySection, avgDirectionAngle, avgDirection, holeSectionRange);
         } catch (Exception e) {

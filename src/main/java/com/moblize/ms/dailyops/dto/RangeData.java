@@ -19,4 +19,10 @@ public class RangeData {
     @ProtoField(number = 3)
     @JsonProperty("len")
     public Integer footageDrilled = 0;
+    @ProtoField(number = 4)
+    @JsonProperty("tvds")
+    public Integer tvDepthStart = 0;
+    @ProtoField(number = 5)
+    @JsonProperty("tvde")
+    public Integer tvDepthEnd = 0;
 }

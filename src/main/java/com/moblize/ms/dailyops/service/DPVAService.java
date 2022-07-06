@@ -1,6 +1,7 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
+import com.moblize.ms.dailyops.domain.ScaledPlannedData;
 import com.moblize.ms.dailyops.domain.mongo.PlannedDataDpva;
 import com.moblize.ms.dailyops.domain.mongo.SurveyDataDpva;
 import com.moblize.ms.dailyops.domain.mongo.SurveyTortuosityDPVA;
@@ -394,6 +395,18 @@ public class DPVAService {
 
         }
         return tortuosityDTO;
+    }
+
+    public Float getTrueVerticalDepth(String uid,String customer, double md){
+        List<ScaledPlannedData> scaledDataList = plannedDataDPVARepository.findByWellUidAndCustomer(uid, customer).getScaledPlannedData();
+        try{
+            Double tvd = scaledDataList.stream().filter(data->Double.compare(data.getMd(),md)==0).findFirst().get().getTvd();
+            return tvd.floatValue();
+        }
+        catch (Exception e){
+            log.error("Tvd not found for uid: {}, customer: {} , md: {}", uid, customer, md);
+            return 0f;
+        }
     }
 
     @Getter

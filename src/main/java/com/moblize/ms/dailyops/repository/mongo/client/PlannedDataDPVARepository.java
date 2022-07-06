@@ -12,5 +12,6 @@ public interface PlannedDataDPVARepository extends MongoRepository<PlannedDataDp
 
     PlannedDataDpva findFirstByWellUid(String uid);
     List<PlannedDataDpva> findByWellUidIn(List<String> uid);
+    PlannedDataDpva findByWellUidAndCustomer(String uid, String customer);
 
 }

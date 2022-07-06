@@ -493,5 +493,11 @@ public class DailyopsController {
         return bcwDepthLogPlotService.deleteBCWDepthLog(requestMap.get("bcwId"), requestMap.get("uid"));
     }
 
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/getTrueVerticalDepth/{uid}/{customer}/{md}")
+    public Float getTrueVerticalDepth(@PathVariable String uid, @PathVariable String customer, @PathVariable double md){
+        return dpvaService.getTrueVerticalDepth(uid, customer,md);
+    }
+
 
 }
