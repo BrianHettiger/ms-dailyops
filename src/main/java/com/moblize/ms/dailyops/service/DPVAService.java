@@ -397,15 +397,15 @@ public class DPVAService {
         return tortuosityDTO;
     }
 
-    public Float getTrueVerticalDepth(String uid,String customer, double md){
-        List<ScaledPlannedData> scaledDataList = plannedDataDPVARepository.findByWellUidAndCustomer(uid, customer).getScaledPlannedData();
+    public List<ScaledPlannedData> getScaledPlannedDataList(String uid, String customer){
+        List<ScaledPlannedData> scaledDataList;
         try{
-            Double tvd = scaledDataList.stream().filter(data->Double.compare(data.getMd(),md)==0).findFirst().get().getTvd();
-            return tvd.floatValue();
+            scaledDataList = plannedDataDPVARepository.findByWellUidAndCustomer(uid, customer).getScaledPlannedData();
+            return scaledDataList;
         }
         catch (Exception e){
-            log.error("Tvd not found for uid: {}, customer: {} , md: {}", uid, customer, md);
-            return 0f;
+            log.error("ScaledPlaanedData not found for uid: {}, customer: {}", uid, customer);
+            return null;
         }
     }
 

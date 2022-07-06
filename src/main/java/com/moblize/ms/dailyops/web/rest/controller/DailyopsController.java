@@ -1,6 +1,7 @@
 package com.moblize.ms.dailyops.web.rest.controller;
 
 import com.moblize.ms.dailyops.domain.PerformanceROP;
+import com.moblize.ms.dailyops.domain.ScaledPlannedData;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
@@ -494,9 +495,9 @@ public class DailyopsController {
     }
 
     @Transactional(readOnly = true)
-    @GetMapping("/api/v1/getTrueVerticalDepth/{uid}/{customer}/{md}")
-    public Float getTrueVerticalDepth(@PathVariable String uid, @PathVariable String customer, @PathVariable double md){
-        return dpvaService.getTrueVerticalDepth(uid, customer,md);
+    @GetMapping("/api/v1/getScaledPlannedDataList/{uid}/{customer}")
+    public List<ScaledPlannedData> getScaledPlannedDataList(@PathVariable String uid, @PathVariable String customer){
+        return dpvaService.getScaledPlannedDataList(uid,customer);
     }
 
 
