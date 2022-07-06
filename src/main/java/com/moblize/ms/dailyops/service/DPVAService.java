@@ -1,7 +1,7 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
-import com.moblize.ms.dailyops.domain.ScaledPlannedData;
+import com.moblize.ms.dailyops.domain.ScaledSurveyData;
 import com.moblize.ms.dailyops.domain.mongo.PlannedDataDpva;
 import com.moblize.ms.dailyops.domain.mongo.SurveyDataDpva;
 import com.moblize.ms.dailyops.domain.mongo.SurveyTortuosityDPVA;
@@ -397,14 +397,14 @@ public class DPVAService {
         return tortuosityDTO;
     }
 
-    public List<ScaledPlannedData> getScaledPlannedDataList(String uid, String customer){
-        List<ScaledPlannedData> scaledDataList;
+    public List<ScaledSurveyData> getScaledSurveyDataList(String uid, String customer){
+        List<ScaledSurveyData> scaledDataList;
         try{
-            scaledDataList = plannedDataDPVARepository.findByWellUidAndCustomer(uid, customer).getScaledPlannedData();
+            scaledDataList = surveyDataDPVARepository.findByWellUidAndCustomer(uid, customer).getScaledSurveyData();
             return scaledDataList;
         }
         catch (Exception e){
-            log.error("ScaledPlaanedData not found for uid: {}, customer: {}", uid, customer);
+            log.error("ScaledSurveyData not found for uid: {}, customer: {}", uid, customer);
             return null;
         }
     }
