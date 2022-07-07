@@ -11,5 +11,6 @@ public interface SurveyDataDPVARepository extends MongoRepository<SurveyDataDpva
 
     SurveyDataDpva findFirstByWellUid(String uid);
     List<SurveyDataDpva> findByWellUidIn(List<String> uid);
+    SurveyDataDpva findByWellUidAndCustomer(String uid, String customer);
 
 }

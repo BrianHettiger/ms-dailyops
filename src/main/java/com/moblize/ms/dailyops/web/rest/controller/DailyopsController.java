@@ -1,6 +1,7 @@
 package com.moblize.ms.dailyops.web.rest.controller;
 
 import com.moblize.ms.dailyops.domain.PerformanceROP;
+import com.moblize.ms.dailyops.domain.ScaledSurveyData;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
@@ -491,6 +492,12 @@ public class DailyopsController {
     @DeleteMapping("/api/v1/deleteBCWDepthPlotLog")
     public Object deleteBCWDepthLogPlot(@RequestBody Map<String, String>  requestMap){
         return bcwDepthLogPlotService.deleteBCWDepthLog(requestMap.get("bcwId"), requestMap.get("uid"));
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/getScaledSurveyDataList/{uid}/{customer}")
+    public List<ScaledSurveyData> getScaledSurveyDataList(@PathVariable String uid, @PathVariable String customer){
+        return dpvaService.getScaledSurveyDataList(uid,customer);
     }
 
 
