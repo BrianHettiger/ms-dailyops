@@ -58,15 +58,13 @@ public class CacheService {
 
         getWellCoordinatesCache().clear();
         log.info("Cache service start");
-        wellsCoordinatesService.getWellCoordinates(COMPANY_NAME, null);
         getTrueRopMetaCache().addClientListener(trueRopCacheListener);
-
-        DailyOpsLoadConfig dailyOpsLoadConfig = notifyDPVAService.getDailyOpsLoadConfig(COMPANY_NAME);
-        processPerformanceMapData(dailyOpsLoadConfig);
-
-        notifyDPVAService.loadDPVAData(COMPANY_NAME, dailyOpsLoadConfig);
         getSurveyDataCache().addClientListener(surveyDataCacheListener);
         getPlanDataCache().addClientListener(wellPlanDataCacheListener);
+        wellsCoordinatesService.getWellCoordinates(COMPANY_NAME, null);
+
+        DailyOpsLoadConfig dailyOpsLoadConfig = notifyDPVAService.getDailyOpsLoadConfig(COMPANY_NAME);
+        notifyDPVAService.loadDPVAData(COMPANY_NAME, dailyOpsLoadConfig);
         log.info("Cache service end");
     }
 
