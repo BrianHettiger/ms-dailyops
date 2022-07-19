@@ -63,8 +63,6 @@ public class CacheService {
         getPlanDataCache().addClientListener(wellPlanDataCacheListener);
         wellsCoordinatesService.getWellCoordinates(COMPANY_NAME, null);
 
-        DailyOpsLoadConfig dailyOpsLoadConfig = notifyDPVAService.getDailyOpsLoadConfig(COMPANY_NAME);
-        notifyDPVAService.loadDPVAData(COMPANY_NAME, dailyOpsLoadConfig);
         log.info("Cache service end");
     }
 
