@@ -109,7 +109,6 @@ public class NotifyDPVAService {
         return dailyOpsLoadConfig;
     }
 
-    @Async
     public void notifyDPVAJob(TargetWindowDPVA targetWindow, String wellStatus) {
         processDPVADataForWell(targetWindow, wellStatus);
     }
