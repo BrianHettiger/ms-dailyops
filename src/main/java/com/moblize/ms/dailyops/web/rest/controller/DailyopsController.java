@@ -7,13 +7,7 @@ import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
 import com.moblize.ms.dailyops.domain.mongo.TargetWindowDPVA;
-import com.moblize.ms.dailyops.dto.BCWDepthPlotDTO;
-import com.moblize.ms.dailyops.dto.BCWDepthPlotResponse;
-import com.moblize.ms.dailyops.dto.BHA;
-import com.moblize.ms.dailyops.dto.DPVARequestDTO;
-import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
-import com.moblize.ms.dailyops.dto.ResponseDTO;
-import com.moblize.ms.dailyops.dto.TortuosityRequestDTO;
+import com.moblize.ms.dailyops.dto.*;
 import com.moblize.ms.dailyops.service.AnalyticsWellMetaDataService;
 import com.moblize.ms.dailyops.service.BCWDepthLogPlotService;
 import com.moblize.ms.dailyops.service.CacheService;
@@ -117,6 +111,16 @@ public class DailyopsController {
         } else {
             return ResponseDTO.complete(wellsCoordinatesService.getWellCoordinates(customer, token));
         }
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v2/getLast4Wells")
+    public List<Last4WellsResponse> getTop4WellsByRig(
+        @RequestParam("rigId") String rigId, @RequestParam("customer") String customer,
+        @RequestHeader(value = "authorization", required = false) String token,
+        HttpServletResponse response) {
+        List<Last4WellsResponse> last4Wells = wellsCoordinatesService.getLast4Wells(rigId, token, customer);
+        return last4Wells;
     }
 
     @Transactional(readOnly = true)
