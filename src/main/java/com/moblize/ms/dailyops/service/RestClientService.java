@@ -1,5 +1,6 @@
 package com.moblize.ms.dailyops.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.service.dto.DPVAData;
 import com.moblize.ms.dailyops.service.dto.DPVAResult;
@@ -7,6 +8,7 @@ import com.moblize.ms.dailyops.service.dto.ProcessPerFeetRequestDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -14,16 +16,35 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 @Service
 @Slf4j
 @EnableAsync
 public class RestClientService {
-    private RestTemplate restTemplate = new RestTemplate();
+    static RestTemplate restTemplate = new RestTemplate();
+    static String LOGDATA_PATH = "log";
+    @Value("${api.central.nodedrilling.user}")
+    public String NODE_USER_NAME;
+    @Value("${api.central.nodedrilling.pwd}")
+    public String NODE_PASSWORD;
+    @Value("${api.defaulttenant.nodedrilling.base.url}")
+    public String NODE_DRILLING_SERVER_BASE_URL;
+
+    @Value("${api.defaulttenant.nextgen.user}")
+    public String NODE_NEXTGEN_USER_NAME;
+    @Value("${api.defaulttenant.nextgen.pwd}")
+    public String NODE_NEXTGEN_PASSWORD;
+    @Value("${api.defaulttenant.nextgen.base.url}")
+    public String NODE_NEXTGEN_SERVER_BASE_URL;
     @Value("${rest.wellformationetl.url}")
     private String wellformationetlUrl;
     @Value("${rest.wellformationetl.user}")
@@ -100,6 +121,22 @@ public class RestClientService {
         } catch (RestClientException e) {
             log.error("Error occur in processPerFeetData API call {}", processPerFeetRequestDTO.getWellUid(), e);
         }
+        return responseEntity;
+    }
+
+    public ResponseEntity<JsonNode> getLatestCustomChannel(Map<String, String> params) {
+        String url = NODE_DRILLING_SERVER_BASE_URL + LOGDATA_PATH;
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+        map.setAll(params);
+        URI uri = UriComponentsBuilder.newInstance()
+            .fromUriString(url)
+            .queryParams(map).build().toUri();
+        final ResponseEntity<JsonNode> responseEntity = restTemplate.exchange(
+            uri,
+            HttpMethod.GET,
+            new HttpEntity<>(createHeaders(NODE_USER_NAME, NODE_PASSWORD)),
+            new ParameterizedTypeReference<JsonNode>() {
+            });
         return responseEntity;
     }
 }
