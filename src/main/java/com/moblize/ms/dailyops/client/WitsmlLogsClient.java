@@ -1,5 +1,6 @@
 package com.moblize.ms.dailyops.client;
 
+import com.moblize.ms.dailyops.domain.mongo.MongoLog;
 import com.moblize.ms.dailyops.utils.JSONResult;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Lazy;
@@ -30,6 +31,9 @@ public interface WitsmlLogsClient {
         @RequestParam("indexChannels") Boolean indexChannels,
         @RequestParam("disableReduced") Boolean disableReduced
     );
+
+    @GetMapping(value = "getDepthLog")
+    MongoLog getDepthLog(@RequestParam("wellUid") String wellUid);
 
 
 }

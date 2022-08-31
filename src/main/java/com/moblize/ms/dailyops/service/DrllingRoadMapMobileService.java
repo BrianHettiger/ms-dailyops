@@ -1,16 +1,16 @@
 package com.moblize.ms.dailyops.service;
 
-import com.moblize.ms.dailyops.dao.WellWellboreDao;
+import com.moblize.ms.dailyops.client.AlarmDetailClient;
+import com.moblize.ms.dailyops.client.KpiDashboardClient;
+import com.moblize.ms.dailyops.client.WitsmlLogsClient;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.domain.mongo.DepthLogResponse;
 import com.moblize.ms.dailyops.domain.mongo.MongoLog;
 import com.moblize.ms.dailyops.dto.*;
-import com.moblize.ms.dailyops.repository.HoleSectionRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.service.dto.HoleSection;
 import com.moblize.ms.dailyops.service.dto.SurveyRecord;
 import com.moblize.ms.dailyops.utils.DrillerDashboardBuildAnalysis;
-import com.moblize.ms.dailyops.utils.uom.UOM;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,21 +36,16 @@ public class DrllingRoadMapMobileService {
     private String password;
     private static final String DEFAULT_WELLBORE_ID = "Wellbore1";
     @Autowired
-    private AvgPerStandUtil avgPerStandUtil;
-    @Autowired
-    private WellWellboreDao wellWellboreDao;
-    @Autowired
-    private WitsmlLogService service;
-    @Autowired
-    private HoleSectionRepository holeSectionRepository;
-    @Autowired
-    private DayVsDepthDAO dayVsDepthDAO;
-    @Autowired
-    private Logs logs;
-    @Autowired
     private MongoWellRepository mongoWellRepository;
     @Autowired
     private BCWDepthLogPlotService bcwDepthLogPlotService;
+    @Autowired
+    private WitsmlLogsClient witsmlLogsClient;
+    @Autowired
+    private KpiDashboardClient kpiDashboardClient;
+    @Autowired
+    private AlarmDetailClient alarmDetailClient;
+
     static RestTemplate restTemplate = new RestTemplate();
 
     private String getUserNameInSession() {
@@ -63,7 +58,7 @@ public class DrllingRoadMapMobileService {
 
     public DrillingRoadmapJsonResponse readMobile(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO) {
         DrillingRoadmapJsonResponse drillingRoadmapJsonResponses = new DrillingRoadmapJsonResponse();
-        try{
+        try {
             String userName = getUserNameInSession();
             drillingRoadmapJsonResponses = getDrillingRoadmapResponses(drillingRoadMapSearchDTO, userName);
         } catch (Exception e) {
@@ -73,7 +68,7 @@ public class DrllingRoadMapMobileService {
         return drillingRoadmapJsonResponses;
     }
 
-    public DrillingRoadmapJsonResponse getDrillingRoadmapResponses(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String userName) {
+    public DrillingRoadmapJsonResponse getDrillingRoadmapResponses(DrillingRoadMapSearchDTO requestDTO, String userName) {
 
         String currentMeasuredDepth = "";
         String currenttvd = "";
@@ -81,83 +76,82 @@ public class DrllingRoadMapMobileService {
         String currentAzimuth = "";
         String currentWellMudWeight = "";
         String paceSetterFormationWellUid = "";
-        String paceSetterFormationWellName ="";
-        String paceSetterWellboreUid="";
+        String paceSetterFormationWellName = "";
+        String paceSetterWellboreUid = "";
         String currentSection = "";
         String currentRigState = "";
         String currentWellFormation = "";
-        DrillingRoadmapJsonResponse drillingRoadmapJsonResponses = new DrillingRoadmapJsonResponse();
+        DrillingRoadmapJsonResponse response = new DrillingRoadmapJsonResponse();
 
         try {
 
-            currentMeasuredDepth = getMeasuredDepth(drillingRoadMapSearchDTO, currentMeasuredDepth);
+            currentMeasuredDepth = getMeasuredDepth(requestDTO);
 
-            // need to optimize AvgPerStandCalculation
-            List<SurveyRecord> surveyList = avgPerStandUtil.processAvgPerStandBasedOnSurvey(drillingRoadMapSearchDTO.getPrimaryWellUid(), DrillerDashboardBuildAnalysis.CHANNELS);
-            surveyList = UOM.convertFromMoblizeUnits(surveyList, UOM.SURVEY_RECORD_ATTRIBUTES);
-            if (!surveyList.isEmpty()) {
-                currenttvd = surveyList.get(surveyList.size() - 1).getTvd().toString();
-                currentInclination = surveyList.get(surveyList.size() - 1).getIncl().toString();
-                currentAzimuth = surveyList.get(surveyList.size() - 1).getAzimuth().toString();
+            SurveyRecord surveyRecord = alarmDetailClient.getLastSurveyData(requestDTO.getPrimaryWellUid(),
+                mongoWellRepository.findByUid(requestDTO.getPrimaryWellUid()).getStatusWell());
+            if (surveyRecord != null) {
+                currenttvd = surveyRecord.getTvd() != null ? surveyRecord.getTvd().toString() : "";
+                currentInclination = surveyRecord.getIncl() != null ? surveyRecord.getIncl().toString() : "";
+                currentAzimuth = surveyRecord.getAzimuth() != null ? surveyRecord.getAzimuth().toString() : "";
             }
 
 
-            currentRigState = getRigState(drillingRoadMapSearchDTO, currentMeasuredDepth);
+            currentRigState = getRigState(requestDTO, currentMeasuredDepth);
 
-            currentWellMudWeight = getWellMudWeight(drillingRoadMapSearchDTO, userName);
+            currentWellMudWeight = getWellMudWeight(requestDTO, userName);
 
-            BCWDepthPlotDTO bcwDepthPlotDTO = new BCWDepthPlotDTO(null,"bcwData", drillingRoadMapSearchDTO.getPrimaryWellUid(), drillingRoadMapSearchDTO.getOffsetWellUids(),0,0);
-            List<DrillingRoadMapWells> drillingRoadmap = bcwDepthLogPlotService.getDrillingRoadmap(bcwDepthPlotDTO);
+            BCWDepthPlotDTO bcwDepthPlotDTO = new BCWDepthPlotDTO(null, "bcwData", requestDTO.getPrimaryWellUid(), requestDTO.getOffsetWellUids(), 0, 0);
+            List<DrillingRoadMapWells> drillingRoadMap = bcwDepthLogPlotService.getDrillingRoadmap(bcwDepthPlotDTO);
 
-            drillingRoadmapJsonResponses = process(drillingRoadMapSearchDTO);
+            response.setBcwData(drillingRoadMap);
 
-            DrillingRoadmapJsonResponse.DrillingRoadMapWells currrentWellBcwFormationMap = drillingRoadmapJsonResponses.getPrimaryWellDrillingRoadMap() == null ? null : getDrillingRoadMapWells(drillingRoadmapJsonResponses);
+            DrillingRoadMapWells currrentWellBcwFormationMap = response.getPrimaryWellDrillingRoadMap() == null ? null : getDrillingRoadMapWells(response);
 
             if (currrentWellBcwFormationMap != null) {
                 currentWellFormation = currrentWellBcwFormationMap.getFormationName();
-                Optional<DrillingRoadmapJsonResponse.DrillingRoadMapWells> paceSetterFormation = drillingRoadmapJsonResponses.getFormationBcwData().stream().filter(formation ->
+                Optional<DrillingRoadMapWells> paceSetterFormation = response.getFormationBcwData().stream().filter(formation ->
                     formation.getFormationName().equalsIgnoreCase(currrentWellBcwFormationMap.getFormationName())
                 ).findFirst();
 
-                if(paceSetterFormation.isPresent()) {
+                if (paceSetterFormation.isPresent()) {
                     paceSetterFormationWellUid = paceSetterFormation.get().getWellUid();
                     MongoWell mongoWell = mongoWellRepository.findFirstByUid(paceSetterFormationWellUid);
                     paceSetterFormationWellName = mongoWell.getName();
-                    paceSetterWellboreUid=DEFAULT_WELLBORE_ID;
-                    drillingRoadmapJsonResponses.setPaceSetterFormationMap( paceSetterFormation.get());
+                    paceSetterWellboreUid = DEFAULT_WELLBORE_ID;
+                    response.setPaceSetterFormationMap(paceSetterFormation.get());
                 }
             }
 
-            currentSection = getCurrentSection(drillingRoadMapSearchDTO, currentMeasuredDepth);
+            currentSection = getCurrentSection(requestDTO, currentMeasuredDepth);
 
-            drillingRoadmapJsonResponses.setCurrentMeasuredDepth(currentMeasuredDepth);
-            drillingRoadmapJsonResponses.setCurrenttvd(currenttvd);
-            drillingRoadmapJsonResponses.setCurrentInclination(currentInclination);
-            drillingRoadmapJsonResponses.setCurrentAzimuth(currentAzimuth);
-            drillingRoadmapJsonResponses.setCurrentWellDepth(currentMeasuredDepth);
-            drillingRoadmapJsonResponses.setCurrentWellEndIndex(currentMeasuredDepth);
-            drillingRoadmapJsonResponses.setPaceSetterWellUid(paceSetterFormationWellUid);
-            drillingRoadmapJsonResponses.setPaceSetterWellName(paceSetterFormationWellName);
-            drillingRoadmapJsonResponses.setPaceSetterWellboreUid(paceSetterWellboreUid);
-            drillingRoadmapJsonResponses.setCurrentWellFormation(currentWellFormation);
-            drillingRoadmapJsonResponses.setCurrentSection(currentSection);
-            drillingRoadmapJsonResponses.setCurrentWellMudWeight(currentWellMudWeight);
-            drillingRoadmapJsonResponses.setCurrentRigState(currentRigState);
-            drillingRoadmapJsonResponses.setDaysVsAEF(getDaysVsAFE(drillingRoadMapSearchDTO));
-            drillingRoadmapJsonResponses.setCurrrentWellBcwFormationMap(currrentWellBcwFormationMap);
+            response.setCurrentMeasuredDepth(currentMeasuredDepth);
+            response.setCurrenttvd(currenttvd);
+            response.setCurrentInclination(currentInclination);
+            response.setCurrentAzimuth(currentAzimuth);
+            response.setCurrentWellDepth(currentMeasuredDepth);
+            response.setCurrentWellEndIndex(currentMeasuredDepth);
+            response.setPaceSetterWellUid(paceSetterFormationWellUid);
+            response.setPaceSetterWellName(paceSetterFormationWellName);
+            response.setPaceSetterWellboreUid(paceSetterWellboreUid);
+            response.setCurrentWellFormation(currentWellFormation);
+            response.setCurrentSection(currentSection);
+            response.setCurrentWellMudWeight(currentWellMudWeight);
+            response.setCurrentRigState(currentRigState);
+            //response.setDaysVsAEF(getDaysVsAFE(requestDTO));
+            response.setCurrrentWellBcwFormationMap(currrentWellBcwFormationMap);
 
 
         } catch (Exception exception) {
-            log.error("Error while processing the DrillingRoadMapPayLoad [process] for the payload :" + drillingRoadMapSearchDTO.toString(), exception);
+            log.error("Error while processing the DrillingRoadMapPayLoad [process] for the payload :" + requestDTO.toString(), exception);
         }
-        return drillingRoadmapJsonResponses;
+        return response;
     }
 
-    private DrillingRoadmapJsonResponse.DrillingRoadMapWells getDrillingRoadMapWells(DrillingRoadmapJsonResponse drillingRoadmapJsonResponses) {
-        List<DrillingRoadmapJsonResponse.DrillingRoadMapWells> primaryWellDrillingRoadMap = new ArrayList<>(drillingRoadmapJsonResponses.getPrimaryWellDrillingRoadMap());
-        primaryWellDrillingRoadMap.sort(new Comparator<DrillingRoadmapJsonResponse.DrillingRoadMapWells>() {
+    private DrillingRoadMapWells getDrillingRoadMapWells(DrillingRoadmapJsonResponse drillingRoadmapJsonResponses) {
+        List<DrillingRoadMapWells> primaryWellDrillingRoadMap = new ArrayList<>(drillingRoadmapJsonResponses.getPrimaryWellDrillingRoadMap());
+        primaryWellDrillingRoadMap.sort(new Comparator<DrillingRoadMapWells>() {
             @Override
-            public int compare(DrillingRoadmapJsonResponse.DrillingRoadMapWells drillingRoadMapWells1, DrillingRoadmapJsonResponse.DrillingRoadMapWells drillingRoadMapWells2) {
+            public int compare(DrillingRoadMapWells drillingRoadMapWells1, DrillingRoadMapWells drillingRoadMapWells2) {
                 int md1 = Integer.parseInt(drillingRoadMapWells1.getMD());
                 int md2 = Integer.parseInt(drillingRoadMapWells2.getMD());
                 if (md1 == md2) {
@@ -169,30 +163,20 @@ public class DrllingRoadMapMobileService {
         return primaryWellDrillingRoadMap != null && !primaryWellDrillingRoadMap.isEmpty() ? primaryWellDrillingRoadMap.get(primaryWellDrillingRoadMap.size() - 1) : null;
     }
 
-    private String getMeasuredDepth(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String currentMeasuredDepth) {
-        List<MongoLog> logs = service.getMongoWitsmlLogs(drillingRoadMapSearchDTO.getPrimaryWellUid());
-
-        for (MongoLog log : logs) {
-            if (log != null && "MEASURED_DEPTH".equals(log.getIndexType())) {
-                UOM.Range depthRange = UOM.convertFromMoblizeUnits(new UOM.Range(log), UOM.DEPTH_LOG_ATTRIBUTES);
-                log.setStartIndex(depthRange.getStartIndex().floatValue());
-                log.setEndIndex(depthRange.getEndIndex().floatValue());
-                currentMeasuredDepth = depthRange.getEndIndex().toString();
-            }
-        }
-        return currentMeasuredDepth;
+    private String getMeasuredDepth(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO) {
+        MongoLog logs = witsmlLogsClient.getDepthLog(drillingRoadMapSearchDTO.getPrimaryWellUid());
+        return logs.getUidWellbore();
     }
 
     private String getCurrentSection(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String currentMeasuredDepth) {
-        String currentSection;//Holesection
-        Long wellboreId = wellWellboreDao.getWellobreIdFromWellUid(drillingRoadMapSearchDTO.getPrimaryWellUid());
-        List<HoleSection> sections = holeSectionRepository.findByWellboreId(wellboreId);
-        sections = UOM.convertFromMoblizeUnits(sections, UOM.HOLE_SECTION_ATTRIBUTES);
+        String currentSection;
+        List<HoleSection> sections = kpiDashboardClient.getHoleSections(drillingRoadMapSearchDTO.getPrimaryWellUid());
         final Float finalCurrentMeasuredDepth = Float.parseFloat(currentMeasuredDepth);
         Optional<HoleSection> holesection = sections.stream().filter(section -> finalCurrentMeasuredDepth > section.getFromDepth() && finalCurrentMeasuredDepth <= section.getToDepth()).findFirst();
         currentSection = holesection.isPresent() ? holesection.get().getSection().name() : "";
         return currentSection;
     }
+
     public String getRigState(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String currentMeasuredDepth) {
         List<DepthLogResponse> data = null;
         if (drillingRoadMapSearchDTO != null) {
@@ -201,26 +185,24 @@ public class DrllingRoadMapMobileService {
             data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(), new ParameterizedTypeReference<LogResponse>() {
             }).getBody().getData();
         }
-        if(data!=null){
-            return data.get(data.size()-1).getRigState();
-        }
-        else{
+        if (data != null) {
+            return data.get(data.size() - 1).getRigState();
+        } else {
             return null;
         }
     }
 
 
     public String getWellMudWeight(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String userName) {
-        HashMap<String,Object> data = null;
+        HashMap<String, Object> data = null;
         if (drillingRoadMapSearchDTO != null) {
             String url = "http://172.31.2.228:9001/api/v1/" + "mudAnalysis?wellUid=" + drillingRoadMapSearchDTO.getPrimaryWellUid() + "&userName=" + userName;
-            data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(), new ParameterizedTypeReference<HashMap<String,Object>>() {
+            data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(), new ParameterizedTypeReference<HashMap<String, Object>>() {
             }).getBody();
         }
-        if(data!=null){
+        if (data != null) {
             return null;
-        }
-        else{
+        } else {
             return null;
         }
     }
