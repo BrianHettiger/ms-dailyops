@@ -10,7 +10,6 @@ import com.moblize.ms.dailyops.dto.*;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.service.dto.HoleSection;
 import com.moblize.ms.dailyops.service.dto.SurveyRecord;
-import com.moblize.ms.dailyops.utils.DrillerDashboardBuildAnalysis;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
