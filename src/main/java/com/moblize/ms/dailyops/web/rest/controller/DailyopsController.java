@@ -73,7 +73,7 @@ public class DailyopsController {
     private BCWDepthLogPlotService bcwDepthLogPlotService;
 
     @Autowired
-    private DrllingRoadMapMobileService drllingRoadMapMobileService;
+    private DrillingRoadMapMobileService drillingRoadMapMobileService;
 
 
     @Transactional(readOnly = true)
@@ -491,7 +491,7 @@ public class DailyopsController {
         if (drillingRoadMapSearchDTO == null || drillingRoadMapSearchDTO.getOffsetWellUids().size() < 0) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         } else {
-            drillingRoadmapJsonResponse = drllingRoadMapMobileService.readMobile(drillingRoadMapSearchDTO);
+            drillingRoadmapJsonResponse = drillingRoadMapMobileService.readMobile(drillingRoadMapSearchDTO);
         }
 
         return drillingRoadmapJsonResponse;

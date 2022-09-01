@@ -1,12 +1,15 @@
 package com.moblize.ms.dailyops.service;
 
+import com.moblize.core.model.dto.MudPropertiesDTO;
 import com.moblize.ms.dailyops.client.AlarmDetailClient;
 import com.moblize.ms.dailyops.client.KpiDashboardClient;
 import com.moblize.ms.dailyops.client.WitsmlLogsClient;
+import com.moblize.ms.dailyops.domain.DrillingProfileData;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.domain.mongo.DepthLogResponse;
 import com.moblize.ms.dailyops.domain.mongo.MongoLog;
 import com.moblize.ms.dailyops.dto.*;
+import com.moblize.ms.dailyops.repository.DrillingProfileDataRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.service.dto.HoleSection;
 import com.moblize.ms.dailyops.service.dto.SurveyRecord;
@@ -23,16 +26,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URLDecoder;
+import java.text.DecimalFormat;
 import java.util.*;
 
 @Slf4j
 @Service
-public class DrllingRoadMapMobileService {
+public class DrillingRoadMapMobileService {
 
     @Value("${api.central.nextgen.user}")
-    private String username;
+    private String nextgenUsername;
     @Value("${api.central.nextgen.pwd}")
-    private String password;
+    private String nextgenPassword;
+    @Value("${api.central.consumer-api.user}")
+    private String consumerUsername;
+    @Value("${api.central.consumer-api.pwd}")
+    private String consumerPwd;
     private static final String DEFAULT_WELLBORE_ID = "Wellbore1";
     @Autowired
     private MongoWellRepository mongoWellRepository;
@@ -44,6 +52,8 @@ public class DrllingRoadMapMobileService {
     private KpiDashboardClient kpiDashboardClient;
     @Autowired
     private AlarmDetailClient alarmDetailClient;
+    @Autowired
+    private DrillingProfileDataRepository drillingProfileDataRepository;
 
     static RestTemplate restTemplate = new RestTemplate();
 
@@ -85,19 +95,18 @@ public class DrllingRoadMapMobileService {
         try {
 
             currentMeasuredDepth = getMeasuredDepth(requestDTO);
-
+            String status = mongoWellRepository.findByUid(requestDTO.getPrimaryWellUid()).getStatusWell();
             SurveyRecord surveyRecord = alarmDetailClient.getLastSurveyData(requestDTO.getPrimaryWellUid(),
-                mongoWellRepository.findByUid(requestDTO.getPrimaryWellUid()).getStatusWell());
+                status);
             if (surveyRecord != null) {
                 currenttvd = surveyRecord.getTvd() != null ? surveyRecord.getTvd().toString() : "";
                 currentInclination = surveyRecord.getIncl() != null ? surveyRecord.getIncl().toString() : "";
                 currentAzimuth = surveyRecord.getAzimuth() != null ? surveyRecord.getAzimuth().toString() : "";
             }
 
-
             currentRigState = getRigState(requestDTO, currentMeasuredDepth);
 
-            currentWellMudWeight = getWellMudWeight(requestDTO, userName);
+            //currentWellMudWeight = getWellMudWeight(requestDTO.getPrimaryWellUid(), userName);
 
             BCWDepthPlotDTO bcwDepthPlotDTO = new BCWDepthPlotDTO(null, "bcwData", requestDTO.getPrimaryWellUid(), requestDTO.getOffsetWellUids(), 0, 0);
             List<DrillingRoadMapWells> drillingRoadMap = bcwDepthLogPlotService.getDrillingRoadmap(bcwDepthPlotDTO);
@@ -136,7 +145,7 @@ public class DrllingRoadMapMobileService {
             response.setCurrentSection(currentSection);
             response.setCurrentWellMudWeight(currentWellMudWeight);
             response.setCurrentRigState(currentRigState);
-            //response.setDaysVsAEF(getDaysVsAFE(requestDTO));
+            response.setDaysVsAEF(getDaysVsAFE(requestDTO));
             response.setCurrrentWellBcwFormationMap(currrentWellBcwFormationMap);
 
 
@@ -164,16 +173,78 @@ public class DrllingRoadMapMobileService {
 
     private String getMeasuredDepth(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO) {
         MongoLog logs = witsmlLogsClient.getDepthLog(drillingRoadMapSearchDTO.getPrimaryWellUid());
-        return logs.getUidWellbore();
+        return logs.getEndIndex().toString();
     }
 
     private String getCurrentSection(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String currentMeasuredDepth) {
         String currentSection;
         List<HoleSection> sections = kpiDashboardClient.getHoleSections(drillingRoadMapSearchDTO.getPrimaryWellUid());
         final Float finalCurrentMeasuredDepth = Float.parseFloat(currentMeasuredDepth);
-        Optional<HoleSection> holesection = sections.stream().filter(section -> finalCurrentMeasuredDepth > section.getFromDepth() && finalCurrentMeasuredDepth <= section.getToDepth()).findFirst();
+        Optional<HoleSection> holesection = Optional.empty();
+        if(sections!=null && !sections.isEmpty()) {
+            holesection = sections.stream().filter(section -> finalCurrentMeasuredDepth > section.getFromDepth() && finalCurrentMeasuredDepth <= section.getToDepth()).findFirst();
+        }
         currentSection = holesection.isPresent() ? holesection.get().getSection().name() : "";
         return currentSection;
+    }
+
+
+    private String getDaysVsAFE(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO) {
+        String daysVsAFE = "";
+        DecimalFormat decimalFormat = new DecimalFormat("#.00");
+        List<DrillingProfileData> drillingProfileDataList = drillingProfileDataRepository.findByWellUid(drillingRoadMapSearchDTO.getPrimaryWellUid());
+        List<Map<String, Object>> dayvdepthList = getDayVDepthList(drillingRoadMapSearchDTO.getPrimaryWellUid());
+        if (!dayvdepthList.isEmpty()) {
+            Map<String, Object> firstDvdPoint = dayvdepthList.isEmpty() ? null : dayvdepthList.get(0);
+            Map<String, Object> lastDvdPoint = dayvdepthList.isEmpty() ? null : dayvdepthList.get(dayvdepthList.size()-1);
+            float days = ((lastDvdPoint != null ? Float.valueOf(lastDvdPoint.getOrDefault("days", 0f).toString()) : 0f)
+                - (firstDvdPoint != null ? Float.valueOf(firstDvdPoint.getOrDefault("days", 0f).toString()) : 0f))
+                / (24 * 60 * 60 * 1000);
+            float depth = lastDvdPoint != null ? Float.valueOf(lastDvdPoint.getOrDefault("depth", 0).toString()) : 0f;
+
+            Float startDepth = firstDvdPoint != null ? Float.valueOf(firstDvdPoint.getOrDefault("depth", 0f).toString()) : 0;
+            float drillingProfileDays = 0.0f;
+
+
+            if (!drillingProfileDataList.isEmpty()) {
+                float daysAFE = drillingProfileDataList.get(drillingProfileDataList.size() - 1).getDays();
+                if (daysAFE < days) {
+                    drillingProfileDays = daysAFE;
+                } else {
+
+                    Optional<DrillingProfileData> drillingProfileEndPoint = drillingProfileDataList.stream().filter(drillingProfile -> drillingProfile.getHoleDepth() > depth).findFirst();
+
+                    if (drillingProfileEndPoint.isPresent()) {
+
+                        DrillingProfileData drillingProfileStartPoint = drillingProfileDataList.get(drillingProfileDataList.indexOf(drillingProfileEndPoint.get()) - 1);
+                        if (drillingProfileStartPoint != null) {
+                            float m = (drillingProfileEndPoint.get().getHoleDepth() - drillingProfileStartPoint.getHoleDepth()) / (drillingProfileEndPoint.get().getDays() - drillingProfileStartPoint.getDays());
+
+                            drillingProfileDays = (depth - drillingProfileStartPoint.getHoleDepth() + (m * drillingProfileStartPoint.getDays())) / m;
+                        }
+                    } else {
+                        drillingProfileDays = drillingProfileDataList.get(drillingProfileDataList.size() - 1).getDays();
+                    }
+                }
+                if (drillingProfileDays > days) {
+                    daysVsAFE = decimalFormat.format(drillingProfileDays - days) + " Days Ahead";
+                } else {
+                    daysVsAFE = decimalFormat.format(days - drillingProfileDays) + " Days Behind";
+                }
+            } else{
+                daysVsAFE = "No AFE Data";
+            }
+
+        } else {
+            daysVsAFE = "";
+        }
+
+        return daysVsAFE;
+    }
+
+    public List<Map<String, Object>> getDayVDepthList(String wellUid) {
+        Object dayVDepthLog = witsmlLogsClient.getDayVDepthLog(wellUid, DEFAULT_WELLBORE_ID, null, null, null, null, null, null, null);
+        return (List<Map<String, Object>>) dayVDepthLog;
     }
 
     public String getRigState(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String currentMeasuredDepth) {
@@ -181,22 +252,23 @@ public class DrllingRoadMapMobileService {
         if (drillingRoadMapSearchDTO != null) {
             String url = "http://172.31.2.228:5006/api/v1/" + "log?wellUid=" + drillingRoadMapSearchDTO.getPrimaryWellUid() + "&type=depth&startIndex="
                 + (Double.parseDouble(currentMeasuredDepth) - 50) + "&endIndex=" + currentMeasuredDepth + "&needToConvertRange=true";
-            data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(), new ParameterizedTypeReference<LogResponse>() {
+            data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(nextgenUsername,nextgenPassword), new ParameterizedTypeReference<LogResponse>() {
             }).getBody().getData();
         }
-        if (data != null) {
+        if (data != null && !data.isEmpty()) {
             return data.get(data.size() - 1).getRigState();
         } else {
             return null;
         }
     }
 
-
-    public String getWellMudWeight(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String userName) {
+    public String getWellMudWeight(String wellUid,String userName) {
         HashMap<String, Object> data = null;
-        if (drillingRoadMapSearchDTO != null) {
-            String url = "http://172.31.2.228:9001/api/v1/" + "mudAnalysis?wellUid=" + drillingRoadMapSearchDTO.getPrimaryWellUid() + "&userName=" + userName;
-            data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(), new ParameterizedTypeReference<HashMap<String, Object>>() {
+        Object data1 = null;
+        MudPropertiesDTO mudPropertiesDTO = null;
+        if (wellUid != null) {
+            String url = "http://172.31.2.228:9001/api/v1/" + "mudAnalysis?wellUid=" + wellUid + "&userName=" + "sandeepb@moblize.com";
+            data1 = restTemplate.exchange(url, HttpMethod.GET, createHeaders(consumerUsername, consumerPwd), new ParameterizedTypeReference<Object>() {
             }).getBody();
         }
         if (data != null) {
@@ -206,7 +278,7 @@ public class DrllingRoadMapMobileService {
         }
     }
 
-    private HttpEntity<String> createHeaders() {
+    private HttpEntity<String> createHeaders(String username, String password) {
         HttpHeaders headers = new HttpHeaders();
         String authStr = username + ":" + password;
         String base64Creds = Base64.getEncoder().encodeToString(authStr.getBytes());

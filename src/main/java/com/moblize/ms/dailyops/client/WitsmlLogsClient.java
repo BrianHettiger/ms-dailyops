@@ -35,5 +35,16 @@ public interface WitsmlLogsClient {
     @GetMapping(value = "getDepthLog")
     MongoLog getDepthLog(@RequestParam("wellUid") String wellUid);
 
-
+    @GetMapping(value = "logs/getdayvdepthlog")
+    Object getDayVDepthLog(
+        @RequestParam("wellUid") String wellUid,
+        @RequestParam("wellboreUid") String wellboreUid,
+        @RequestParam("filter") String filter,
+        @RequestParam("scenarioId") String scenarioId,
+        @RequestParam("isTimeSelected") Boolean isTimeSelected,
+        @RequestParam("fromDate") String fromDate,
+        @RequestParam("toDate") String toDate,
+        @RequestParam("fromDepth") String fromDepth,
+        @RequestParam("toDepth") String toDepth
+    );
 }
