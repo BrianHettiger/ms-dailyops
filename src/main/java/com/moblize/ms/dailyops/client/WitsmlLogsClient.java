@@ -1,9 +1,11 @@
 package com.moblize.ms.dailyops.client;
 
+import com.moblize.ms.dailyops.domain.FormationMarker;
 import com.moblize.ms.dailyops.domain.mongo.MongoLog;
 import com.moblize.ms.dailyops.utils.JSONResult;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -17,6 +19,13 @@ public interface WitsmlLogsClient {
     @GetMapping(value = "formationmarkers/read")
     JSONResult getFormationMarkers(
         @RequestParam("wellUid") String wellUid,
+        @RequestParam("wellboreUid") String wellboreUid
+    );
+
+    @Transactional(readOnly = true)
+    @GetMapping(value = "formationmarkers/readAll")
+    JSONResult getFormationMarkersForWells(
+        @RequestParam("wellUids") List<String> wellUids,
         @RequestParam("wellboreUid") String wellboreUid
     );
 

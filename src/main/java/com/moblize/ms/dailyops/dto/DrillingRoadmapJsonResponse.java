@@ -1,5 +1,6 @@
 package com.moblize.ms.dailyops.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.List;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(value = {"bcwData"})
 public class DrillingRoadmapJsonResponse {
 
 	private String currentMeasuredDepth;
@@ -31,10 +33,22 @@ public class DrillingRoadmapJsonResponse {
 	private String currentWellFormation;
 	private String daysVsAEF;
 	private transient List<DrillingRoadMapWells> bcwData = new ArrayList<>();
-	private List<DrillingRoadMapWells> averageData = new ArrayList<>();
+	private List<AverageData> averageData = new ArrayList<>();
 	private List<DrillingRoadMapWells> primaryWellDrillingRoadMap = new ArrayList<>();
 	private List<DrillingRoadMapWells> formationBcwData = new ArrayList<>();
 	private DrillingRoadMapWells currrentWellBcwFormationMap = new DrillingRoadMapWells();
 	private DrillingRoadMapWells paceSetterFormationMap = new DrillingRoadMapWells();
+
+    @Data
+    public static class AverageData{
+        private String FormationName;
+        private String MudFlowInAvg;
+        private String SurfaceTorqueMax;
+        private String PumpPress;
+        private String WeightonBitMax;
+        private String ROPAvg;
+        private String RPMA;
+        private String DiffPressure;
+    }
 
 }
