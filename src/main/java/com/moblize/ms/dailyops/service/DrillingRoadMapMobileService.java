@@ -349,8 +349,8 @@ public class DrillingRoadMapMobileService {
         List<MudProperties> data = null;
         Object data1 = null;
         if (wellUid != null) {
-            String url = consumerUri + "mudAnalysis?wellUid=" + wellUid;
-            data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(consumerUsername, consumerPwd), new ParameterizedTypeReference<List<MudProperties>>() {
+            String url = "http://172.31.2.228:9001/api/v1/" + "mudAnalysis?wellUid=" + wellUid;
+            data = restTemplate.exchange(url, HttpMethod.GET, createHeaders("admin@moblize.com", "Demodarp1"), new ParameterizedTypeReference<List<MudProperties>>() {
             }).getBody();
         }
         if (data != null && !data.isEmpty()) {
