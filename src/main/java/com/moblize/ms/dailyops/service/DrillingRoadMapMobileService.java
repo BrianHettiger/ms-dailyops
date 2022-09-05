@@ -356,7 +356,7 @@ public class DrillingRoadMapMobileService {
     public CompletableFuture<String> getRigState(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String currentMeasuredDepth) {
         List<DepthLogResponse> data = null;
         if (drillingRoadMapSearchDTO != null) {
-            String url = nextgenURL + "log?wellUid=" + drillingRoadMapSearchDTO.getPrimaryWellUid() + "&type=depth&startIndex="
+            String url = "http://172.31.2.228:5006/api/v1/" + "log?wellUid=" + drillingRoadMapSearchDTO.getPrimaryWellUid() + "&type=depth&startIndex="
                 + (Double.parseDouble(currentMeasuredDepth) - 50) + "&endIndex=" + currentMeasuredDepth + "&needToConvertRange=true";
             data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(nextgenUsername,nextgenPassword), new ParameterizedTypeReference<LogResponse>() {
             }).getBody().getData();
@@ -373,7 +373,7 @@ public class DrillingRoadMapMobileService {
         List<MudProperties> data = null;
         Object data1 = null;
         if (wellUid != null) {
-            String url = consumerUri + "mudAnalysis?wellUid=" + wellUid;
+            String url = "http://172.31.2.228:9001/api/v1/" + "mudAnalysis?wellUid=" + wellUid;
             data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(consumerUsername, consumerPwd), new ParameterizedTypeReference<List<MudProperties>>() {
             }).getBody();
         }
