@@ -10,8 +10,6 @@ import java.util.List;
  * Drilling Road map Data for display
  */
 @Data @Builder
-@Getter
-@Setter
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
@@ -41,14 +39,14 @@ public class DrillingRoadmapJsonResponse {
 
     @Data
     public static class AverageData{
-        private String FormationName;
-        private String MudFlowInAvg;
-        private String SurfaceTorqueMax;
-        private String PumpPress;
-        private String WeightonBitMax;
+        private String formationName;
+        private String mudFlowInAvg;
+        private String surfaceTorqueMax;
+        private String pumpPress;
+        private String weightonBitMax;
         private String ROPAvg;
         private String RPMA;
-        private String DiffPressure;
+        private String diffPressure;
     }
 
 }

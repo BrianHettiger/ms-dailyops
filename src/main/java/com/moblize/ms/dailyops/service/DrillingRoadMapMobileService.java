@@ -74,6 +74,7 @@ public class DrillingRoadMapMobileService {
 
     static RestTemplate restTemplate = new RestTemplate();
     public DrillingRoadmapJsonResponse readMobile(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO) {
+        long startTime = System.currentTimeMillis();
         DrillingRoadmapJsonResponse drillingRoadmapJsonResponses = new DrillingRoadmapJsonResponse();
         try {
             drillingRoadmapJsonResponses = getDrillingRoadmapResponses(drillingRoadMapSearchDTO);
@@ -81,6 +82,7 @@ public class DrillingRoadMapMobileService {
             log.error("Error occurred while serving Drilling Drag Average data API", e);
             throw new RuntimeException("Error occurred while serving Drilling Drag Average data API", e);
         }
+        log.info("Drilling RoadMap mobile data API served in time: {}.", System.currentTimeMillis() - startTime);
         return drillingRoadmapJsonResponses;
     }
 
@@ -157,6 +159,9 @@ public class DrillingRoadMapMobileService {
             response.setCurrentRigState(currentRigState);
             response.setDaysVsAEF(daysVsAFEFuture.get());
             response.setCurrrentWellBcwFormationMap(currrentWellBcwFormationMap);
+            if(response.getCurrrentWellBcwFormationMap()==null){
+                response.setAverageData(Collections.emptyList());
+            }
         } catch (Exception exception) {
             log.error("Error while processing the DrillingRoadMapPayLoad [process] for the payload :" + requestDTO.toString(), exception);
         }

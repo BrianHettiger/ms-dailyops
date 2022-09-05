@@ -97,45 +97,6 @@ public class WellFormationDAO {
         }
         return result;
     }
-    @Async
-    public CompletableFuture<List<DrillingRoadMapWells>> getPrimaryWellDrillingData(String wellUid) {
-        List<WellFormation> ret = new ArrayList<>();
-        List<DrillingRoadMapWells> result = new ArrayList<>();
-        try {
-            Long startTime = System.currentTimeMillis();
-            StringBuilder bcwQueryStr = new StringBuilder();
-            bcwQueryStr .append(" select wf FROM WellFormation  wf  where wellUID = (:wellUid)  ");
-            bcwQueryStr.append(" order by startDepth ASC");
-
-            Query bcwQuery = genericCustomRepository.find(bcwQueryStr.toString());
-            bcwQuery.setParameter("wellUid", wellUid);
-            ret =  (List<WellFormation>)bcwQuery.getResultList();
-
-            result = ret.stream().map(entity -> {
-                DrillingRoadMapWells wellsFormation = new DrillingRoadMapWells();
-                wellsFormation.setWellUid(entity.getWellUID());
-                wellsFormation.setMD(String.valueOf((int)entity.getStartDepth()));
-                wellsFormation.setFormationName(entity.getFormationName());
-                wellsFormation.setMudFlowInAvg(String.valueOf((int)entity.getMudFlowAvg()));
-                wellsFormation.setSurfaceTorqueMax(String.valueOf((int)entity.getSurfaceTorqueMax()));
-                wellsFormation.setPumpPress(String.valueOf((int)entity.getPumpPressureAvg()));
-                wellsFormation.setWeightonBitMax(String.valueOf((int)entity.getWeightOnBitMax()));
-                wellsFormation.setROPAvg(String.valueOf((int)entity.getHighestRopAvg()));
-                wellsFormation.setHoleSize(String.valueOf((float)entity.getHoleSize()));
-                wellsFormation.setRPMA(String.valueOf((int)entity.getRpmaAvg()));
-                wellsFormation.setDiffPressure(String.valueOf((int)entity.getDiffPressureAvg()));
-                wellsFormation.setAnnotationText("");
-                return wellsFormation;
-            }).collect(Collectors.toList());
-
-            MetricsLogger.dbTime(well_formation, startTime, System.currentTimeMillis());
-            MetricsLogger.dbCount(well_formation, result.size());
-            log.info("Query: PrimaryWellDrillingData calculated for wells took : {}s, size: {}", System.currentTimeMillis() - startTime, result.size());
-        } catch (Exception e) {
-            log.error( "Error:",e);
-        }
-        return CompletableFuture.completedFuture(result);
-    }
 
     public  List<DrillingRoadMapWells> getBcwData(List<String> wellUid) {
         List<WellFormation> ret = new ArrayList<>();
@@ -159,7 +120,7 @@ public class WellFormationDAO {
                 wellsFormation.setPumpPress(String.valueOf((int)entity.getPumpPressureAvg()));
                 wellsFormation.setWeightonBitMax(String.valueOf((int)entity.getWeightOnBitMax()));
                 wellsFormation.setROPAvg(String.valueOf((int)entity.getHighestRopAvg()));
-                wellsFormation.setHoleSize(String.valueOf((float)entity.getHoleSize()));
+                wellsFormation.setHoleSize(String.valueOf((int)entity.getHoleSize()));
                 wellsFormation.setRPMA(String.valueOf((int)entity.getRpmaAvg()));
                 wellsFormation.setDiffPressure(String.valueOf((int)entity.getDiffPressureAvg()));
                 wellsFormation.setAnnotationText("");
