@@ -40,11 +40,11 @@ import java.util.stream.Collectors;
 @Service
 public class DrillingRoadMapMobileService {
 
-    @Value("${rest.nextgen.url}")
-    private String nextgenURL;
-    @Value("${rest.nextgen.user}")
+    @Value("${rest.nodedrilling.url}")
+    private String nodeDrillingURL;
+    @Value("${rest.nodedrilling.user}")
     private String nextgenUsername;
-    @Value("${rest.nextgen.pwd}")
+    @Value("${rest.nodedrilling.pwd}")
     private String nextgenPassword;
     @Value("${rest.consumer-api.url}")
     private String consumerUri;
@@ -366,7 +366,7 @@ public class DrillingRoadMapMobileService {
     public CompletableFuture<String> getRigState(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String currentMeasuredDepth) {
         List<DepthLogResponse> data = null;
         if (drillingRoadMapSearchDTO != null) {
-            String url = nextgenURL + "log?wellUid=" + drillingRoadMapSearchDTO.getPrimaryWellUid() + "&type=depth&startIndex="
+            String url = nodeDrillingURL + "log?wellUid=" + drillingRoadMapSearchDTO.getPrimaryWellUid() + "&type=depth&startIndex="
                 + (Double.parseDouble(currentMeasuredDepth) - 50) + "&endIndex=" + currentMeasuredDepth + "&needToConvertRange=true";
             data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(nextgenUsername,nextgenPassword), new ParameterizedTypeReference<LogResponse>() {
             }).getBody().getData();
