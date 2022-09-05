@@ -170,7 +170,12 @@ public class DrillingRoadMapMobileService {
 
     @Async
     private CompletableFuture<String> getStatus(String wellUid){
-        return CompletableFuture.completedFuture(mongoWellRepository.findByUid(wellUid).getStatusWell());
+        String statusWell = mongoWellRepository.findByUid(wellUid).getStatusWell();
+        if(null!=statusWell) {
+            return CompletableFuture.completedFuture(mongoWellRepository.findByUid(wellUid).getStatusWell());
+        }else {
+            return CompletableFuture.completedFuture("");
+        }
     }
 
     @Async
