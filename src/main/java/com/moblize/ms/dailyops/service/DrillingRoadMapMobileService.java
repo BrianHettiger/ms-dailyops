@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 public class DrillingRoadMapMobileService {
 
     @Value("${api.central.nextgen.base.url}")
-    private String rootURL;
+    private String nextgenURL;
     @Value("${api.central.nextgen.user}")
     private String nextgenUsername;
     @Value("${api.central.nextgen.pwd}")
@@ -113,7 +113,10 @@ public class DrillingRoadMapMobileService {
                 currentAzimuth = surveyRecord.getAzimuth() != null ? surveyRecord.getAzimuth().toString() : "";
             }
 
+            // to calculate primary well data and average data.
             processBcwData(response, requestDTO.getPrimaryWellUid());
+
+            // to Calculate paceSetterFormation data.
             DrillingRoadMapWells currrentWellBcwFormationMap = response.getPrimaryWellDrillingRoadMap() == null ? null : getDrillingRoadMapWells(response);
             response.setFormationBcwData(bcwFormationDataFuture.get());
             if (currrentWellBcwFormationMap != null) {
@@ -130,9 +133,15 @@ public class DrillingRoadMapMobileService {
                 }
             }
             currentMeasuredDepth = currentMeasuredDepthFuture.get();
-            currentSection = getCurrentSection(requestDTO, currentMeasuredDepth);
             currentWellMudWeight = currentWellMudWeightFuture.get();
-            currentRigState = getRigState(requestDTO, currentMeasuredDepth);
+
+            // to get the current rig state and section.
+            CompletableFuture<String> currentSectionFuture = getCurrentSection(requestDTO, currentMeasuredDepth);
+            CompletableFuture<String> rigStateFuture = getRigState(requestDTO, currentMeasuredDepth);
+            CompletableFuture.allOf(currentSectionFuture,rigStateFuture).join();
+            currentRigState = rigStateFuture.get();
+            currentSection = currentSectionFuture.get();
+
             response.setCurrentMeasuredDepth(currentMeasuredDepth);
             response.setCurrenttvd(currenttvd);
             response.setCurrentInclination(currentInclination);
@@ -256,8 +265,8 @@ public class DrillingRoadMapMobileService {
         MongoLog logs = witsmlLogsClient.getDepthLog(drillingRoadMapSearchDTO.getPrimaryWellUid());
         return CompletableFuture.completedFuture(logs.getEndIndex().toString());
     }
-
-    private String getCurrentSection(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String currentMeasuredDepth) {
+    @Async
+    private CompletableFuture<String> getCurrentSection(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String currentMeasuredDepth) {
         String currentSection;
         List<HoleSection> sections = kpiDashboardClient.getHoleSections(drillingRoadMapSearchDTO.getPrimaryWellUid());
         final Float finalCurrentMeasuredDepth = Float.parseFloat(currentMeasuredDepth);
@@ -266,18 +275,32 @@ public class DrillingRoadMapMobileService {
             holesection = sections.stream().filter(section -> finalCurrentMeasuredDepth > section.getFromDepth() && finalCurrentMeasuredDepth <= section.getToDepth()).findFirst();
         }
         currentSection = holesection.isPresent() ? holesection.get().getSection().name() : "";
-        return currentSection;
+        return CompletableFuture.completedFuture(currentSection);
+    }
+
+    @Async
+    private CompletableFuture<List<DrillingProfileData>> getDrillingProfileData(String wellUid) {
+        return CompletableFuture.completedFuture(drillingProfileDataRepository.findByWellUid((wellUid)));
     }
 
     @Async
     private CompletableFuture<String> getDaysVsAFE(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO) {
         String daysVsAFE = "";
         DecimalFormat decimalFormat = new DecimalFormat("#.00");
-        List<DrillingProfileData> drillingProfileDataList = drillingProfileDataRepository.findByWellUid(drillingRoadMapSearchDTO.getPrimaryWellUid());
-        List<Map<String, Object>> dayvdepthList = getDayVDepthList(drillingRoadMapSearchDTO.getPrimaryWellUid());
-        if (!dayvdepthList.isEmpty()) {
-            Map<String, Object> firstDvdPoint = dayvdepthList.isEmpty() ? null : dayvdepthList.get(0);
-            Map<String, Object> lastDvdPoint = dayvdepthList.isEmpty() ? null : dayvdepthList.get(dayvdepthList.size()-1);
+        List<DrillingProfileData> drillingProfileDataList = null;
+        List<Map<String, Object>> dayVsDepthList = null;
+        try {
+            CompletableFuture<List<DrillingProfileData>> drillingProfileDataFuture = getDrillingProfileData(drillingRoadMapSearchDTO.getPrimaryWellUid());
+            CompletableFuture<List<Map<String, Object>>> dayVDepthListFuture = getDayVDepthList(drillingRoadMapSearchDTO.getPrimaryWellUid());
+            CompletableFuture.allOf(drillingProfileDataFuture,dayVDepthListFuture).join();
+            drillingProfileDataList = drillingProfileDataFuture.get();
+            dayVsDepthList= dayVDepthListFuture.get();
+        } catch (Exception e){
+            log.error("Error while calculating daysVsAFE data for wells",e);
+        }
+        if (null!=dayVsDepthList && !dayVsDepthList.isEmpty()) {
+            Map<String, Object> firstDvdPoint = dayVsDepthList.isEmpty() ? null : dayVsDepthList.get(0);
+            Map<String, Object> lastDvdPoint = dayVsDepthList.isEmpty() ? null : dayVsDepthList.get(dayVsDepthList.size()-1);
             float days = ((lastDvdPoint != null ? Float.valueOf(lastDvdPoint.getOrDefault("days", 0f).toString()) : 0f)
                 - (firstDvdPoint != null ? Float.valueOf(firstDvdPoint.getOrDefault("days", 0f).toString()) : 0f))
                 / (24 * 60 * 60 * 1000);
@@ -287,7 +310,7 @@ public class DrillingRoadMapMobileService {
             float drillingProfileDays = 0.0f;
 
 
-            if (!drillingProfileDataList.isEmpty()) {
+            if (null!=drillingProfileDataList && !drillingProfileDataList.isEmpty()) {
                 float daysAFE = drillingProfileDataList.get(drillingProfileDataList.size() - 1).getDays();
                 if (daysAFE < days) {
                     drillingProfileDays = daysAFE;
@@ -323,24 +346,25 @@ public class DrillingRoadMapMobileService {
         return CompletableFuture.completedFuture(daysVsAFE);
     }
 
-    public List<Map<String, Object>> getDayVDepthList(String wellUid) {
+    @Async
+    public CompletableFuture<List<Map<String, Object>>> getDayVDepthList(String wellUid) {
         Object dayVDepthLog = witsmlLogsClient.getDayVDepthLog(wellUid, DEFAULT_WELLBORE_ID, null, null, null, null, null, null, null);
-        return (List<Map<String, Object>>) dayVDepthLog;
+        return CompletableFuture.completedFuture((List<Map<String, Object>>) dayVDepthLog);
     }
 
     @Async
-    public String getRigState(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String currentMeasuredDepth) {
+    public CompletableFuture<String> getRigState(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String currentMeasuredDepth) {
         List<DepthLogResponse> data = null;
         if (drillingRoadMapSearchDTO != null) {
-            String url = "http://172.31.2.228:5006/api/v1/" + "log?wellUid=" + drillingRoadMapSearchDTO.getPrimaryWellUid() + "&type=depth&startIndex="
+            String url = nextgenURL + "log?wellUid=" + drillingRoadMapSearchDTO.getPrimaryWellUid() + "&type=depth&startIndex="
                 + (Double.parseDouble(currentMeasuredDepth) - 50) + "&endIndex=" + currentMeasuredDepth + "&needToConvertRange=true";
             data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(nextgenUsername,nextgenPassword), new ParameterizedTypeReference<LogResponse>() {
             }).getBody().getData();
         }
         if (data != null && !data.isEmpty()) {
-            return data.get(data.size() - 1).getRigState();
+            return CompletableFuture.completedFuture(data.get(data.size() - 1).getRigState());
         } else {
-            return "";
+            return CompletableFuture.completedFuture("");
         }
     }
 
@@ -349,8 +373,8 @@ public class DrillingRoadMapMobileService {
         List<MudProperties> data = null;
         Object data1 = null;
         if (wellUid != null) {
-            String url = "http://172.31.2.228:9001/api/v1/" + "mudAnalysis?wellUid=" + wellUid;
-            data = restTemplate.exchange(url, HttpMethod.GET, createHeaders("admin@moblize.com", "Demodarp1"), new ParameterizedTypeReference<List<MudProperties>>() {
+            String url = consumerUri + "mudAnalysis?wellUid=" + wellUid;
+            data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(consumerUsername, consumerPwd), new ParameterizedTypeReference<List<MudProperties>>() {
             }).getBody();
         }
         if (data != null && !data.isEmpty()) {
