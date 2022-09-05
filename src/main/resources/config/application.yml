@@ -239,6 +239,14 @@ rest:
     url: ${api.defaulttenant.nodedrilling.base.url}
     user: ${api.defaulttenant.nodedrilling.user}
     pwd: ${api.defaulttenant.nodedrilling.pwd}
+  nextgen:
+    url: ${api.defaulttenant.nextgen.base.url}
+    user: ${api.defaulttenant.nextgen.user}
+    pwd: ${api.defaulttenant.nextgen.pwd}
+  consumer-api:
+    url: ${api.central.consumer-api.base.url}
+    user: ${api.central.consumer-api.user}
+    pwd: ${api.central.consumer-api.pwd}
   analytics.service:
     url: ${api.central.ms.analytics.service.base.url}
     user: ${api.central.ms.analytics.service.user}
