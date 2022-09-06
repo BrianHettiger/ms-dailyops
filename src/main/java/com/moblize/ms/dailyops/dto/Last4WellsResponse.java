@@ -2,6 +2,7 @@ package com.moblize.ms.dailyops.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.moblize.ms.dailyops.service.dto.HoleSection;
 import lombok.*;
 import org.infinispan.protostream.annotations.ProtoField;
 
@@ -59,5 +60,8 @@ public class Last4WellsResponse {
     SectionDataDirection avgDirection;
     @JsonProperty("hs")
     Map<String, RangeData> holeSectionRange = Map.of("a", new RangeData(), "c", new RangeData(),"i", new RangeData(),"l", new RangeData(),"s", new RangeData());
-
+    @JsonProperty("sectionConnections")
+    Map<String,Double> sectionConnections;
+    @JsonProperty("trippingData")
+    Map<String, Map<HoleSection.HoleSectionType, Float>> trippingData;
 }

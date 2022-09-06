@@ -2,6 +2,7 @@ package com.moblize.ms.dailyops.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.moblize.ms.dailyops.client.KpiDashboardClient;
 import com.moblize.ms.dailyops.dao.WellsCoordinatesDao;
 import com.moblize.ms.dailyops.domain.MongoWell;
 import com.moblize.ms.dailyops.domain.PerformanceROP;
@@ -16,6 +17,7 @@ import com.moblize.ms.dailyops.repository.mongo.client.PerformanceROPRepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceWellRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.security.jwt.TokenProvider;
+import com.moblize.ms.dailyops.service.dto.HoleSection;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.infinispan.client.hotrod.RemoteCache;
@@ -58,6 +60,8 @@ public class WellsCoordinatesService {
     private RestClientService restClientService;
     @Autowired
     private MobMongoQueryService mobMongoQueryService;
+    @Autowired
+    private KpiDashboardClient kpiDashboardClient;
     @Autowired
     @Lazy
     private CacheService cacheService;
@@ -160,15 +164,15 @@ public class WellsCoordinatesService {
             rigWells= rigWells.subList(0,3);
         }
         if(rigWells!=null && rigWells.size()>0){
-            List<Last4WellsResponse> last4Wells = rigWells.stream().map(well -> populateLast4WellsData(well)).collect(Collectors.toList());
+            final Map<String, ROPs> wellROPsMap = getWellROPsMap();
+            final Map<String, WellData> wellMap = getWellDataMap();
+            List<Last4WellsResponse> last4Wells = rigWells.stream().map(well -> populateLast4WellsData(well,wellROPsMap,wellMap)).collect(Collectors.toList());
             return last4Wells;
         }
         return null;
     }
 
-    private Last4WellsResponse populateLast4WellsData(MongoWell well){
-        final Map<String, ROPs> wellROPsMap = getWellROPsMap();
-        final Map<String, WellData> wellMap = getWellDataMap();
+    private Last4WellsResponse populateLast4WellsData(MongoWell well, Map<String, ROPs> wellROPsMap, Map<String, WellData> wellMap){
 
         try {
             Last4WellsResponse last4WellsResponse =  new Last4WellsResponse();
@@ -197,6 +201,9 @@ public class WellsCoordinatesService {
             last4WellsResponse.setAvgMYBySection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgMYBySection());
             last4WellsResponse.setAvgDirectionAngle(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDirectionAngle());
             last4WellsResponse.setAvgDirection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDirection());
+          //  last4WellsResponse.setSectionConnections(kpiDashboardClient.getSectionConnections(well.getUid()));
+            Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>> trippingData = kpiDashboardClient.getKpiExtractionByWellId(well.getUid());
+            last4WellsResponse.setTrippingData(trippingData.get(well.getUid()));
             return last4WellsResponse;
         }catch (Exception exp){
             log.error("Error occurred while processing well: {}", well.getUid(), exp);
