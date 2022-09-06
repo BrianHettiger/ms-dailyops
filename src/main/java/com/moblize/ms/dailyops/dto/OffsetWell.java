@@ -64,9 +64,9 @@ public class OffsetWell {
     @JsonProperty("regionId")
     private String regionId;
     @JsonProperty("createdAt")
-    private Integer createdAt;
+    private Long createdAt;
     @JsonProperty("completedAt")
-    private Integer completedAt;
+    private Long completedAt;
     @JsonProperty("timeZone")
     private String timeZone;
     @JsonProperty("rigs")

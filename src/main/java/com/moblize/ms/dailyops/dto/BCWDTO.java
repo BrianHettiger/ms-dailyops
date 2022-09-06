@@ -21,7 +21,5 @@ public class BCWDTO {
     private Map<String, List<WellPlan>> wellsMongoLog;
     private OffSetWellByDistance wellListByDistance;
     private int bcwCount;
-
-
     private Map<String, Double> wellROP;
 }
