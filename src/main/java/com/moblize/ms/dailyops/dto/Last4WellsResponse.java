@@ -63,5 +63,5 @@ public class Last4WellsResponse {
     @JsonProperty("sectionConnections")
     Map<String,Double> sectionConnections;
     @JsonProperty("trippingData")
-    Map<String, Map<HoleSection.HoleSectionType, Float>> trippingData;
+    Map<String, Map<String, Float>> trippingData;
 }

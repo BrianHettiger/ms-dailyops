@@ -201,9 +201,20 @@ public class WellsCoordinatesService {
             last4WellsResponse.setAvgMYBySection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgMYBySection());
             last4WellsResponse.setAvgDirectionAngle(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDirectionAngle());
             last4WellsResponse.setAvgDirection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDirection());
-          //  last4WellsResponse.setSectionConnections(kpiDashboardClient.getSectionConnections(well.getUid()));
+            last4WellsResponse.setSectionConnections(kpiDashboardClient.getSectionConnections(well.getUid()));
             Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>> trippingData = kpiDashboardClient.getKpiExtractionByWellId(well.getUid());
-            last4WellsResponse.setTrippingData(trippingData.get(well.getUid()));
+            Map<String, Map<HoleSection.HoleSectionType, Float>> trippingDataForWell = trippingData.get(well.getUid());
+            Map<String, Map<String, Float>> wellTrip= new HashMap<>();
+            for (Map.Entry<String,Map<HoleSection.HoleSectionType, Float>> entry : trippingDataForWell.entrySet()) {
+                String tripType = entry.getKey();
+                Map<HoleSection.HoleSectionType, Float> value = entry.getValue();
+                Map<String, Float> data = new HashMap<>();
+                for (Map.Entry<HoleSection.HoleSectionType, Float> ent : value.entrySet()) {
+                    data.put((ent.getKey().name().toLowerCase(Locale.ROOT).substring(0, 1)), ent.getValue());
+                }
+                wellTrip.put(tripType, data);
+            }
+            last4WellsResponse.setTrippingData(wellTrip);
             return last4WellsResponse;
         }catch (Exception exp){
             log.error("Error occurred while processing well: {}", well.getUid(), exp);
