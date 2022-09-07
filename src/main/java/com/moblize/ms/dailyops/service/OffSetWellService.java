@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -106,25 +107,17 @@ public class OffSetWellService {
 
     public List<String> getFilteredBCWOffSet(BCWDTO bcwDTO) {
         List<String> offsetList = new ArrayList<>();
-        ResultSet resultSet = null;
-
         try {
-            String sql = "CALL usp_bcw_offset('" + bcwDTO.getWellUID() + "')";
+            //String sql = "CALL usp_bcw_offset('" + bcwDTO.getWellUID() + "')";
             StoredProcedureQuery usp_bcw_offset = entityManager.createStoredProcedureQuery("usp_bcw_offset");
-            usp_bcw_offset.registerStoredProcedureParameter("@welid", ArrayList.class, ParameterMode.IN);
-            usp_bcw_offset.setParameter("@welid", new ArrayList<String>(bcwDTO.getWellUID()));
-            usp_bcw_offset.getResultList();
-            while (resultSet.next()) {
-                offsetList.add(resultSet.getString(1));
+            usp_bcw_offset.registerStoredProcedureParameter("@welid", String.class, ParameterMode.IN);
+            String str = "'" + String.join(",", bcwDTO.getWellUID()) + "'";
+            usp_bcw_offset.setParameter("@welid", str);
+            List resultStream = usp_bcw_offset.getResultList();
+            if (null != resultStream && !resultStream.isEmpty()) {
+                offsetList = (List<String>) resultStream.stream().collect(Collectors.toList());
             }
         } catch (Exception e) {
-            if (resultSet != null) {
-                try {
-                    resultSet.close();
-                } catch (SQLException e1) {
-                    log.error("Error occurred while close result set", e1);
-                }
-            }
             log.error("Error occurred while getFilteredBCWOffSet to primary well", e);
         }
         return offsetList;
