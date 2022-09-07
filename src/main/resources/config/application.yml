@@ -124,9 +124,9 @@ spring:
       database: ${nosql.instance1.admin.dbname}
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:sqlserver://${sql.${sql-instance}.host}:${sql.${sql-instance}.port};database=${sql.${sql-instance}.${CODE}.dbname}
-    username: ${sql.${sql-instance}.${CODE}.user}
-    password: ${sql.${sql-instance}.${CODE}.pwd}
+    url: jdbc:sqlserver://172.31.7.132:1433;database=t4
+    username: sa
+    password: DB_L0ckD0wn
     hikari:
       poolName: Hikari
       auto-commit: false

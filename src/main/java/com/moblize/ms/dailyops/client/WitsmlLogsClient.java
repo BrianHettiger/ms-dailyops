@@ -19,6 +19,11 @@ public interface WitsmlLogsClient {
         @RequestParam("wellboreUid") String wellboreUid
     );
 
+    @GetMapping(value = "formationmarkers/readAll")
+    JSONResult getFormationMarkersForWells(
+        @RequestParam("wellUids") List<String> wellUids,
+        @RequestParam("wellboreUid") String wellboreUid
+    );
     @GetMapping(value = "logs/getdepthlogforchannels")
     Map<String, Object> getdepthlogforchannels(
         @RequestParam("wellUid") String wellUid,
