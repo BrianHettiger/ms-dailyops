@@ -57,7 +57,6 @@ public class OffSetWellService {
     }
 
     private OffSetWellByDistance processOffsetWellByDistance(BCWDTO bcwDTO) throws Exception{
-        OffSetWellByDistance offSetWellByDistance = new OffSetWellByDistance();
         this.getOffsetWellListByDistance(bcwDTO);
         this.setAllWellUIDList(bcwDTO);
         this.getFilteredBCWOffSetList(bcwDTO);
@@ -96,7 +95,7 @@ public class OffSetWellService {
             throw new BCWException(String.format("No OffSet record found for primary well : %s", bcwDTO.getPrimaryWellUid()));
         }
         bcwDTO.setWellListByDistance(wellListByDistance);
-        bcwDTO.setOffsetWellUids(wellListByDistance.getOffsetWells().stream().map(well -> well.getUid()).collect(Collectors.toList()));
+        bcwDTO.setOffsetWellUids(wellListByDistance.getOffsetWells().stream().map(OffsetWell::getUid).collect(Collectors.toList()));
         return wellListByDistance;
     }
 
@@ -112,8 +111,8 @@ public class OffSetWellService {
         try {
             String sql = "CALL usp_bcw_offset('" + bcwDTO.getWellUID() + "')";
             StoredProcedureQuery usp_bcw_offset = entityManager.createStoredProcedureQuery("usp_bcw_offset");
-            usp_bcw_offset.registerStoredProcedureParameter("@welid", Object[].class, ParameterMode.IN);
-            usp_bcw_offset.setParameter("@welid", bcwDTO.getWellUID().toArray());
+            usp_bcw_offset.registerStoredProcedureParameter("@welid", ArrayList.class, ParameterMode.IN);
+            usp_bcw_offset.setParameter("@welid", new ArrayList<String>(bcwDTO.getWellUID()));
             usp_bcw_offset.getResultList();
             while (resultSet.next()) {
                 offsetList.add(resultSet.getString(1));
@@ -135,8 +134,7 @@ public class OffSetWellService {
             .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                 (oldValue, newValue) -> oldValue, LinkedHashMap::new));
-
-        bcwDTO.setOffsetWellUids(result.keySet().stream().collect(Collectors.toList()));
+        bcwDTO.setOffsetWellUids(new ArrayList<>(result.keySet()));
     }
     private void getWellsKPIDetail(BCWDTO bcwDTO) {
         Map<String, Double> wellROP = new HashMap<>();
