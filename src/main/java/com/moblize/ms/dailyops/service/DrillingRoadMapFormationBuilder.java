@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
@@ -29,11 +30,16 @@ public class DrillingRoadMapFormationBuilder {
     public Map<String, List<FormationMarker>> getFormationMap(String primaryWellUid, List<String> offsetWellUids, String wellboreUid) {
         Map<String, List<FormationMarker>> wellFormationMap = new HashMap<>();
         try {
-            Map<String, List<FormationMarker>> offsetWellFormationsMap = drillingRoadMapDao.getFormationMarkersForOffset(offsetWellUids);
-            List<FormationMarker> primaryWellFormationList = drillingRoadMapDao.getFormationMarkers(primaryWellUid, wellboreUid);
+            CompletableFuture<Map<String, List<FormationMarker>>> formationMarkersForOffsetFuture = drillingRoadMapDao.getFormationMarkersForOffset(offsetWellUids);
+            CompletableFuture<List<FormationMarker>> formationMarkersFuture = drillingRoadMapDao.getFormationMarkers(primaryWellUid, wellboreUid);
+            CompletableFuture.allOf(formationMarkersFuture,formationMarkersForOffsetFuture).join();
+
+            List<FormationMarker> primaryWellFormationList = formationMarkersFuture.get();
+            Map<String, List<FormationMarker>> offsetWellFormationsMap = formationMarkersForOffsetFuture.get();
 
             primaryWellFormationList.stream().
                 filter(formationMarker -> formationMarker.getMD() == null || formationMarker.getMD() == 0.0).findFirst().
+
                 ifPresent(formationMaker -> {
                     primaryWellFormationList.remove(formationMaker);
                 });

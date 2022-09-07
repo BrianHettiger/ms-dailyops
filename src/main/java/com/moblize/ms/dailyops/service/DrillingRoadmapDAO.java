@@ -7,9 +7,11 @@ import com.moblize.ms.dailyops.domain.FormationMarker;
 import com.moblize.ms.dailyops.utils.JSONResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -19,8 +21,8 @@ public class DrillingRoadmapDAO {
     @Autowired
     WitsmlLogsClient witsmlLogsClient;
 
-
-	public List<FormationMarker> getFormationMarkers(String wellUid, String wellboreUid) {
+    @Async
+	public CompletableFuture<List<FormationMarker>> getFormationMarkers(String wellUid, String wellboreUid) {
 		List<FormationMarker> formationMarkers = Collections.emptyList();
 		try {
 			// Call for the Record Set
@@ -50,7 +52,7 @@ public class DrillingRoadmapDAO {
             log.error("Error occur in FormationMarkerClient.getFormationMarkers API call ", iae);
 		}
 
-		return formationMarkers;
+		return CompletableFuture.completedFuture(formationMarkers);
 	}
 
     public List<FormationMarker> getFormationMarkers(List<String> wellUid, String wellboreUid) {
@@ -86,7 +88,8 @@ public class DrillingRoadmapDAO {
         return formationMarkers;
     }
 
-    public Map<String, List<FormationMarker>> getFormationMarkersForOffset(List<String> wellUidList) {
+    @Async
+    public CompletableFuture<Map<String, List<FormationMarker>>> getFormationMarkersForOffset(List<String> wellUidList) {
         Map<String, List<FormationMarker>> formationMarkers = new HashMap<>();
         String wellboreUid = "Wellbore1";
         try {
@@ -97,7 +100,7 @@ public class DrillingRoadmapDAO {
         } catch (Exception e) {
             log.error("Error in getFormationMarkersForOffset", e);
         }
-        return formationMarkers;
+        return CompletableFuture.completedFuture(formationMarkers);
     }
 
 
