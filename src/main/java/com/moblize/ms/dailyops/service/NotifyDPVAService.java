@@ -55,7 +55,7 @@ public class NotifyDPVAService {
     public void loadDPVAData(String customer,DailyOpsLoadConfig dailyOpsLoadConfig) {
         try {
             if (dailyOpsLoadConfig != null && !dailyOpsLoadConfig.getIsDPVACalculated()) {
-
+                log.warn("Going to recalculate DPVA data...");
                 cacheService.getTortuosityDataCache().clear();
                 cacheService.getPerFeetTargetWindowDataCache().clear();
                 cacheService.getPerFeetSurveyDataCache().clear();
@@ -71,9 +71,10 @@ public class NotifyDPVAService {
                 });
                 dailyOpsLoadConfig.setIsDPVACalculated(true);
                 dpvaLoadConfigRepository.save(dailyOpsLoadConfig);
+                log.warn("DPVA data calculated");
             }
         } catch (Exception e) {
-            log.error("Error occur in loadDPVAData ", e);
+            log.error("Error occurred in loadDPVAData ", e);
         }
 
     }
@@ -108,7 +109,6 @@ public class NotifyDPVAService {
         return dailyOpsLoadConfig;
     }
 
-    @Async
     public void notifyDPVAJob(TargetWindowDPVA targetWindow, String wellStatus) {
         processDPVADataForWell(targetWindow, wellStatus);
     }

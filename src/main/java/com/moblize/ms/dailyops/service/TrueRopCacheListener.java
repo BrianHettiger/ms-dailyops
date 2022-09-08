@@ -19,7 +19,11 @@ public class TrueRopCacheListener {
     @Autowired
     private MongoWellRepository mongoWellRepository;
     @Autowired
+    private TargetWindowDPVAService targetWindowDPVAService;
+    @Autowired
     private RestClientService restClientService;
+    @Autowired
+    private NotifyDPVAService notifyDPVAService;
     @Value("${CODE}")
     private String customer;
     @ClientCacheEntryCreated
@@ -36,6 +40,7 @@ public class TrueRopCacheListener {
         MongoWell mongoWell = mongoWellRepository.findByUid(key);
         log.debug("processWell {}, {}", wellUid, customer);
         if(mongoWell != null && mongoWell.getCustomer() != null && mongoWell.getCustomer().equalsIgnoreCase(customer)){
+            notifyDPVAService.notifyDPVAJob(targetWindowDPVAService.getTargetWindowDetail(mongoWell.getUid()), mongoWell.getStatusWell());
             restClientService.processWell(mongoWell);
         } else {
             log.error("Update Data not a valid well {} for customer {}", wellUid, customer);

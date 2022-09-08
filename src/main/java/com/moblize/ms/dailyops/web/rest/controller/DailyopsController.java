@@ -1,31 +1,14 @@
 package com.moblize.ms.dailyops.web.rest.controller;
 
 import com.moblize.ms.dailyops.domain.PerformanceROP;
+import com.moblize.ms.dailyops.domain.ScaledSurveyData;
 import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
 import com.moblize.ms.dailyops.domain.mongo.TargetWindowDPVA;
-import com.moblize.ms.dailyops.dto.BCWDepthPlotDTO;
-import com.moblize.ms.dailyops.dto.BCWDepthPlotResponse;
-import com.moblize.ms.dailyops.dto.BHA;
-import com.moblize.ms.dailyops.dto.DPVARequestDTO;
-import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
-import com.moblize.ms.dailyops.dto.ResponseDTO;
-import com.moblize.ms.dailyops.dto.TortuosityRequestDTO;
-import com.moblize.ms.dailyops.service.AnalyticsWellMetaDataService;
-import com.moblize.ms.dailyops.service.BCWDepthLogPlotService;
-import com.moblize.ms.dailyops.service.CacheService;
-import com.moblize.ms.dailyops.service.DPVAService;
-import com.moblize.ms.dailyops.service.NotifyDPVAService;
-import com.moblize.ms.dailyops.service.PerformanceBHAService;
-import com.moblize.ms.dailyops.service.PerformanceCostService;
-import com.moblize.ms.dailyops.service.PerformanceROPService;
-import com.moblize.ms.dailyops.service.PerformanceWellService;
-import com.moblize.ms.dailyops.service.TargetWindowDPVAService;
-import com.moblize.ms.dailyops.service.TortuosityService;
-import com.moblize.ms.dailyops.service.TrueROPDataService;
-import com.moblize.ms.dailyops.service.WellsCoordinatesService;
+import com.moblize.ms.dailyops.dto.*;
+import com.moblize.ms.dailyops.service.*;
 import com.moblize.ms.dailyops.service.dto.DPVAResult;
 import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
 import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
@@ -88,6 +71,9 @@ public class DailyopsController {
 
     @Autowired
     private BCWDepthLogPlotService bcwDepthLogPlotService;
+
+    @Autowired
+    private OffSetWellService offSetWellService;
 
 
     @Transactional(readOnly = true)
@@ -493,5 +479,14 @@ public class DailyopsController {
         return bcwDepthLogPlotService.deleteBCWDepthLog(requestMap.get("bcwId"), requestMap.get("uid"));
     }
 
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v1/getScaledSurveyDataList/{uid}/{customer}")
+    public List<ScaledSurveyData> getScaledSurveyDataList(@PathVariable String uid, @PathVariable String customer){
+        return dpvaService.getScaledSurveyDataList(uid,customer);
+    }
 
+    @PostMapping("/api/v1/getBCWOffSetWellList")
+    public OffSetWellByDistance getBCWOffSetWellList(@RequestBody BCWDTO bcwdto){
+        return offSetWellService.getBCWOffSetWellList(bcwdto);
+    }
 }

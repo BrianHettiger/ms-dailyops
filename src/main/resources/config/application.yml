@@ -46,8 +46,8 @@ feign:
   client:
     config:
       default:
-        connectTimeout: 10000
-        readTimeout: 10000
+        connectTimeout: 1000000
+        readTimeout: 1000000
 
 # See https://github.com/Netflix/Hystrix/wiki/Configuration
 hystrix:
@@ -235,6 +235,10 @@ rest:
     url: ${api.central.well.formation.base.url}
     user: ${api.central.well.formation.user}
     pwd: ${api.central.well.formation.pwd}
+  nextgen:
+    url: http://172.31.2.228:5002/api/v1/
+    user: ${api.defaulttenant.nextgen.user}
+    pwd: ${api.defaulttenant.nextgen.pwd}
   nodedrilling:
     url: ${api.defaulttenant.nodedrilling.base.url}
     user: ${api.defaulttenant.nodedrilling.user}
@@ -244,6 +248,10 @@ rest:
     user: ${api.central.ms.analytics.service.user}
     pwd: ${api.central.ms.analytics.service.pwd}
     processPerFeetData: "api/v1/processPerFeetData"
+  kpidashboard:
+    url: http://172.31.2.228:9108/api/v1/
+    user: api@moblize.com
+    pwd: api123!@#
 
 infinispan:
   server: ${app.infinispan.server}

@@ -1,6 +1,7 @@
 package com.moblize.ms.dailyops.service;
 
 import com.moblize.ms.dailyops.domain.MongoWell;
+import com.moblize.ms.dailyops.domain.ScaledSurveyData;
 import com.moblize.ms.dailyops.domain.mongo.PlannedDataDpva;
 import com.moblize.ms.dailyops.domain.mongo.SurveyDataDpva;
 import com.moblize.ms.dailyops.domain.mongo.SurveyTortuosityDPVA;
@@ -208,7 +209,9 @@ public class DPVAService {
 
 
         final DPVAData dpvaData = new DPVAData();
-        if (!primaryMongoWell.getStatusWell().equalsIgnoreCase(ACTIVE_STATUS) || !primaryMongoWell.getStatusWell().equalsIgnoreCase(PAUSED_STATUS)) {
+        if (!primaryMongoWell.getStatusWell().equalsIgnoreCase(ACTIVE_STATUS)
+            && !primaryMongoWell.getStatusWell().equalsIgnoreCase(PAUSED_STATUS)) {
+
             final SurveyDataDpva surveyDataDpva = surveyDataDPVARepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
             final PlannedDataDpva plannedDataDpva = plannedDataDPVARepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
             final TargetWindowPerFootDPVA targetWindowPerFootDPVA = targetWindowPerFootRepository.findFirstByWellUid(dpvaRequestDTO.getPrimaryWell());
@@ -244,7 +247,7 @@ public class DPVAService {
                 final TargetWindowsData planViewData = new TargetWindowsData();
                 if(null != targetWindowPerFootDPVA) {
                     planViewData.setFirstLine(targetWindowPerFootDPVA.getPvFirstLine());
-                    //planViewData.setCenterLine(targetWindowPerFootDPVA.getPvCenterLine());
+                    planViewData.setCenterLine(Collections.emptyList());
                     planViewData.setLastLine(targetWindowPerFootDPVA.getPvLastLine());
                     planViewData.setSideLines(targetWindowPerFootDPVA.getPvSideLine());
                     planViewData.setIntersections(targetWindowPerFootDPVA.getPvIntersections());
@@ -275,7 +278,7 @@ public class DPVAService {
                 sectionView.setFootagePercentage(surveyPerFeetCache.getSvInPercentage());
                 final TargetWindowsData targetWindowsData = new TargetWindowsData();
                 targetWindowsData.setFirstLine(targetDTOCache.getSvFirstLine());
-                targetWindowsData.setCenterLine(targetDTOCache.getSvCenterLine());
+                targetWindowsData.setCenterLine(Collections.emptyList());
                 targetWindowsData.setLastLine(targetDTOCache.getSvLastLine());
                 targetWindowsData.setSideLines(targetDTOCache.getSvSideLine());
                 targetWindowsData.setIntersections(targetDTOCache.getSvIntersections());
@@ -286,7 +289,7 @@ public class DPVAService {
                 planView.setFootagePercentage(surveyPerFeetCache.getPvInPercentage());
                 TargetWindowsData planViewData = new TargetWindowsData();
                 planViewData.setFirstLine(targetDTOCache.getPvFirstLine());
-                planViewData.setCenterLine(targetDTOCache.getPvCenterLine());
+                planViewData.setCenterLine(Collections.emptyList());
                 planViewData.setLastLine(targetDTOCache.getPvLastLine());
                 planViewData.setSideLines(targetDTOCache.getPvSideLine());
                 planViewData.setIntersections(targetDTOCache.getPvIntersections());
@@ -394,6 +397,18 @@ public class DPVAService {
 
         }
         return tortuosityDTO;
+    }
+
+    public List<ScaledSurveyData> getScaledSurveyDataList(String uid, String customer){
+        List<ScaledSurveyData> scaledDataList;
+        try{
+            scaledDataList = surveyDataDPVARepository.findByWellUidAndCustomer(uid, customer).getScaledSurveyData();
+            return scaledDataList;
+        }
+        catch (Exception e){
+            log.error("ScaledSurveyData not found for uid: {}, customer: {}", uid, customer);
+            return null;
+        }
     }
 
     @Getter
