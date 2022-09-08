@@ -243,7 +243,6 @@ rest:
     url: ${api.defaulttenant.nodedrilling.base.url}
     user: ${api.defaulttenant.nodedrilling.user}
     pwd: ${api.defaulttenant.nodedrilling.pwd}
-    pwd: ${api.defaulttenant.nodedrilling.pwd}
   consumer-api:
     url: ${api.central.consumer-api.base.url}
     user: ${api.central.consumer-api.user}
