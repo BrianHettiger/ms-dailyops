@@ -86,7 +86,7 @@ public class DrillingRoadmapDAO {
 
         return formationMarkers;
     }
-    public Map<String, List<FormationMarker>> getFormationMarkersForOffset(List<String> wellUidList) {
+    public Map<String, List<FormationMarker>> formationMarkersForAllWells(List<String> wellUidList) {
         Map<String, List<FormationMarker>> formationMarkers = new HashMap<>();
         String wellboreUid = "Wellbore1";
         try {

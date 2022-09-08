@@ -29,8 +29,11 @@ public class DrillingRoadMapFormationBuilder {
     public Map<String, List<FormationMarker>> getFormationMap(String primaryWellUid, List<String> offsetWellUids, String wellboreUid) {
         Map<String, List<FormationMarker>> wellFormationMap = new HashMap<>();
         try {
-            Map<String, List<FormationMarker>> offsetWellFormationsMap = drillingRoadMapDao.getFormationMarkersForOffset(offsetWellUids);
-            List<FormationMarker> primaryWellFormationList = drillingRoadMapDao.getFormationMarkers(primaryWellUid, wellboreUid);
+            List<String> allWellUid = new ArrayList<>(offsetWellUids);
+            allWellUid.add(primaryWellUid);
+            Map<String, List<FormationMarker>> formationMarkersForAllWells= drillingRoadMapDao.formationMarkersForAllWells(allWellUid);
+            List<FormationMarker> primaryWellFormationList = formationMarkersForAllWells.get(primaryWellUid);
+            formationMarkersForAllWells.remove(primaryWellUid);
 
             primaryWellFormationList.stream().
                 filter(formationMarker -> formationMarker.getMD() == null || formationMarker.getMD() == 0.0).findFirst().
@@ -40,9 +43,9 @@ public class DrillingRoadMapFormationBuilder {
 
             sortOffsetWellFormationByMD(primaryWellFormationList);
 
-            for (String wellUid : offsetWellFormationsMap.keySet()) {
+            for (String wellUid : formationMarkersForAllWells.keySet()) {
                 List<FormationMarker> matchingFormationList = new ArrayList<>();
-                List<FormationMarker> offsetWellFormations = offsetWellFormationsMap.get(wellUid);
+                List<FormationMarker> offsetWellFormations = formationMarkersForAllWells.get(wellUid);
 
                 for (FormationMarker primaryWellFormation : primaryWellFormationList) {
                     String primaryWellFormationName = primaryWellFormation.getName().trim();
