@@ -129,7 +129,9 @@ public class DrillingRoadMapMobileService {
                 if (paceSetterFormation.isPresent()) {
                     paceSetterFormationWellUid = paceSetterFormation.get().getWellUid();
                     MongoWell mongoWell = mongoWellRepository.findFirstByUid(paceSetterFormationWellUid);
-                    paceSetterFormationWellName = mongoWell.getName();
+                    if(null!=mongoWell.getName()) {
+                        paceSetterFormationWellName = mongoWell.getName();
+                    }
                     paceSetterWellboreUid = DEFAULT_WELLBORE_ID;
                     response.setPaceSetterFormationMap(paceSetterFormation.get());
                 }
