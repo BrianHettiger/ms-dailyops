@@ -46,8 +46,8 @@ feign:
   client:
     config:
       default:
-        connectTimeout: 1000000
-        readTimeout: 1000000
+        connectTimeout: 10000
+        readTimeout: 10000
 
 # See https://github.com/Netflix/Hystrix/wiki/Configuration
 hystrix:
@@ -124,9 +124,9 @@ spring:
       database: ${nosql.instance1.admin.dbname}
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:sqlserver://172.31.7.132:1433;database=t4
-    username: sa
-    password: DB_L0ckD0wn
+    url: jdbc:sqlserver://${sql.${sql-instance}.host}:${sql.${sql-instance}.port};database=${sql.${sql-instance}.${CODE}.dbname}
+    username: ${sql.${sql-instance}.${CODE}.user}
+    password: ${sql.${sql-instance}.${CODE}.pwd}
     hikari:
       poolName: Hikari
       auto-commit: false
@@ -236,12 +236,13 @@ rest:
     user: ${api.central.well.formation.user}
     pwd: ${api.central.well.formation.pwd}
   nextgen:
-    url: ${api.central.nextgen.base.url}
-    user: ${api.central.nextgen.user}
-    pwd: ${api.central.nextgen.pwd}
+    url: ${api.defaulttenant.nextgen.base.url}
+    user: ${api.defaulttenant.nextgen.user}
+    pwd: ${api.defaulttenant.nextgen.pwd}
   nodedrilling:
     url: ${api.defaulttenant.nodedrilling.base.url}
     user: ${api.defaulttenant.nodedrilling.user}
+    pwd: ${api.defaulttenant.nodedrilling.pwd}
     pwd: ${api.defaulttenant.nodedrilling.pwd}
   consumer-api:
     url: ${api.central.consumer-api.base.url}
@@ -252,10 +253,6 @@ rest:
     user: ${api.central.ms.analytics.service.user}
     pwd: ${api.central.ms.analytics.service.pwd}
     processPerFeetData: "api/v1/processPerFeetData"
-  kpidashboard:
-    url: http://172.31.2.228:9108/api/v1/
-    user: api@moblize.com
-    pwd: api123!@#
 
 infinispan:
   server: ${app.infinispan.server}
