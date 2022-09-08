@@ -7,11 +7,9 @@ import com.moblize.ms.dailyops.domain.FormationMarker;
 import com.moblize.ms.dailyops.utils.JSONResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -20,40 +18,6 @@ public class DrillingRoadmapDAO {
 
     @Autowired
     WitsmlLogsClient witsmlLogsClient;
-
-    @Async
-	public CompletableFuture<List<FormationMarker>> getFormationMarkers(String wellUid, String wellboreUid) {
-		List<FormationMarker> formationMarkers = Collections.emptyList();
-		try {
-			// Call for the Record Set
-            JSONResult jsonResult = witsmlLogsClient.getFormationMarkers(wellUid,wellboreUid);
-            log.info(jsonResult.status);
-            log.info(jsonResult.data.toString());
-            final ObjectMapper mapper = new ObjectMapper(); // jackson's objectmapper
-            JavaType type = mapper.getTypeFactory().
-                constructCollectionType(List.class, FormationMarker.class);
-            formationMarkers = mapper.convertValue(jsonResult.data, type);
-
-            Collections.sort(formationMarkers, new Comparator<FormationMarker>() {
-                @Override
-                public int compare(FormationMarker o1, FormationMarker o2) {
-                    if (o1.getTVD() == null) {
-                        return -1;
-                    }
-                    else if (o2.getTVD() == null) {
-                        return 1;
-                    }
-                    else {
-                        return o1.getTVD().compareTo(o2.getTVD());
-                    }
-                }
-            });
-		} catch (Exception iae) {
-            log.error("Error occur in FormationMarkerClient.getFormationMarkers API call ", iae);
-		}
-
-		return CompletableFuture.completedFuture(formationMarkers);
-	}
 
     public List<FormationMarker> getFormationMarkers(List<String> wellUid, String wellboreUid) {
         List<FormationMarker> formationMarkers = Collections.emptyList();
@@ -88,8 +52,8 @@ public class DrillingRoadmapDAO {
         return formationMarkers;
     }
 
-    @Async
-    public CompletableFuture<Map<String, List<FormationMarker>>> getFormationMarkersForOffset(List<String> wellUidList) {
+
+    public Map<String, List<FormationMarker>> formationMarkersForAllWells(List<String> wellUidList) {
         Map<String, List<FormationMarker>> formationMarkers = new HashMap<>();
         String wellboreUid = "Wellbore1";
         try {
@@ -100,7 +64,7 @@ public class DrillingRoadmapDAO {
         } catch (Exception e) {
             log.error("Error in getFormationMarkersForOffset", e);
         }
-        return CompletableFuture.completedFuture(formationMarkers);
+        return formationMarkers;
     }
 
 
