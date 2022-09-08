@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @FeignClient("alarmdetail")
@@ -25,6 +26,12 @@ public interface AlarmDetailClient {
 
     @GetMapping(value ="api/v1/getPlanData/{wellUid}/{wellStatus}")
     List<WellPlan> getPlanData(
+        @PathVariable("wellUid") String wellUid,
+        @PathVariable("wellStatus") String wellStatus
+    );
+
+    @GetMapping("api/v1/getLastSurveyData/{wellUid}/{wellStatus}")
+    SurveyRecord getLastSurveyData(
         @PathVariable("wellUid") String wellUid,
         @PathVariable("wellStatus") String wellStatus
     );

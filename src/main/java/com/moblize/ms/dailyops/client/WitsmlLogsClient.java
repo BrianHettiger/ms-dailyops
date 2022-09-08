@@ -19,11 +19,13 @@ public interface WitsmlLogsClient {
         @RequestParam("wellboreUid") String wellboreUid
     );
 
+    @Transactional(readOnly = true)
     @GetMapping(value = "formationmarkers/readAll")
     JSONResult getFormationMarkersForWells(
         @RequestParam("wellUids") List<String> wellUids,
         @RequestParam("wellboreUid") String wellboreUid
     );
+
     @GetMapping(value = "logs/getdepthlogforchannels")
     Map<String, Object> getdepthlogforchannels(
         @RequestParam("wellUid") String wellUid,
@@ -36,5 +38,19 @@ public interface WitsmlLogsClient {
         @RequestParam("disableReduced") Boolean disableReduced
     );
 
+    @GetMapping(value = "getDepthLog")
+    MongoLog getDepthLog(@RequestParam("wellUid") String wellUid);
 
+    @GetMapping(value = "logs/getdayvdepthlog")
+    Object getDayVDepthLog(
+        @RequestParam("wellUid") String wellUid,
+        @RequestParam("wellboreUid") String wellboreUid,
+        @RequestParam("filter") String filter,
+        @RequestParam("scenarioId") String scenarioId,
+        @RequestParam("isTimeSelected") Boolean isTimeSelected,
+        @RequestParam("fromDate") String fromDate,
+        @RequestParam("toDate") String toDate,
+        @RequestParam("fromDepth") String fromDepth,
+        @RequestParam("toDepth") String toDepth
+    );
 }

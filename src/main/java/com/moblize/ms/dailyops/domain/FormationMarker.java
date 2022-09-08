@@ -20,7 +20,7 @@ public class FormationMarker {
     @JsonProperty(value = "id")
     private Long id;
 
-	@Column(name="uidWell")
+	@Column(name="uidwell")
     @JsonProperty(value = "wellUid")
 	private String wellUid;
 
