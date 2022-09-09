@@ -148,6 +148,9 @@ public class WellsCoordinatesService {
         List<MongoWell> rigWells = new ArrayList<>();
         mongoWells = mongoWellRepository.findAllByCustomer(customer);
         if(mongoWells!=null) {
+            mongoWells.stream().forEach(well->{
+                log.error(well.getRigs().get(0).getRigId());
+            });
             rigWells= mongoWells.stream().filter(well -> {
                 return (well.getRigs().get(0).getRigId().equals(rigId) &&
                     "completed".equals(well.getStatusWell())) ;
