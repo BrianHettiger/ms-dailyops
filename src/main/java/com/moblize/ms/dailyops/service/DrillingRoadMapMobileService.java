@@ -102,7 +102,7 @@ public class DrillingRoadMapMobileService {
         DrillingRoadmapJsonResponse response = new DrillingRoadmapJsonResponse();
 
         try {
-            CompletableFuture<String> currentMeasuredDepthFuture = getMeasuredDepth(requestDTO);
+            CompletableFuture<String> measuredDepthLogFuture = getMeasuredDepth(requestDTO);
             CompletableFuture<String> currentWellMudWeightFuture = getWellMudWeight(requestDTO.getPrimaryWellUid());
             CompletableFuture<List<DrillingRoadMapWells>> bcwFormationDataFuture = getBcwFormationData(requestDTO);
             CompletableFuture<String> statusFuture = getStatus(requestDTO.getPrimaryWellUid());
@@ -136,7 +136,7 @@ public class DrillingRoadMapMobileService {
                     response.setPaceSetterFormationMap(paceSetterFormation.get());
                 }
             }
-            currentMeasuredDepth = currentMeasuredDepthFuture.get();
+            currentMeasuredDepth = measuredDepthLogFuture.get();
             currentWellMudWeight = currentWellMudWeightFuture.get();
 
             // to get the current rig state and section.
@@ -275,7 +275,10 @@ public class DrillingRoadMapMobileService {
     @Async
     private CompletableFuture<String> getMeasuredDepth(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO) {
         MongoLog logs = witsmlLogsClient.getDepthLog(drillingRoadMapSearchDTO.getPrimaryWellUid());
-        return CompletableFuture.completedFuture(logs.getEndIndex().toString());
+        if(logs!=null){
+            return CompletableFuture.completedFuture(logs.getEndIndex().toString());
+        }
+        return CompletableFuture.completedFuture("");
     }
     @Async
     private CompletableFuture<String> getCurrentSection(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String currentMeasuredDepth) {

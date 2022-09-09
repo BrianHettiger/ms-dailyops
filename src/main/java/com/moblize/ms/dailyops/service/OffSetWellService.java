@@ -108,7 +108,6 @@ public class OffSetWellService {
     public List<String> getFilteredBCWOffSet(BCWDTO bcwDTO) {
         List<String> offsetList = new ArrayList<>();
         try {
-            //String sql = "CALL usp_bcw_offset('" + bcwDTO.getWellUID() + "')";
             StoredProcedureQuery usp_bcw_offset = entityManager.createStoredProcedureQuery("usp_bcw_offset");
             usp_bcw_offset.registerStoredProcedureParameter("@welid", String.class, ParameterMode.IN);
             String str = "'" + String.join(",", bcwDTO.getWellUID()) + "'";
@@ -142,8 +141,7 @@ public class OffSetWellService {
             parameters.put("wellUidList", wellUidList);
             RopDataDTO obj = null;
             try {
-                //Object obj =  kpiDashboardClient.kpiTagRopBasedOnWells(false,"all", parameters);
-                obj = kpiTagRopBasedOnWells(parameters);
+                obj = (RopDataDTO) kpiDashboardClient.kpiTagRopBasedOnWells(false,"all", parameters);
                 if (obj == null) {
                     wellROP.put(well, 0d);
                 } else {
@@ -171,12 +169,6 @@ public class OffSetWellService {
             }
         ).sorted(Comparator.comparingDouble(OffsetWell::getRopPerceivedall).reversed()).collect(Collectors.toList());
         bcwDTO.getWellListByDistance().setOffsetWells(sortedOffSet);
-    }
-    public RopDataDTO kpiTagRopBasedOnWells(Map<String, Object> parameters) {
-        final Long startIndex = System.currentTimeMillis();
-        final String resetUrl = "http://172.31.2.228:9104/" + "kpiTagRopBasedOnWells?addDepthRange=false&sectionName=all";
-        final HttpEntity<Map<String, Object>> request = new HttpEntity<Map<String, Object>>(parameters, createHeaders(nextgenUsername, nextgenPassword));
-        return restTemplate.exchange(resetUrl, HttpMethod.POST, request, new ParameterizedTypeReference<RopDataDTO>(){}).getBody();
     }
 
     public OffSetWellByDistance getOffSetWell(final BCWDTO bcwdto) {
