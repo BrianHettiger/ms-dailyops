@@ -48,12 +48,14 @@ public class OffSetWellService {
 
     RestTemplate restTemplate = new RestTemplate();
     public OffSetWellByDistance getBCWOffSetWellList(BCWDTO bcwdto) {
+        long startTime = System.currentTimeMillis();
         OffSetWellByDistance offSetWellByDistance = new OffSetWellByDistance();
         try {
             offSetWellByDistance = processOffsetWellByDistance(bcwdto);
-        } catch (Exception e){
+        } catch (Exception e) {
             log.error("Error While processing wells", e);
         }
+        log.info("BCWOffSetWellList data API for well: {} served in time {}s", bcwdto.getPrimaryWellUid(), System.currentTimeMillis() - startTime);
         return offSetWellByDistance;
     }
 

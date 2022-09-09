@@ -82,7 +82,7 @@ public class DrillingRoadMapMobileService {
             log.error("Error occurred while serving Drilling Drag Average data API", e);
             throw new RuntimeException("Error occurred while serving Drilling Drag Average data API", e);
         }
-        log.info("Drilling RoadMap mobile data API served in time: {}.", System.currentTimeMillis() - startTime);
+        log.info("Drilling RoadMap mobile data API for well:{} served in time: {}.",drillingRoadMapSearchDTO.getPrimaryWellUid(), System.currentTimeMillis() - startTime);
         return drillingRoadmapJsonResponses;
     }
 
