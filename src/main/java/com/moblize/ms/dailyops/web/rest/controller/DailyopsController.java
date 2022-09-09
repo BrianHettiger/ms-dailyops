@@ -122,6 +122,7 @@ public class DailyopsController {
         HttpServletResponse response) {
         log.error("Got request inside getTop4WellsByRig");
         List<Last4WellsResponse> last4Wells = wellsCoordinatesService.getLast4Wells(rigId, token, customer);
+        log.error("last4Wells="+last4Wells);
         return last4Wells;
     }
 
