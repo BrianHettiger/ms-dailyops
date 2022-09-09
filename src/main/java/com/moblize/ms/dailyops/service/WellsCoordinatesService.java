@@ -180,8 +180,10 @@ public class WellsCoordinatesService {
             last4WellsResponse.setName(well.getName());
             if (null != well.getDaysVsDepthAdjustmentDates()) {
                 last4WellsResponse.setSpudDate(well.getDaysVsDepthAdjustmentDates().getSpudDate());
+                last4WellsResponse.setReleaseDate(well.getDaysVsDepthAdjustmentDates().getReleaseDate());
             } else {
                 last4WellsResponse.setSpudDate(0f);
+                last4WellsResponse.setReleaseDate(0f);
             }
 
             // set avgROP

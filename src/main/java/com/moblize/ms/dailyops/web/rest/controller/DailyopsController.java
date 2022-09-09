@@ -117,8 +117,10 @@ public class DailyopsController {
     @GetMapping("/api/v2/getLast4Wells")
     public List<Last4WellsResponse> getTop4WellsByRig(
         @RequestParam("rigId") String rigId, @RequestParam("customer") String customer,
+        @RequestParam("primaryWellUid") String primaryWellUid,
         @RequestHeader(value = "authorization", required = false) String token,
         HttpServletResponse response) {
+        log.error("Got request inside getTop4WellsByRig");
         List<Last4WellsResponse> last4Wells = wellsCoordinatesService.getLast4Wells(rigId, token, customer);
         return last4Wells;
     }

@@ -22,6 +22,8 @@ public class Last4WellsResponse {
     @JsonProperty("sDate")
     @ProtoField(number = 3)
     Float spudDate;
+    @JsonProperty("rDate")
+    Float releaseDate;
     @ProtoField(number = 8)
     @JsonProperty("aRop")
     ROP avgROP;
