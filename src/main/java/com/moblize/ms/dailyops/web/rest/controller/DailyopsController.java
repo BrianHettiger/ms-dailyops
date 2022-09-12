@@ -121,7 +121,7 @@ public class DailyopsController {
         @RequestHeader(value = "authorization", required = false) String token,
         HttpServletResponse response) {
         log.error("Got request inside getTop4WellsByRig");
-        List<Last4WellsResponse> last4Wells = wellsCoordinatesService.getLast4Wells(rigId, token, customer);
+        List<Last4WellsResponse> last4Wells = wellsCoordinatesService.getLast4Wells(rigId, token, customer,primaryWellUid);
         log.error("last4Wells="+last4Wells);
         return last4Wells;
     }

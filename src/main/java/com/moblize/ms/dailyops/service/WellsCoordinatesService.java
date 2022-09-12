@@ -4,9 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moblize.ms.dailyops.client.KpiDashboardClient;
 import com.moblize.ms.dailyops.dao.WellsCoordinatesDao;
-import com.moblize.ms.dailyops.domain.MongoWell;
-import com.moblize.ms.dailyops.domain.PerformanceROP;
-import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
+import com.moblize.ms.dailyops.domain.*;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
@@ -15,6 +13,7 @@ import com.moblize.ms.dailyops.repository.mongo.client.PerformanceBHARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceCostRepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceROPRepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceWellRepository;
+import com.moblize.ms.dailyops.repository.mongo.mob.MongoRigRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.security.jwt.TokenProvider;
 import com.moblize.ms.dailyops.service.dto.HoleSection;
@@ -32,6 +31,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -48,6 +48,8 @@ public class WellsCoordinatesService {
     private WellsCoordinatesDao wellsCoordinatesDao;
     @Autowired
     private MongoWellRepository mongoWellRepository;
+    @Autowired
+    private MongoRigRepository mongoRigRepository;
     @Autowired
     private PerformanceROPRepository ropRepository;
     @Autowired
@@ -143,17 +145,40 @@ public class WellsCoordinatesService {
         return latLngMap.values();
     }
 
-    public List<Last4WellsResponse> getLast4Wells(String rigId, String token, String customer){
+    public List<Last4WellsResponse> getLast4Wells(String rigId, String token, String customer,String primaryWellUid){
         List<MongoWell> mongoWells = null;
         List<MongoWell> rigWells = new ArrayList<>();
+        MongoWell primaryWell = mongoWellRepository.findByUid(primaryWellUid);
+        boolean isPrimaryWellInRig=false;
+
+        MongoRig mongoRig = mongoRigRepository.findById(rigId).get();
+        for (Rig rig:
+            primaryWell.getRigs()) {
+            if(rigId.equals(rig.getRigId())){
+                rigWells.add(primaryWell);
+                isPrimaryWellInRig=true;
+                break;
+            }
+        }
         mongoWells = mongoWellRepository.findAllByCustomer(customer);
         if(mongoWells!=null) {
-            mongoWells.stream().forEach(well->{
-                log.error(well.getRigs().get(0).getRigId());
-            });
+//            mongoWells.stream().forEach(well->{
+//                log.error(well.getRigs().get(0).getRigId());
+//            });
             rigWells= mongoWells.stream().filter(well -> {
-                return (well.getRigs().get(0).getRigId().equals(rigId) &&
-                    "completed".equals(well.getStatusWell())) ;
+                if(!("completed".equals(well.getStatusWell())))
+                    return false;
+                else {
+                      boolean useWell=false;
+                    for (Rig rig:well.getRigs()
+                         ) {
+                        if(rigId.equals(rig.getRigId())){
+                            useWell=true;
+                            break;
+                        }
+                   }
+                   return useWell;
+                }
             }).collect(Collectors.toList());
         }
         rigWells.sort(new Comparator<MongoWell>() {
@@ -165,17 +190,19 @@ public class WellsCoordinatesService {
 
         if(rigWells.size()>4){
             rigWells= rigWells.subList(0,3);
+           // if(isPrimaryWellInRig && rigWells)
+
         }
         if(rigWells!=null && rigWells.size()>0){
             final Map<String, ROPs> wellROPsMap = getWellROPsMap();
             final Map<String, WellData> wellMap = getWellDataMap();
-            List<Last4WellsResponse> last4Wells = rigWells.stream().map(well -> populateLast4WellsData(well,wellROPsMap,wellMap)).collect(Collectors.toList());
+            List<Last4WellsResponse> last4Wells = rigWells.stream().map(well -> populateLast4WellsData(well,wellROPsMap,wellMap,mongoRig)).collect(Collectors.toList());
             return last4Wells;
         }
         return null;
     }
 
-    private Last4WellsResponse populateLast4WellsData(MongoWell well, Map<String, ROPs> wellROPsMap, Map<String, WellData> wellMap){
+    private Last4WellsResponse populateLast4WellsData(MongoWell well, Map<String, ROPs> wellROPsMap, Map<String, WellData> wellMap, MongoRig mongoRig){
 
         try {
             Last4WellsResponse last4WellsResponse =  new Last4WellsResponse();
@@ -220,6 +247,7 @@ public class WellsCoordinatesService {
                 wellTrip.put(tripType, data);
             }
             last4WellsResponse.setTrippingData(wellTrip);
+            last4WellsResponse.setRigName(mongoRig.getName());
             return last4WellsResponse;
         }catch (Exception exp){
             log.error("Error occurred while processing well: {}", well.getUid(), exp);

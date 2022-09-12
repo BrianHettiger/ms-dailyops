@@ -66,4 +66,5 @@ public class Last4WellsResponse {
     Map<String,Double> sectionConnections;
     @JsonProperty("trippingData")
     Map<String, Map<String, Float>> trippingData;
+    String rigName;
 }
