@@ -194,9 +194,21 @@ public class WellsCoordinatesService {
         });
 
         if(rigWells.size()>4){
-            rigWells= rigWells.subList(0,3);
-           // if(isPrimaryWellInRig && rigWells)
-
+            rigWells= rigWells.subList(0,4);
+            boolean isPrimaryAdded=false;
+           if(isPrimaryWellInRig){
+               for (MongoWell well:
+                    rigWells) {
+                    if(well.getUid().equals(primaryWellUid)){
+                        isPrimaryAdded=true;
+                        break;
+                    }
+               }
+               if(!isPrimaryAdded) {
+                   rigWells.add(0, primaryWell);
+                   rigWells = rigWells.subList(0, 4);
+               }
+           }
         }
         if(rigWells!=null && rigWells.size()>0){
             final Map<String, ROPs> wellROPsMap = getWellROPsMap();
