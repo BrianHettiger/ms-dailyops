@@ -115,13 +115,13 @@ public class DailyopsController {
 
     @Transactional(readOnly = true)
     @GetMapping("/api/v2/getLast4Wells")
-    public List<Last4WellsResponse> getTop4WellsByRig(
-        @RequestParam("rigId") String rigId, @RequestParam("customer") String customer,
+    public  Map<String, List<Last4WellsResponse>> getTop4WellsByRig(
+        @RequestParam("rigIds") List<String> rigIds, @RequestParam("customer") String customer,
         @RequestParam("primaryWellUid") String primaryWellUid,
         @RequestHeader(value = "authorization", required = false) String token,
         HttpServletResponse response) {
         log.error("Got request inside getTop4WellsByRig");
-        List<Last4WellsResponse> last4Wells = wellsCoordinatesService.getLast4Wells(rigId, token, customer,primaryWellUid);
+        Map<String, List<Last4WellsResponse>> last4Wells = wellsCoordinatesService.getLast4Wells(rigIds, token, customer,primaryWellUid);
         log.error("last4Wells="+last4Wells);
         return last4Wells;
     }
