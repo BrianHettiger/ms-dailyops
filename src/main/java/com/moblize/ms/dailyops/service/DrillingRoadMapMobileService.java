@@ -283,7 +283,11 @@ public class DrillingRoadMapMobileService {
     private CompletableFuture<String> getCurrentSection(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String currentMeasuredDepth) {
         String currentSection;
         List<HoleSection> sections = kpiDashboardClient.getHoleSections(drillingRoadMapSearchDTO.getPrimaryWellUid());
-        final Float finalCurrentMeasuredDepth = Float.parseFloat(currentMeasuredDepth);
+        Float measuredDepth = 0f;
+        if(!currentMeasuredDepth.equals("")){
+            measuredDepth = Float.parseFloat(currentMeasuredDepth);
+        }
+        final Float finalCurrentMeasuredDepth = measuredDepth;
         Optional<HoleSection> holesection = Optional.empty();
         if(sections!=null && !sections.isEmpty()) {
             holesection = sections.stream().filter(section -> finalCurrentMeasuredDepth > section.getFromDepth() && finalCurrentMeasuredDepth <= section.getToDepth()).findFirst();
@@ -368,15 +372,22 @@ public class DrillingRoadMapMobileService {
 
     @Async
     public CompletableFuture<String> getRigState(DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, String currentMeasuredDepth) {
-        List<DepthLogResponse> data = null;
-        if (drillingRoadMapSearchDTO != null) {
-            String url = nodeDrillingURL + "log?wellUid=" + drillingRoadMapSearchDTO.getPrimaryWellUid() + "&type=depth&startIndex="
-                + (Double.parseDouble(currentMeasuredDepth) - 50) + "&endIndex=" + currentMeasuredDepth + "&needToConvertRange=true";
-            data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(nextgenUsername,nextgenPassword), new ParameterizedTypeReference<LogResponse>() {
-            }).getBody().getData();
+        LogResponse data = null;
+        if (currentMeasuredDepth.equals("")) {
+            currentMeasuredDepth = "0";
         }
-        if (data != null && !data.isEmpty()) {
-            return CompletableFuture.completedFuture(data.get(data.size() - 1).getRigState());
+        try {
+            if (drillingRoadMapSearchDTO != null) {
+                String url = nodeDrillingURL + "log?wellUid=" + drillingRoadMapSearchDTO.getPrimaryWellUid() + "&type=depth&startIndex="
+                    + (Double.parseDouble(currentMeasuredDepth) - 50) + "&endIndex=" + currentMeasuredDepth + "&needToConvertRange=true";
+                data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(nextgenUsername, nextgenPassword), new ParameterizedTypeReference<LogResponse>() {
+                }).getBody();
+            }
+        } catch (Exception e) {
+            log.error("Error while fetching rig State", e);
+        }
+        if (data != null && !data.getData().isEmpty()) {
+            return CompletableFuture.completedFuture(data.getData().get(data.getData().size() - 1).getRigState());
         } else {
             return CompletableFuture.completedFuture("");
         }
