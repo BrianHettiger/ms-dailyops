@@ -1,6 +1,5 @@
 package com.moblize.ms.dailyops.service;
 
-import com.moblize.core.model.dto.MudPropertiesDTO;
 import com.moblize.ms.dailyops.client.AlarmDetailClient;
 import com.moblize.ms.dailyops.client.KpiDashboardClient;
 import com.moblize.ms.dailyops.client.WitsmlLogsClient;
@@ -386,14 +385,13 @@ public class DrillingRoadMapMobileService {
     @Async
     public CompletableFuture<String> getWellMudWeight(String wellUid) {
         List<MudProperties> data = null;
-        Object data1 = null;
         if (wellUid != null) {
             String url = consumerUri + "mudAnalysis?wellUid=" + wellUid;
             data = restTemplate.exchange(url, HttpMethod.GET, createHeaders(consumerUsername, consumerPwd), new ParameterizedTypeReference<List<MudProperties>>() {
             }).getBody();
         }
         if (data != null && !data.isEmpty()) {
-            List<MudPropertiesDTO.MudData> mudDataList = data.get(data.size()-1).getMudDataList();
+            List<MudProperties.MudData> mudDataList = data.get(data.size()-1).getMudDataList();
             return CompletableFuture.completedFuture(String.valueOf(mudDataList.get(mudDataList.size()-1).getMudWeight()));
         } else {
             return CompletableFuture.completedFuture("");
