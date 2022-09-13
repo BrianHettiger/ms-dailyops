@@ -216,7 +216,7 @@ public class WellsCoordinatesService {
             List<Last4WellsResponse> last4Wells = rigWells.stream().map(well -> populateLast4WellsData(well,wellROPsMap,wellMap,mongoRig)).collect(Collectors.toList());
             rigWellsMap.put(rigId,last4Wells);
         }else{
-            rigWellsMap.put(rigId,null);
+            rigWellsMap.put(rigId,new ArrayList<Last4WellsResponse>());
             }
         }
 
