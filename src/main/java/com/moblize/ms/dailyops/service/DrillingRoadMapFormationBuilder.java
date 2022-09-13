@@ -29,24 +29,27 @@ public class DrillingRoadMapFormationBuilder {
     public Map<String, List<FormationMarker>> getFormationMap(String primaryWellUid, List<String> offsetWellUids, String wellboreUid) {
         Map<String, List<FormationMarker>> wellFormationMap = new HashMap<>();
         try {
-            Map<String, List<FormationMarker>> offsetWellFormationsMap = drillingRoadMapDao.getFormationMarkersForOffset(offsetWellUids);
-            List<FormationMarker> primaryWellFormationList = drillingRoadMapDao.getFormationMarkers(primaryWellUid, wellboreUid);
+            List<String> allWellUid = new ArrayList<>(offsetWellUids);
+            allWellUid.add(primaryWellUid);
+            Map<String, List<FormationMarker>> formationMarkersForAllWells= drillingRoadMapDao.formationMarkersForAllWells(allWellUid);
 
-            primaryWellFormationList.stream().
-                filter(formationMarker -> formationMarker.getMD() == null || formationMarker.getMD() == 0.0).findFirst().
-                ifPresent(formationMaker -> {
-                    primaryWellFormationList.remove(formationMaker);
-                });
-
-            sortOffsetWellFormationByMD(primaryWellFormationList);
-
-            for (String wellUid : offsetWellFormationsMap.keySet()) {
+            List<FormationMarker> primaryWellFormationList = new ArrayList<>();
+            if(formationMarkersForAllWells.containsKey(primaryWellUid)){
+                List<FormationMarker> primaryWellFormationListTemp = formationMarkersForAllWells.get(primaryWellUid);
+                formationMarkersForAllWells.remove(primaryWellUid);
+                primaryWellFormationListTemp.stream().
+                    filter(formationMarker -> formationMarker.getMD() == null || formationMarker.getMD() == 0.0).findFirst().
+                    ifPresent(formationMaker -> {
+                        primaryWellFormationListTemp.remove(formationMaker);
+                    });
+                primaryWellFormationList.addAll(primaryWellFormationListTemp);
+                sortOffsetWellFormationByMD(primaryWellFormationList);
+            }
+            formationMarkersForAllWells.keySet().stream().map(wellUid -> {
                 List<FormationMarker> matchingFormationList = new ArrayList<>();
-                List<FormationMarker> offsetWellFormations = offsetWellFormationsMap.get(wellUid);
-
-                for (FormationMarker primaryWellFormation : primaryWellFormationList) {
+                List<FormationMarker> offsetWellFormations = formationMarkersForAllWells.get(wellUid);
+                    primaryWellFormationList.stream().map(primaryWellFormation->{
                     String primaryWellFormationName = primaryWellFormation.getName().trim();
-
                     primaryWellFormation.setName(WordUtils.capitalizeFully(primaryWellFormationName));
                     for (FormationMarker offsetWellFormation : offsetWellFormations) {
                         String offsetWellFormationName = offsetWellFormation.getName().trim();
@@ -56,13 +59,15 @@ public class DrillingRoadMapFormationBuilder {
                             break;
                         }
                     }
-                }
+                    return null;
+                });
                 //Ignoring wells with matching one formation ,as that will not be a part of calculation.
                 if (matchingFormationList.size() > 1) {
                     sortOffsetWellFormationByMD(matchingFormationList);
                     wellFormationMap.put(wellUid, matchingFormationList);
                 }
-            }
+                return null;
+            });
 
             wellFormationMap.put(primaryWellUid, primaryWellFormationList);
 

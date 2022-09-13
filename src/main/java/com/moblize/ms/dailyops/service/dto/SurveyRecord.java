@@ -69,5 +69,7 @@ public class SurveyRecord {
     Float dispNS;
     @ProtoField(number = 29)
     Float vertsect;
+    @ProtoField(number = 30)
+    String wellUid;
 
 }
