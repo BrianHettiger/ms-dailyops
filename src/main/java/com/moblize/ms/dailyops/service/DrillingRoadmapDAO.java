@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -18,12 +19,11 @@ public class DrillingRoadmapDAO {
     @Autowired
     WitsmlLogsClient witsmlLogsClient;
 
-
-	public List<FormationMarker> getFormationMarkers(String wellUid, String wellboreUid) {
-		List<FormationMarker> formationMarkers = Collections.emptyList();
-		try {
-			// Call for the Record Set
-            JSONResult jsonResult = witsmlLogsClient.getFormationMarkers(wellUid,wellboreUid);
+    public List<FormationMarker> getFormationMarkers(List<String> wellUid, String wellboreUid) {
+        List<FormationMarker> formationMarkers = Collections.emptyList();
+        try {
+            // Call for the Record Set
+            JSONResult jsonResult = witsmlLogsClient.getFormationMarkersForWells(wellUid,wellboreUid);
             log.info(jsonResult.status);
             log.info(jsonResult.data.toString());
             final ObjectMapper mapper = new ObjectMapper(); // jackson's objectmapper
@@ -45,32 +45,27 @@ public class DrillingRoadmapDAO {
                     }
                 }
             });
-		} catch (Exception iae) {
+        } catch (Exception iae) {
             log.error("Error occur in FormationMarkerClient.getFormationMarkers API call ", iae);
-		}
+        }
 
-		return formationMarkers;
-	}
+        return formationMarkers;
+    }
 
-	public Map<String, List<FormationMarker>> getFormationMarkersForOffset(List<String> wellUidList) {
-		Map<String, List<FormationMarker>> formationMarkers = new HashMap<>();
-		String wellboreUid = "Wellbore1";
-		try {
-			if (wellUidList.size() > 0) {
-				for (String wellUid : wellUidList) {
-					List<FormationMarker> dataList = new ArrayList<>();
-					dataList = getFormationMarkers(wellUid, wellboreUid);
-					if (dataList.size() > 0) {
-						formationMarkers.put(wellUid, dataList);
-					}
-				}
-			}
-		} catch (Exception e) {
-            log.error("Error in getFormationMarkersForOffset",e);
-		}
 
-		return formationMarkers;
-	}
+    public Map<String, List<FormationMarker>> formationMarkersForAllWells(List<String> wellUidList) {
+        Map<String, List<FormationMarker>> formationMarkers = new HashMap<>();
+        String wellboreUid = "Wellbore1";
+        try {
+            if (wellUidList.size() > 0) {
+                List<FormationMarker> dataList = getFormationMarkers(wellUidList, wellboreUid);
+                formationMarkers = dataList.stream().collect(Collectors.groupingBy(FormationMarker::getWellUid));
+            }
+        } catch (Exception e) {
+            log.error("Error in getFormationMarkersForOffset", e);
+        }
+        return formationMarkers;
+    }
 
 
 }

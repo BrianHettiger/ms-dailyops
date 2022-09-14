@@ -8,6 +8,7 @@ import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
 import com.moblize.ms.dailyops.domain.mongo.TargetWindowDPVA;
 import com.moblize.ms.dailyops.dto.*;
+
 import com.moblize.ms.dailyops.service.AnalyticsWellMetaDataService;
 import com.moblize.ms.dailyops.service.BCWDepthLogPlotService;
 import com.moblize.ms.dailyops.service.CacheService;
@@ -21,6 +22,9 @@ import com.moblize.ms.dailyops.service.TargetWindowDPVAService;
 import com.moblize.ms.dailyops.service.TortuosityService;
 import com.moblize.ms.dailyops.service.TrueROPDataService;
 import com.moblize.ms.dailyops.service.WellsCoordinatesService;
+
+import com.moblize.ms.dailyops.service.*;
+
 import com.moblize.ms.dailyops.service.dto.DPVAResult;
 import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
 import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
@@ -83,6 +87,12 @@ public class DailyopsController {
 
     @Autowired
     private BCWDepthLogPlotService bcwDepthLogPlotService;
+
+    @Autowired
+    private OffSetWellService offSetWellService;
+
+    @Autowired
+    private DrillingRoadMapMobileService drillingRoadMapMobileService;
 
 
     @Transactional(readOnly = true)
@@ -507,5 +517,19 @@ public class DailyopsController {
         return dpvaService.getScaledSurveyDataList(uid,customer);
     }
 
+    @PostMapping("/api/v1/getBCWOffSetWellList")
+    public OffSetWellByDistance getBCWOffSetWellList(@RequestBody BCWDTO bcwdto){
+        return offSetWellService.getBCWOffSetWellList(bcwdto);
+    }
+    @PostMapping("/api/v1/drillingRoadMapMobile")
+    public DrillingRoadmapJsonResponse getDrillingRoadMapMobile(@RequestBody DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, HttpServletResponse response){
+        DrillingRoadmapJsonResponse drillingRoadmapJsonResponse = new DrillingRoadmapJsonResponse();
+        if (drillingRoadMapSearchDTO == null || drillingRoadMapSearchDTO.getOffsetWellUids().size() < 0) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        } else {
+            drillingRoadmapJsonResponse = drillingRoadMapMobileService.readMobile(drillingRoadMapSearchDTO);
+        }
 
+        return drillingRoadmapJsonResponse;
+    }
 }

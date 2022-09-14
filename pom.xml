@@ -412,7 +412,6 @@
             <artifactId>protostream-processor</artifactId>
             <scope>provided</scope>
         </dependency>
-
     </dependencies>
 
     <build>

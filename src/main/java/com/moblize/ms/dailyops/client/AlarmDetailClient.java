@@ -29,4 +29,10 @@ public interface AlarmDetailClient {
         @PathVariable("wellStatus") String wellStatus
     );
 
+    @GetMapping("api/v1/getLastSurveyData/{wellUid}/{wellStatus}")
+    SurveyRecord getLastSurveyData(
+        @PathVariable("wellUid") String wellUid,
+        @PathVariable("wellStatus") String wellStatus
+    );
+
 }

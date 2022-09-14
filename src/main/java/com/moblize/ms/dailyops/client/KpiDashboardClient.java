@@ -4,8 +4,7 @@ import com.moblize.ms.dailyops.dto.TrippingCasingRecordDTO;
 import com.moblize.ms.dailyops.service.dto.HoleSection;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -19,6 +18,7 @@ public interface KpiDashboardClient {
     );
 
 
+
     @GetMapping(value = "last4wellsconnection")
     Map<String,Double> getSectionConnections(
         @RequestParam("wellUidList") String wellUid
@@ -28,5 +28,12 @@ public interface KpiDashboardClient {
     @GetMapping(value = "kpitagtrippingcasingextractionbywellid")
     Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>> getKpiExtractionByWellId(
         @RequestParam("wellUidList") String wellUid
+
+    @PostMapping(value = "kpiTagRopBasedOnWells")
+    Object kpiTagRopBasedOnWells(
+        @RequestParam(value = "addDepthRange") Boolean addDepthRange,
+        @RequestParam(value = "sectionName") String sectionName,
+        @RequestBody Map<String, Object> parameters
+
     );
 }
