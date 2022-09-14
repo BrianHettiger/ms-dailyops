@@ -27,7 +27,7 @@ public interface KpiDashboardClient {
 
     @GetMapping(value = "kpitagtrippingcasingextractionbywellid")
     Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>> getKpiExtractionByWellId(
-        @RequestParam("wellUidList") String wellUid
+        @RequestParam("wellUidList") String wellUid);
 
     @PostMapping(value = "kpiTagRopBasedOnWells")
     Object kpiTagRopBasedOnWells(
