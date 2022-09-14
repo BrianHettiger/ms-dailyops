@@ -8,7 +8,23 @@ import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
 import com.moblize.ms.dailyops.domain.mongo.TargetWindowDPVA;
 import com.moblize.ms.dailyops.dto.*;
+
+import com.moblize.ms.dailyops.service.AnalyticsWellMetaDataService;
+import com.moblize.ms.dailyops.service.BCWDepthLogPlotService;
+import com.moblize.ms.dailyops.service.CacheService;
+import com.moblize.ms.dailyops.service.DPVAService;
+import com.moblize.ms.dailyops.service.NotifyDPVAService;
+import com.moblize.ms.dailyops.service.PerformanceBHAService;
+import com.moblize.ms.dailyops.service.PerformanceCostService;
+import com.moblize.ms.dailyops.service.PerformanceROPService;
+import com.moblize.ms.dailyops.service.PerformanceWellService;
+import com.moblize.ms.dailyops.service.TargetWindowDPVAService;
+import com.moblize.ms.dailyops.service.TortuosityService;
+import com.moblize.ms.dailyops.service.TrueROPDataService;
+import com.moblize.ms.dailyops.service.WellsCoordinatesService;
+
 import com.moblize.ms.dailyops.service.*;
+
 import com.moblize.ms.dailyops.service.dto.DPVAResult;
 import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
 import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
@@ -105,6 +121,19 @@ public class DailyopsController {
         } else {
             return ResponseDTO.complete(wellsCoordinatesService.getWellCoordinates(customer, token));
         }
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v2/getLast4Wells")
+    public  Map<String, List<Last4WellsResponse>> getTop4WellsByRig(
+        @RequestParam("rigIds") List<String> rigIds, @RequestParam("customer") String customer,
+        @RequestParam("primaryWellUid") String primaryWellUid,
+        @RequestHeader(value = "authorization", required = false) String token,
+        HttpServletResponse response) {
+        log.error("Got request inside getTop4WellsByRig");
+        Map<String, List<Last4WellsResponse>> last4Wells = wellsCoordinatesService.getLast4Wells(rigIds, token, customer,primaryWellUid);
+        log.error("last4Wells="+last4Wells);
+        return last4Wells;
     }
 
     @Transactional(readOnly = true)
