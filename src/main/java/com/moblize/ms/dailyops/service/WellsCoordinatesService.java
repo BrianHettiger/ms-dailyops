@@ -225,7 +225,7 @@ public class WellsCoordinatesService {
     }
 
     private Last4WellsResponse populateLast4WellsData(MongoWell well, Map<String, ROPs> wellROPsMap, Map<String, WellData> wellMap, MongoRig mongoRig){
-  log.error("Completion time for "+well.getUid()+" = "+new Date(well.getCompletedAt()).toString());
+    log.error("Rig Release time for "+well.getUid()+" = "+well.getDaysVsDepthAdjustmentDates().getReleaseDate().toString());
   
         try {
             Last4WellsResponse last4WellsResponse =  new Last4WellsResponse();
