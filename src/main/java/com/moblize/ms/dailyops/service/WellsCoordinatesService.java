@@ -189,7 +189,8 @@ public class WellsCoordinatesService {
         rigWells.sort(new Comparator<MongoWell>() {
             @Override
             public int compare(MongoWell o1, MongoWell o2) {
-                return o2.getCompletedAt().compareTo(o1.getCompletedAt());
+               return o2.getDaysVsDepthAdjustmentDates().getReleaseDate().compareTo(o1.getDaysVsDepthAdjustmentDates().getReleaseDate());
+
             }
         });
 
