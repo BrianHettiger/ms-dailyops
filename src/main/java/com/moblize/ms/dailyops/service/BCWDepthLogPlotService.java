@@ -32,16 +32,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -648,6 +639,7 @@ public class BCWDepthLogPlotService {
         if (response.getStatusCode().is2xxSuccessful()) {
             logObj = response.getBody().getData();
         } else {
+            log.error("No data returned {}", response.getStatusCode().name());
             return null;
         }
 
@@ -682,6 +674,7 @@ public class BCWDepthLogPlotService {
         URI uri = UriComponentsBuilder.newInstance()
             .fromUriString(url)
             .queryParams(map).build().toUri();
+        log.info("URI: {}", uri);
         final ResponseEntity<LogResponse> responseEntity = restTemplate.exchange(
             uri,
             HttpMethod.GET,
