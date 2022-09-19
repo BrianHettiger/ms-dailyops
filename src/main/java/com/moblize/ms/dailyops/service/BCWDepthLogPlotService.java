@@ -86,13 +86,14 @@ public class BCWDepthLogPlotService {
                     bcwDepthPlotDTO.setActionType("create");
                 }
             }
-
-            if (bcwDepthPlotDTO.getActionType().equalsIgnoreCase("create")
-                || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("update")
-                || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("refresh")){
-                bcwDepthPlotDTO.setStartIndex(0);
-                bcwDepthPlotDTO.setEndIndex(50000);
+            if (bcwDepthPlotDTO.getBcwId() != null && bcwDepthPlotDTO.getActionType().equalsIgnoreCase("select")) {
+                bcwDepthPlotResponse.setData(bcwSmoothLogDataRepository.findBCWSmoothLogDataByBcwId(bcwDepthPlotDTO.getBcwId()).getDepthLogResponseList());
+                if(bcwDepthPlotResponse.getData() != null && bcwDepthPlotResponse.getData().size() > 0) {
+                    return bcwDepthPlotResponse;
+                }
             }
+            bcwDepthPlotDTO.setStartIndex(0);
+            bcwDepthPlotDTO.setEndIndex(50000);
 
             //Get Drilling log Map data
             //Extract formationBcwData and sort by measure depth
