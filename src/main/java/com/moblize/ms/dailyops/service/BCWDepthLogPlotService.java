@@ -80,7 +80,11 @@ public class BCWDepthLogPlotService {
 
         try {
             if(bcwDepthPlotDTO.getActionType() == null || bcwDepthPlotDTO.getActionType().isEmpty()){
-                bcwDepthPlotDTO.setActionType("select");
+                if(bcwDepthPlotDTO.getBcwId() != null) {
+                    bcwDepthPlotDTO.setActionType("select");
+                } else {
+                    bcwDepthPlotDTO.setActionType("create");
+                }
             }
 
             if (bcwDepthPlotDTO.getActionType().equalsIgnoreCase("create")
