@@ -89,7 +89,7 @@ public class BCWDepthLogPlotService {
             //Get Drilling log Map data
             //Extract formationBcwData and sort by measure depth
             List<DrillingRoadMapWells> ls = this.getDrillingRoadmap(bcwDepthPlotDTO);
-
+            log.info("formations size: {}", ls.size());
             //filter out the offset well by using start and end index
 
             List<DepthLogResponse> bcwDepthLog = new ArrayList<>();
