@@ -1,5 +1,6 @@
 package com.moblize.ms.dailyops.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moblize.ms.dailyops.client.KpiDashboardClient;
@@ -396,19 +397,19 @@ public class BCWDepthLogPlotService {
     }
 
 
-   /* public void saveBCWDepthLog(final String wellUID, final List<Map<String, Object>> bcwDepthLogData) {
-        BCWDepthLog bcwDepthLog = new BCWDepthLog();
-        bcwDepthLog.setUid(wellUID);
-        bcwDepthLog.setBcwDepthLog(bcwDepthLogData);
-
-        bcwDepthLogService.saveUpdateBCWDepthLog(bcwDepthLog);
-
-    }*/
-
     public List<DrillingRoadMapWells> getDrillingRoadmap(BCWDepthPlotDTO bcwDepthPlotDTO) {
         Map<String, List<FormationMarker>> formationMarkerMap = drillingRoadMapFormationBuilder.getFormationMap(bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthPlotDTO.getOffsetWellUids(), "Wellbore1");
-
+        try {
+            log.info("formationMarkerMap: {}", objectMapper.writeValueAsString(formationMarkerMap));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
         List<String> primaryWellFormation = formationMarkerMap.get(bcwDepthPlotDTO.getPrimaryWellUid()).stream().map(formation -> formation.getName()).collect(Collectors.toList());
+        try {
+            log.info("primaryWellFormation: {}", objectMapper.writeValueAsString(primaryWellFormation));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
 
         Set<String> formationWellList = formationMarkerMap.keySet();
         formationWellList.remove(bcwDepthPlotDTO.getPrimaryWellUid());
