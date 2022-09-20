@@ -43,7 +43,8 @@ import java.util.stream.IntStream;
 public class BCWDepthLogPlotService {
 
     static RestTemplate restTemplate = new RestTemplate();
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private DrillingRoadMapFormationBuilder drillingRoadMapFormationBuilder;
@@ -69,8 +70,8 @@ public class BCWDepthLogPlotService {
 
     public BCWDepthPlotResponse getBCWDepthLog(BCWDepthPlotDTO bcwDepthPlotDTO) {
         BCWDepthPlotResponse bcwDepthPlotResponse = new BCWDepthPlotResponse();
-
         try {
+            log.info("bcwDepthPlotDTO: {}", objectMapper.writeValueAsString(bcwDepthPlotDTO));
             if(bcwDepthPlotDTO.getActionType() == null || bcwDepthPlotDTO.getActionType().isEmpty()){
                 if(bcwDepthPlotDTO.getBcwId() != null) {
                     bcwDepthPlotDTO.setActionType("select");

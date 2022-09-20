@@ -1,5 +1,6 @@
 package com.moblize.ms.dailyops.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moblize.ms.dailyops.domain.FormationMarker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.WordUtils;
@@ -18,7 +19,8 @@ public class DrillingRoadMapFormationBuilder {
 
     @Autowired
     private DrillingRoadmapDAO drillingRoadMapDao;
-
+    @Autowired
+    private ObjectMapper objectMapper;
     /**
      * getFormationMap formation map that has primary well and matching offset wells
      *
@@ -31,7 +33,9 @@ public class DrillingRoadMapFormationBuilder {
         try {
             List<String> allWellUid = new ArrayList<>(offsetWellUids);
             allWellUid.add(primaryWellUid);
+            log.info("allWellUid: {}", objectMapper.writeValueAsString(allWellUid));
             Map<String, List<FormationMarker>> formationMarkersForAllWells= drillingRoadMapDao.formationMarkersForAllWells(allWellUid);
+            log.info("formationMarkersForAllWells: {}", objectMapper.writeValueAsString(formationMarkersForAllWells));
 
             List<FormationMarker> primaryWellFormationList = new ArrayList<>();
             if(formationMarkersForAllWells.containsKey(primaryWellUid)){
