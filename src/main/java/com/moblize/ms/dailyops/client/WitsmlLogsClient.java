@@ -2,7 +2,6 @@ package com.moblize.ms.dailyops.client;
 
 import com.moblize.ms.dailyops.domain.FormationMarker;
 import com.moblize.ms.dailyops.domain.mongo.MongoLog;
-import com.moblize.ms.dailyops.dto.FormationMarkerDTO;
 import com.moblize.ms.dailyops.utils.JSONResult;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Lazy;

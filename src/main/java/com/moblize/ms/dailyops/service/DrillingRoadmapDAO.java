@@ -1,11 +1,7 @@
 package com.moblize.ms.dailyops.service;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moblize.ms.dailyops.client.WitsmlLogsClient;
 import com.moblize.ms.dailyops.domain.FormationMarker;
-import com.moblize.ms.dailyops.dto.FormationMarkerDTO;
-import com.moblize.ms.dailyops.utils.JSONResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
