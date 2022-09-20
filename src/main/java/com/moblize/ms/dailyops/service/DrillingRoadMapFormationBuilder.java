@@ -41,8 +41,10 @@ public class DrillingRoadMapFormationBuilder {
 
             final List<FormationMarker> primaryWellFormationList =
                 formationMarkersForAllWells.remove(primaryWellUid).stream()
-                    .filter(formationMarker -> formationMarker.getMD() != null && formationMarker.getMD() == 0.0)
+                    .filter(formationMarker -> formationMarker.getMD() != null && formationMarker.getMD() != 0.0)
                     .collect(Collectors.toList());
+            log.info("formationMarkersForAllWells: {}", objectMapper.writeValueAsString(formationMarkersForAllWells));
+            log.info("primaryWellFormationList: {}", objectMapper.writeValueAsString(primaryWellFormationList));
             sortOffsetWellFormationByMD(primaryWellFormationList);
             formationMarkersForAllWells.forEach((wellUid, offsetWellFormations) -> {
                 final List<FormationMarker> matchingFormationList = new ArrayList<>();
