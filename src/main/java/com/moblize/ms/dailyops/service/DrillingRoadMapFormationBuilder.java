@@ -35,16 +35,12 @@ public class DrillingRoadMapFormationBuilder {
         try {
             List<String> allWellUid = new ArrayList<>(offsetWellUids);
             allWellUid.add(primaryWellUid);
-            log.info("allWellUid: {}", objectMapper.writeValueAsString(allWellUid));
             Map<String, List<FormationMarker>> formationMarkersForAllWells= drillingRoadMapDao.formationMarkersForAllWells(allWellUid);
-            log.info("formationMarkersForAllWells: {}", objectMapper.writeValueAsString(formationMarkersForAllWells));
 
             final List<FormationMarker> primaryWellFormationList =
                 formationMarkersForAllWells.remove(primaryWellUid).stream()
                     .filter(formationMarker -> formationMarker.getMD() != null && formationMarker.getMD() != 0.0)
                     .collect(Collectors.toList());
-            log.info("formationMarkersForAllWells: {}", objectMapper.writeValueAsString(formationMarkersForAllWells));
-            log.info("primaryWellFormationList: {}", objectMapper.writeValueAsString(primaryWellFormationList));
             sortOffsetWellFormationByMD(primaryWellFormationList);
             formationMarkersForAllWells.forEach((wellUid, offsetWellFormations) -> {
                 final List<FormationMarker> matchingFormationList = new ArrayList<>();
@@ -61,18 +57,12 @@ public class DrillingRoadMapFormationBuilder {
                 });
                 //Ignoring wells with matching one formation ,as that will not be a part of calculation.
                 if (matchingFormationList.size() > 1) {
-                    try {
-                        log.info("matchingFormationList: {}", objectMapper.writeValueAsString(matchingFormationList));
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
-                    }
                     sortOffsetWellFormationByMD(matchingFormationList);
                     wellFormationMap.put(wellUid, matchingFormationList);
                 }
             });
 
             wellFormationMap.put(primaryWellUid, primaryWellFormationList);
-            log.info("wellFormationMap: {}", objectMapper.writeValueAsString(wellFormationMap));
 
         } catch (Exception exception) {
             log.error("Error while performing formation marker filtering [getFormationMarker]", exception);

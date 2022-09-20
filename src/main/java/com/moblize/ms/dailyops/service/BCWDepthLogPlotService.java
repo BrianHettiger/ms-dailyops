@@ -71,7 +71,6 @@ public class BCWDepthLogPlotService {
     public BCWDepthPlotResponse getBCWDepthLog(BCWDepthPlotDTO bcwDepthPlotDTO) {
         BCWDepthPlotResponse bcwDepthPlotResponse = new BCWDepthPlotResponse();
         try {
-            log.info("bcwDepthPlotDTO: {}", objectMapper.writeValueAsString(bcwDepthPlotDTO));
             if(bcwDepthPlotDTO.getActionType() == null || bcwDepthPlotDTO.getActionType().isEmpty()){
                 if(bcwDepthPlotDTO.getBcwId() != null) {
                     bcwDepthPlotDTO.setActionType("select");
@@ -91,7 +90,6 @@ public class BCWDepthLogPlotService {
             //Get Drilling log Map data
             //Extract formationBcwData and sort by measure depth
             List<DrillingRoadMapWells> ls = this.getDrillingRoadmap(bcwDepthPlotDTO);
-            log.info("formations size: {}", ls.size());
             //filter out the offset well by using start and end index
 
             List<DepthLogResponse> bcwDepthLog = new ArrayList<>();
@@ -196,7 +194,6 @@ public class BCWDepthLogPlotService {
             }
             Double firstDepth = bcwDepthLog.get(0).getHoleDepth();
             Double lastDepth = bcwDepthLog.get(bcwDepthLog.size() - 1).getHoleDepth();
-            log.info("FirstDepth: {} ,LastDepth: {}", firstDepth, lastDepth);
 
             DepthClass depthClass = new DepthClass();
             Map<HoleSection.HoleSectionType, HoleSection> finalHoleSectionMap = holeSectionMap;
@@ -399,17 +396,7 @@ public class BCWDepthLogPlotService {
 
     public List<DrillingRoadMapWells> getDrillingRoadmap(BCWDepthPlotDTO bcwDepthPlotDTO) {
         Map<String, List<FormationMarker>> formationMarkerMap = drillingRoadMapFormationBuilder.getFormationMap(bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthPlotDTO.getOffsetWellUids(), "Wellbore1");
-        try {
-            log.info("formationMarkerMap: {}", objectMapper.writeValueAsString(formationMarkerMap));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
         List<String> primaryWellFormation = formationMarkerMap.get(bcwDepthPlotDTO.getPrimaryWellUid()).stream().map(formation -> formation.getName()).collect(Collectors.toList());
-        try {
-            log.info("primaryWellFormation: {}", objectMapper.writeValueAsString(primaryWellFormation));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
 
         Set<String> formationWellList = formationMarkerMap.keySet();
         formationWellList.remove(bcwDepthPlotDTO.getPrimaryWellUid());
@@ -502,7 +489,6 @@ public class BCWDepthLogPlotService {
             .map(ls -> {
                     List<DepthLogResponse> logData = getDepthLogData("depth", ls.getWellUID(), String.valueOf(ls.getStartIndex()), String.valueOf(ls.getEndIndex()), disableReduce ? 30000 : 1000, disableReduce, true, null);
                     try {
-                        log.info("startDepth: {} endDepth {}", ls.getStartIndex(), ls.getEndIndex());
                         logData = logData.parallelStream().filter(
                             k -> k.getHoleDepth() >= ls.getStartIndex()
                                 && k.getHoleDepth() <= ls.getEndIndex())
@@ -667,7 +653,6 @@ public class BCWDepthLogPlotService {
         URI uri = UriComponentsBuilder.newInstance()
             .fromUriString(url)
             .queryParams(map).build().toUri();
-        log.info("URI: {}", uri);
         final ResponseEntity<LogResponse> responseEntity = restTemplate.exchange(
             uri,
             HttpMethod.GET,
