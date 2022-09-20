@@ -122,7 +122,6 @@ public class BCWDepthLogPlotService {
                 bcwDepthLog = this.getOffSetLog1(ls, bcwDepthPlotDTO.getEndIndex(), bcwDepthPlotDTO.getStartIndex(), false);
             }
 
-            //  saveBCWDepthLog(bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthLog);
             bcwDepthPlotResponse.setStatus("success");
             bcwDepthPlotResponse.setMessage("success");
             bcwDepthPlotResponse.setData(bcwDepthLog);
@@ -461,15 +460,7 @@ public class BCWDepthLogPlotService {
     }
 
     private void shortFilterList(List<DrillingRoadMapWells> filterList) {
-        Collections.sort(filterList, new Comparator<DrillingRoadMapWells>() {
-            @Override
-            public int compare(DrillingRoadMapWells obj1, DrillingRoadMapWells obj2) {
-                double d1 = Double.parseDouble(obj1.getMD());
-                double d2 = Double.parseDouble(obj2.getMD());
-                int checkValue = d1 > d2 ? 1 : -1;
-                return d1 == d2 ? 0 : checkValue;
-            }
-        });
+        Collections.sort(filterList, Comparator.comparing(DrillingRoadMapWells::getMD));
     }
 
     private List<Map<String, Object>> getOffSetLog(List<DrillingRoadMapWells> offSetList, int lastOffSetEndIndex, int lastOffSetStartIndex) {
@@ -510,11 +501,11 @@ public class BCWDepthLogPlotService {
             .map(ls -> {
                     List<DepthLogResponse> logData = getDepthLogData("depth", ls.getWellUID(), String.valueOf(ls.getStartIndex()), String.valueOf(ls.getEndIndex()), disableReduce ? 30000 : 1000, disableReduce, true, null);
                     try {
+                        log.info("startDepth: {} endDepth {}", ls.getStartIndex(), ls.getEndIndex());
                         logData = logData.parallelStream().filter(
                             k -> k.getHoleDepth() >= ls.getStartIndex()
                                 && k.getHoleDepth() <= ls.getEndIndex())
                             .collect(Collectors.toList());
-                        //logData.parallelStream().forEach(map -> map.put("offSetWellUid", ls.getWellUID()));
                         return logData;
                     } catch (Exception e) {
                         e.printStackTrace();
