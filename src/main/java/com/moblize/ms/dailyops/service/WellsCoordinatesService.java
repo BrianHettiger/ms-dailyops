@@ -188,14 +188,20 @@ public class WellsCoordinatesService {
         }
         rigWells.sort(new Comparator<MongoWell>() {
             @Override
-           public int compare(MongoWell o1, MongoWell o2) {
+            public int compare(MongoWell o1, MongoWell o2) {
                 if(o1.getDaysVsDepthAdjustmentDates()==null && o2.getDaysVsDepthAdjustmentDates()==null)
                     return 0;
                 else if(o1.getDaysVsDepthAdjustmentDates()==null && o2.getDaysVsDepthAdjustmentDates()!=null)
-                    return -1;
-                else if(o2.getDaysVsDepthAdjustmentDates()==null && o1.getDaysVsDepthAdjustmentDates()!=null)
                     return 1;
-                return o2.getDaysVsDepthAdjustmentDates().getReleaseDate().compareTo(o1.getDaysVsDepthAdjustmentDates().getReleaseDate());
+                else if(o2.getDaysVsDepthAdjustmentDates()==null && o1.getDaysVsDepthAdjustmentDates()!=null)
+                    return -1;
+                else if(o1.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o2.getDaysVsDepthAdjustmentDates().getReleaseDate()==null)
+                    return 0;
+                else if(o1.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o2.getDaysVsDepthAdjustmentDates().getReleaseDate()!=null)
+                    return 1;
+                else if(o2.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o1.getDaysVsDepthAdjustmentDates().getReleaseDate()!=null)
+                    return -1;
+                return o1.getDaysVsDepthAdjustmentDates().getReleaseDate().compareTo(o2.getDaysVsDepthAdjustmentDates().getReleaseDate());
             }
         });
 
