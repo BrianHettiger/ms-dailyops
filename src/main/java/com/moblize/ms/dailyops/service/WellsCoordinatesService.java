@@ -192,10 +192,10 @@ public class WellsCoordinatesService {
                 if(o1.getDaysVsDepthAdjustmentDates()==null && o2.getDaysVsDepthAdjustmentDates()==null)
                     return 0;
                 else if(o1.getDaysVsDepthAdjustmentDates()==null && o2.getDaysVsDepthAdjustmentDates()!=null)
-                    return 1;
-                else if(o2.getDaysVsDepthAdjustmentDates()==null && o1.getDaysVsDepthAdjustmentDates()!=null)
                     return -1;
-                return o1.getDaysVsDepthAdjustmentDates().getReleaseDate().compareTo(o2.getDaysVsDepthAdjustmentDates().getReleaseDate());
+                else if(o2.getDaysVsDepthAdjustmentDates()==null && o1.getDaysVsDepthAdjustmentDates()!=null)
+                    return 1;
+                return o2.getDaysVsDepthAdjustmentDates().getReleaseDate().compareTo(o1.getDaysVsDepthAdjustmentDates().getReleaseDate());
             }
         });
 
