@@ -188,9 +188,14 @@ public class WellsCoordinatesService {
         }
         rigWells.sort(new Comparator<MongoWell>() {
             @Override
-            public int compare(MongoWell o1, MongoWell o2) {
-               return o1.getDaysVsDepthAdjustmentDates().getReleaseDate().compareTo(o2.getDaysVsDepthAdjustmentDates().getReleaseDate());
-
+           public int compare(MongoWell o1, MongoWell o2) {
+                if(o1.getDaysVsDepthAdjustmentDates()==null && o2.getDaysVsDepthAdjustmentDates()==null)
+                    return 0;
+                else if(o1.getDaysVsDepthAdjustmentDates()==null && o2.getDaysVsDepthAdjustmentDates()!=null)
+                    return 1;
+                else if(o2.getDaysVsDepthAdjustmentDates()==null && o1.getDaysVsDepthAdjustmentDates()!=null)
+                    return -1;
+                return o1.getDaysVsDepthAdjustmentDates().getReleaseDate().compareTo(o2.getDaysVsDepthAdjustmentDates().getReleaseDate());
             }
         });
 
@@ -200,10 +205,6 @@ public class WellsCoordinatesService {
 
         if(rigWells.size()>numWellsToSelect){
             rigWells= rigWells.subList(0,numWellsToSelect);
-        }
-        
-        if(rigWells.size()>0){
-            Collections.reverse(rigWells);
         }
 
         if(isPrimaryWellInRig)
