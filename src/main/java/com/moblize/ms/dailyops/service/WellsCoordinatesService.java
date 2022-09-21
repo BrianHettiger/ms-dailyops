@@ -177,7 +177,7 @@ public class WellsCoordinatesService {
                       boolean useWell=false;
                     for (Rig rig:well.getRigs()
                          ) {
-                        if(rigId.equals(rig.getRigId())){
+                        if(rigId.equals(rig.getRigId()) && (!primaryWellUid.equals(well.getUid()))){
                             useWell=true;
                             break;
                         }
@@ -189,27 +189,39 @@ public class WellsCoordinatesService {
         rigWells.sort(new Comparator<MongoWell>() {
             @Override
             public int compare(MongoWell o1, MongoWell o2) {
-                return o1.getCompletedAt().compareTo(o2.getCompletedAt());
+                if(o1.getDaysVsDepthAdjustmentDates()==null && o2.getDaysVsDepthAdjustmentDates()==null)
+                    return 0;
+                else if(o1.getDaysVsDepthAdjustmentDates()==null && o2.getDaysVsDepthAdjustmentDates()!=null)
+                    return 1;
+                else if(o2.getDaysVsDepthAdjustmentDates()==null && o1.getDaysVsDepthAdjustmentDates()!=null)
+                    return -1;
+                else if(o1.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o2.getDaysVsDepthAdjustmentDates().getReleaseDate()==null)
+                    return 0;
+                else if(o1.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o2.getDaysVsDepthAdjustmentDates().getReleaseDate()!=null)
+                    return 1;
+                else if(o2.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o1.getDaysVsDepthAdjustmentDates().getReleaseDate()!=null)
+                    return -1;
+                return o2.getDaysVsDepthAdjustmentDates().getReleaseDate().compareTo(o1.getDaysVsDepthAdjustmentDates().getReleaseDate());
             }
         });
 
-        if(rigWells.size()>4){
-            rigWells= rigWells.subList(0,4);
-            boolean isPrimaryAdded=false;
-           if(isPrimaryWellInRig){
-               for (MongoWell well:
-                    rigWells) {
-                    if(well.getUid().equals(primaryWellUid)){
-                        isPrimaryAdded=true;
-                        break;
-                    }
-               }
-               if(!isPrimaryAdded) {
-                   rigWells.add(0, primaryWell);
-                   rigWells = rigWells.subList(0, 4);
-               }
-           }
+        int numWellsToSelect=4;
+        if(isPrimaryWellInRig)
+            numWellsToSelect=3;
+
+        if(rigWells.size()>numWellsToSelect){
+            for (MongoWell rigWell:rigWells
+                 ) {
+                log.error(rigWell.getName()+", rigdate ="+(rigWell.getDaysVsDepthAdjustmentDates()!=null?rigWell.getDaysVsDepthAdjustmentDates().getReleaseDate():"Null Date"));
+            }
+            rigWells= rigWells.subList(0,numWellsToSelect);
         }
+
+     Collections.reverse(rigWells);
+
+        if(isPrimaryWellInRig)
+            rigWells.add(rigWells.size(),primaryWell);
+
         if(rigWells!=null && rigWells.size()>0){
             final Map<String, ROPs> wellROPsMap = getWellROPsMap();
             final Map<String, WellData> wellMap = getWellDataMap();
@@ -224,7 +236,8 @@ public class WellsCoordinatesService {
     }
 
     private Last4WellsResponse populateLast4WellsData(MongoWell well, Map<String, ROPs> wellROPsMap, Map<String, WellData> wellMap, MongoRig mongoRig){
-
+    //log.error("Rig Release time for "+well.getUid()+" = "+well.getDaysVsDepthAdjustmentDates().getReleaseDate().toString());
+  
         try {
             Last4WellsResponse last4WellsResponse =  new Last4WellsResponse();
             last4WellsResponse.setUid(well.getUid());
