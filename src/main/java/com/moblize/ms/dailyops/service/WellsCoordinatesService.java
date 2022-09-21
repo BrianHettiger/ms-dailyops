@@ -204,6 +204,10 @@ public class WellsCoordinatesService {
             numWellsToSelect=3;
 
         if(rigWells.size()>numWellsToSelect){
+            for (MongoWell rigWell:rigWells
+                 ) {
+                log.error(rigWell.getName()+", rigdate ="+(rigWell.getDaysVsDepthAdjustmentDates()!=null?rigWell.getDaysVsDepthAdjustmentDates().getReleaseDate():"Null Date"));
+            }
             rigWells= rigWells.subList(0,numWellsToSelect);
         }
 
