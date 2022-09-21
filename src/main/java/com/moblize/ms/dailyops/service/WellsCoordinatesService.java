@@ -177,7 +177,7 @@ public class WellsCoordinatesService {
                       boolean useWell=false;
                     for (Rig rig:well.getRigs()
                          ) {
-                        if(rigId.equals(rig.getRigId())){
+                        if(rigId.equals(rig.getRigId()) && (!primaryWellUid.equals(well.getUid()))){
                             useWell=true;
                             break;
                         }
@@ -217,7 +217,7 @@ public class WellsCoordinatesService {
             rigWells= rigWells.subList(0,numWellsToSelect);
         }
 
-     Collections.reverse(rigWells);
+     //Collections.reverse(rigWells);
 
         if(isPrimaryWellInRig)
             rigWells.add(rigWells.size(),primaryWell);
