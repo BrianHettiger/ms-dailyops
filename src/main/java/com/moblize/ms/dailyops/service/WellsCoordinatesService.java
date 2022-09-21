@@ -211,6 +211,8 @@ public class WellsCoordinatesService {
             rigWells= rigWells.subList(0,numWellsToSelect);
         }
 
+     Collections.reverse(rigWells);
+
         if(isPrimaryWellInRig)
             rigWells.add(rigWells.size(),primaryWell);
 
