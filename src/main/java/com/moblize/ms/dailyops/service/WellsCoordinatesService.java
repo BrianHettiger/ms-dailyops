@@ -201,6 +201,10 @@ public class WellsCoordinatesService {
         if(rigWells.size()>numWellsToSelect){
             rigWells= rigWells.subList(0,numWellsToSelect);
         }
+        
+        if(rigWells.size()>0){
+            Collections.reverse(rigWells);
+        }
 
         if(isPrimaryWellInRig)
             rigWells.add(rigWells.size(),primaryWell);
