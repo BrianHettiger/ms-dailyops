@@ -109,7 +109,7 @@ public class BCWDepthLogPlotService {
 
                 if (bcwDepthPlotDTO.getActionType().equalsIgnoreCase("select")) {
                     BCWSmoothLogData dbObj = findSmoothData(bcwDepthPlotDTO);
-                    if(dbObj != null){
+                    if(dbObj != null && dbObj.getDepthLogResponseList() != null && !dbObj.getDepthLogResponseList().isEmpty()){
                         bcwDepthLog = dbObj.getDepthLogResponseList();
                     } else {
                         log.debug("No smoothed data found in DB, Get depth log for smoothing and saved it");
