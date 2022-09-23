@@ -87,7 +87,7 @@ public class BCWDepthLogPlotService {
             }
 
             if (bcwDepthPlotDTO.getBcwId() != null && bcwDepthPlotDTO.getActionType().equalsIgnoreCase("select")) {
-                bcwDepthPlotResponse.setData(bcwSmoothLogDataRepository.findBCWSmoothLogDataByBcwId(bcwDepthPlotDTO.getBcwId()).getDepthLogResponseList());
+                bcwDepthPlotResponse.setData(findSmoothData(bcwDepthPlotDTO).getDepthLogResponseList());
                 if(bcwDepthPlotResponse.getData() != null && bcwDepthPlotResponse.getData().size() > 0) {
                     bcwDepthPlotResponse.setStatus("success");
                     bcwDepthPlotResponse.setMessage("success");
