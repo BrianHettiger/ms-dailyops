@@ -78,14 +78,22 @@ public class BCWDepthLogPlotService {
                     bcwDepthPlotDTO.setActionType("create");
                 }
             }
+
+            if (bcwDepthPlotDTO.getActionType().equalsIgnoreCase("create")
+                || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("update")
+                || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("refresh")) {
+                bcwDepthPlotDTO.setStartIndex(0);
+                bcwDepthPlotDTO.setEndIndex(50000);
+            }
+
             if (bcwDepthPlotDTO.getBcwId() != null && bcwDepthPlotDTO.getActionType().equalsIgnoreCase("select")) {
-                bcwDepthPlotResponse.setData(bcwSmoothLogDataRepository.findBCWSmoothLogDataByBcwId(bcwDepthPlotDTO.getBcwId()).getDepthLogResponseList());
+                bcwDepthPlotResponse.setData(findSmoothData(bcwDepthPlotDTO).getDepthLogResponseList());
                 if(bcwDepthPlotResponse.getData() != null && bcwDepthPlotResponse.getData().size() > 0) {
+                    bcwDepthPlotResponse.setStatus("success");
+                    bcwDepthPlotResponse.setMessage("success");
                     return bcwDepthPlotResponse;
                 }
             }
-            bcwDepthPlotDTO.setStartIndex(0);
-            bcwDepthPlotDTO.setEndIndex(50000);
 
             //Get Drilling log Map data
             //Extract formationBcwData and sort by measure depth
@@ -101,7 +109,7 @@ public class BCWDepthLogPlotService {
 
                 if (bcwDepthPlotDTO.getActionType().equalsIgnoreCase("select")) {
                     BCWSmoothLogData dbObj = findSmoothData(bcwDepthPlotDTO);
-                    if(dbObj != null){
+                    if(dbObj != null && dbObj.getDepthLogResponseList() != null && !dbObj.getDepthLogResponseList().isEmpty()){
                         bcwDepthLog = dbObj.getDepthLogResponseList();
                     } else {
                         log.debug("No smoothed data found in DB, Get depth log for smoothing and saved it");
@@ -139,6 +147,9 @@ public class BCWDepthLogPlotService {
         bcwDepthLog = this.getOffSetLog1(ls, bcwDepthPlotDTO.getEndIndex(), bcwDepthPlotDTO.getStartIndex(), true);
         bcwDepthLog = smoothData(bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthLog);
         saveUpdateSmoothData(bcwDepthPlotDTO, bcwDepthLog);
+        bcwDepthLog = bcwDepthLog.stream()
+            .filter(log -> log.getHoleDepth() >= bcwDepthPlotDTO.getStartIndex()
+                && log.holeDepth <= bcwDepthPlotDTO.getEndIndex()).collect(Collectors.toList());
         return bcwDepthLog;
     }
 
@@ -194,6 +205,7 @@ public class BCWDepthLogPlotService {
             }
             Double firstDepth = bcwDepthLog.get(0).getHoleDepth();
             Double lastDepth = bcwDepthLog.get(bcwDepthLog.size() - 1).getHoleDepth();
+            log.debug("FirstDepth: {} ,LastDepth: {}", firstDepth, lastDepth);
 
             DepthClass depthClass = new DepthClass();
             Map<HoleSection.HoleSectionType, HoleSection> finalHoleSectionMap = holeSectionMap;
