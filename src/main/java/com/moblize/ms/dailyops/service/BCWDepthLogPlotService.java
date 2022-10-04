@@ -205,7 +205,7 @@ public class BCWDepthLogPlotService {
             }
             Double firstDepth = bcwDepthLog.get(0).getHoleDepth();
             Double lastDepth = bcwDepthLog.get(bcwDepthLog.size() - 1).getHoleDepth();
-            log.info("FirstDepth: {} ,LastDepth: {}", firstDepth, lastDepth);
+            log.debug("FirstDepth: {} ,LastDepth: {}", firstDepth, lastDepth);
 
             DepthClass depthClass = new DepthClass();
             Map<HoleSection.HoleSectionType, HoleSection> finalHoleSectionMap = holeSectionMap;
