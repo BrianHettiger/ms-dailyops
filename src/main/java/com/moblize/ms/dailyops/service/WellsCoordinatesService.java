@@ -23,6 +23,7 @@ import org.infinispan.client.hotrod.RemoteCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
@@ -298,10 +299,12 @@ public class WellsCoordinatesService {
         return null;
     }
 
+    @Async
     private CompletableFuture<Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>>> getKpiExtractionByWellId(String uid) {
         return CompletableFuture.completedFuture(kpiDashboardClient.getKpiExtractionByWellId(uid));
     }
 
+    @Async
     private CompletableFuture<Map<String, Double>> getSectionConnections(String uid) {
         return CompletableFuture.completedFuture(kpiDashboardClient.getSectionConnections(uid));
     }
