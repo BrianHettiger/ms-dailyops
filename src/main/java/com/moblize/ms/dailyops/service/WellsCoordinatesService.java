@@ -18,11 +18,13 @@ import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.security.jwt.TokenProvider;
 import com.moblize.ms.dailyops.service.dto.HoleSection;
 import io.jsonwebtoken.Claims;
+import io.netty.util.concurrent.CompleteFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
@@ -35,6 +37,7 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -149,8 +152,19 @@ public class WellsCoordinatesService {
     public Map<String,List<Last4WellsResponse>> getLast4Wells(List<String> rigIds, String token, String customer,String primaryWellUid){
         long startTime = System.currentTimeMillis();
         Map<String,List<Last4WellsResponse>> rigWellsMap= new HashMap<>();
-        final Map<String, ROPs> wellROPsMap = getWellROPsMap();
-        final Map<String, WellData> wellMap = getWellDataMap();
+        Map<String, ROPs> wellROPsMapData = null;
+        Map<String, WellData> wellMapData = null;
+        try {
+            CompletableFuture<Map<String, ROPs>> wellROPsMapFuture = getWellROPsMap();
+            CompletableFuture<Map<String, WellData>> wellDataMapFuture = getWellDataMap();
+            CompletableFuture.allOf(wellROPsMapFuture,wellDataMapFuture).join();
+            wellROPsMapData = wellROPsMapFuture.get();
+            wellMapData = wellDataMapFuture.get();
+        }catch (Exception e){
+            log.error("Exception while calculating Welldata",e);
+        }
+        final Map<String, ROPs> wellROPsMap = wellROPsMapData;
+        final Map<String, WellData> wellMap = wellMapData;
         MongoWell primaryWell = mongoWellRepository.findByUid(primaryWellUid);
         List<MongoWell> mongoWells = mongoWellRepository.findAllByCustomer(customer);
         List<MongoRig> allRigsById = (List<MongoRig>) mongoRigRepository.findAllById(rigIds);
@@ -327,23 +341,28 @@ public class WellsCoordinatesService {
             }
             return latLngMap.values();
         }
-
-        final Map<String, ROPs> ropByWellUidMap = getWellROPsMap();
         final Map<String, Cost> costByWellUidMap = getWellCostMap();
         final List<PerformanceBHA> bhaList = bhaRepository.findAll();
         final Map<String, BHACount> bhaCountByUidMap = getWellBHACountMap(bhaList);
         final Map<String, BHAHoleSize> bhaHoleSizeByUidMap = getWellBHAHoleSizeMap(bhaList);
-        final Map<String, WellData> wellMap = getWellDataMap();
-
-        mongoWells.forEach(well -> populateForWell(
-            well,
-            ropByWellUidMap,
-            costByWellUidMap,
-            bhaCountByUidMap,
-            wellMap,
-            latLngMap,
-            bhaHoleSizeByUidMap
-        ));
+        try {
+            CompletableFuture<Map<String, ROPs>> wellROPsMapFuture = getWellROPsMap();
+            CompletableFuture<Map<String, WellData>> wellDataMapFuture = getWellDataMap();
+            CompletableFuture.allOf(wellROPsMapFuture,wellDataMapFuture).join();
+            Map<String, ROPs> ropByWellUidMap = wellROPsMapFuture.get();
+            Map<String, WellData> wellMap = wellDataMapFuture.get();
+            mongoWells.forEach(well -> populateForWell(
+                well,
+                ropByWellUidMap,
+                costByWellUidMap,
+                bhaCountByUidMap,
+                wellMap,
+                latLngMap,
+                bhaHoleSizeByUidMap
+            ));
+        }catch (Exception e){
+            log.error("Exception while calculating Welldata",e);
+        }
 
         HashMap<String, Float> drilledWellDepth = new HashMap<>();
         List<WellSurveyPlannedLatLong> wellSurveyDetail = wellsCoordinatesDao.getWellCoordinates();
@@ -464,14 +483,15 @@ public class WellsCoordinatesService {
         }
 
     }
-    private Map<String, WellData> getWellDataMap() {
+    @Async
+    private CompletableFuture<Map<String, WellData>> getWellDataMap() {
         final List<PerformanceWell> wellList = wellRepository.findAll();
 
-        return wellList.stream()
+        return CompletableFuture.completedFuture(wellList.stream()
             .collect(Collectors.toMap(
                 PerformanceWell::getUid,
                 WellsCoordinatesService::performanceWellToDto,
-                (k1, k2) -> k1));
+                (k1, k2) -> k1)));
     }
 
     private Map<String, WellData> getWellDataMap(MongoWell well) {
@@ -524,13 +544,14 @@ public class WellsCoordinatesService {
         return cost!=null?Map.of(cost.getUid(), WellsCoordinatesService.costToDto(cost)):Collections.emptyMap();
     }
 
-    private Map<String, ROPs> getWellROPsMap() {
+    @Async
+    private CompletableFuture<Map<String, ROPs>> getWellROPsMap() {
         final List<PerformanceROP> ropList = ropRepository.findAll();
-        return ropList.stream()
+        return CompletableFuture.completedFuture(ropList.stream()
             .collect(Collectors.toMap(
                 PerformanceROP::getUid,
                 WellsCoordinatesService::ropDomainToDto,
-                (k1, k2) -> k1));
+                (k1, k2) -> k1)));
     }
 
     private Map<String, ROPs> getWellROPsMap(MongoWell well) {
