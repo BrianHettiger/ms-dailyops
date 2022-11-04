@@ -35,6 +35,7 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -147,16 +148,18 @@ public class WellsCoordinatesService {
 
     public Map<String,List<Last4WellsResponse>> getLast4Wells(List<String> rigIds, String token, String customer,String primaryWellUid){
         Map<String,List<Last4WellsResponse>> rigWellsMap= new HashMap<>();
+        final Map<String, ROPs> wellROPsMap = getWellROPsMap();
+        final Map<String, WellData> wellMap = getWellDataMap();
+        MongoWell primaryWell = mongoWellRepository.findByUid(primaryWellUid);
+        List<MongoWell> mongoWells = mongoWellRepository.findAllByCustomer(customer);
+        List<MongoRig> allRigsById = (List<MongoRig>) mongoRigRepository.findAllById(rigIds);
+        Map<String, MongoRig> mongoRigMap = allRigsById.stream().collect(Collectors.toMap(MongoRig::getId, Function.identity()));
         for (String rigId:
             rigIds) {
 
-
-        List<MongoWell> mongoWells = null;
         List<MongoWell> rigWells = new ArrayList<>();
-        MongoWell primaryWell = mongoWellRepository.findByUid(primaryWellUid);
         boolean isPrimaryWellInRig=false;
 
-        MongoRig mongoRig = mongoRigRepository.findById(rigId).get();
         for (Rig rig:
             primaryWell.getRigs()) {
             if(rigId.equals(rig.getRigId())){
@@ -165,7 +168,7 @@ public class WellsCoordinatesService {
                 break;
             }
         }
-        mongoWells = mongoWellRepository.findAllByCustomer(customer);
+
         if(mongoWells!=null) {
 //            mongoWells.stream().forEach(well->{
 //                log.error(well.getRigs().get(0).getRigId());
@@ -223,9 +226,7 @@ public class WellsCoordinatesService {
             rigWells.add(rigWells.size(),primaryWell);
 
         if(rigWells!=null && rigWells.size()>0){
-            final Map<String, ROPs> wellROPsMap = getWellROPsMap();
-            final Map<String, WellData> wellMap = getWellDataMap();
-            List<Last4WellsResponse> last4Wells = rigWells.stream().map(well -> populateLast4WellsData(well,wellROPsMap,wellMap,mongoRig)).collect(Collectors.toList());
+            List<Last4WellsResponse> last4Wells = rigWells.stream().map(well -> populateLast4WellsData(well,wellROPsMap,wellMap,mongoRigMap.get(rigId))).collect(Collectors.toList());
             rigWellsMap.put(rigId,last4Wells);
         }else{
             rigWellsMap.put(rigId,new ArrayList<Last4WellsResponse>());
@@ -237,7 +238,7 @@ public class WellsCoordinatesService {
 
     private Last4WellsResponse populateLast4WellsData(MongoWell well, Map<String, ROPs> wellROPsMap, Map<String, WellData> wellMap, MongoRig mongoRig){
     //log.error("Rig Release time for "+well.getUid()+" = "+well.getDaysVsDepthAdjustmentDates().getReleaseDate().toString());
-  
+
         try {
             Last4WellsResponse last4WellsResponse =  new Last4WellsResponse();
             last4WellsResponse.setUid(well.getUid());
