@@ -233,13 +233,12 @@ public class WellsCoordinatesService {
             rigWellsMap.put(rigId,new ArrayList<Last4WellsResponse>());
             }
         }
-        log.error("Get Last 4 Wells took : {}s for well : {}", System.currentTimeMillis()-startTime, primaryWellUid);
+        log.error("getTop4WellsByRig took : {}s for well : {}", System.currentTimeMillis()-startTime, primaryWellUid);
         return rigWellsMap;
     }
 
     private Last4WellsResponse populateLast4WellsData(MongoWell well, Map<String, ROPs> wellROPsMap, Map<String, WellData> wellMap, MongoRig mongoRig){
     //log.error("Rig Release time for "+well.getUid()+" = "+well.getDaysVsDepthAdjustmentDates().getReleaseDate().toString());
-
         try {
             Last4WellsResponse last4WellsResponse =  new Last4WellsResponse();
             last4WellsResponse.setUid(well.getUid());
@@ -273,15 +272,11 @@ public class WellsCoordinatesService {
             Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>> trippingData = kpiDashboardClient.getKpiExtractionByWellId(well.getUid());
             Map<String, Map<HoleSection.HoleSectionType, Float>> trippingDataForWell = trippingData.get(well.getUid());
             Map<String, Map<String, Float>> wellTrip= new HashMap<>();
-            for (Map.Entry<String,Map<HoleSection.HoleSectionType, Float>> entry : trippingDataForWell.entrySet()) {
-                String tripType = entry.getKey();
-                Map<HoleSection.HoleSectionType, Float> value = entry.getValue();
+            trippingDataForWell.forEach((tripType, tripValue) -> {
                 Map<String, Float> data = new HashMap<>();
-                for (Map.Entry<HoleSection.HoleSectionType, Float> ent : value.entrySet()) {
-                    data.put((ent.getKey().name().toLowerCase(Locale.ROOT).substring(0, 1)), ent.getValue());
-                }
+                tripValue.forEach((key, value) -> data.put((key.name().toLowerCase(Locale.ROOT).substring(0, 1)), value));
                 wellTrip.put(tripType, data);
-            }
+            });
             last4WellsResponse.setTrippingData(wellTrip);
             last4WellsResponse.setRigName(mongoRig.getName());
             return last4WellsResponse;
