@@ -156,7 +156,7 @@ public class WellsCoordinatesService {
         List<MongoWell> mongoWells = mongoWellRepository.findAllByCustomer(customer);
         List<MongoRig> allRigsById = (List<MongoRig>) mongoRigRepository.findAllById(rigIds);
         Map<String, MongoRig> mongoRigMap = allRigsById.stream().collect(Collectors.toMap(MongoRig::getId, Function.identity()));
-        log.info("Time taken to calculate common data :{}", System.currentTimeMillis()-start1);
+        log.error("Time taken to calculate common data :{}", System.currentTimeMillis()-start1);
         for (String rigId:
             rigIds) {
 
@@ -232,7 +232,7 @@ public class WellsCoordinatesService {
             long start = System.currentTimeMillis();
             List<Last4WellsResponse> last4Wells = rigWells.stream().map(well -> populateLast4WellsData(well,wellROPsMap,wellMap,mongoRigMap.get(rigId))).collect(Collectors.toList());
             rigWellsMap.put(rigId,last4Wells);
-            log.info("Time taken to populate populate: {}", System.currentTimeMillis()-start);
+            log.error("Time taken to populate populate: {}", System.currentTimeMillis()-start);
         }else{
             rigWellsMap.put(rigId,new ArrayList<Last4WellsResponse>());
             }
