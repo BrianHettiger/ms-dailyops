@@ -233,7 +233,7 @@ public class WellsCoordinatesService {
             rigWellsMap.put(rigId,new ArrayList<Last4WellsResponse>());
             }
         }
-        log.info("Get Last 4 Wells took : {}s for well : {}", System.currentTimeMillis()-startTime, primaryWellUid);
+        log.error("Get Last 4 Wells took : {}s for well : {}", System.currentTimeMillis()-startTime, primaryWellUid);
         return rigWellsMap;
     }
 

@@ -130,7 +130,7 @@ public class DailyopsController {
         @RequestParam("primaryWellUid") String primaryWellUid,
         @RequestHeader(value = "authorization", required = false) String token,
         HttpServletResponse response) {
-        log.info("Got request inside getTop4WellsByRig");
+        log.error("Got request inside getTop4WellsByRig");
         Map<String, List<Last4WellsResponse>> last4Wells = wellsCoordinatesService.getLast4Wells(rigIds, token, customer,primaryWellUid);
         return last4Wells;
     }
