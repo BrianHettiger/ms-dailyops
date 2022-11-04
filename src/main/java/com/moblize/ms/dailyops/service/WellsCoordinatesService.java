@@ -147,6 +147,7 @@ public class WellsCoordinatesService {
     }
 
     public Map<String,List<Last4WellsResponse>> getLast4Wells(List<String> rigIds, String token, String customer,String primaryWellUid){
+        long startTime = System.currentTimeMillis();
         Map<String,List<Last4WellsResponse>> rigWellsMap= new HashMap<>();
         final Map<String, ROPs> wellROPsMap = getWellROPsMap();
         final Map<String, WellData> wellMap = getWellDataMap();
@@ -232,7 +233,7 @@ public class WellsCoordinatesService {
             rigWellsMap.put(rigId,new ArrayList<Last4WellsResponse>());
             }
         }
-
+        log.info("Get Last 4 Wells took : {}s for well : {}", System.currentTimeMillis()-startTime, primaryWellUid);
         return rigWellsMap;
     }
 
