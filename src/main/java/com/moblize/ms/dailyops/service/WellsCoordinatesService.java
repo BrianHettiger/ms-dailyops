@@ -35,6 +35,7 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -272,9 +273,16 @@ public class WellsCoordinatesService {
             last4WellsResponse.setAvgMYBySection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgMYBySection());
             last4WellsResponse.setAvgDirectionAngle(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDirectionAngle());
             last4WellsResponse.setAvgDirection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDirection());
-            last4WellsResponse.setSectionConnections(kpiDashboardClient.getSectionConnections(well.getUid()));
-            Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>> trippingData = kpiDashboardClient.getKpiExtractionByWellId(well.getUid());
-            Map<String, Map<HoleSection.HoleSectionType, Float>> trippingDataForWell = trippingData.get(well.getUid());
+            Map<String, Map<HoleSection.HoleSectionType, Float>> trippingDataForWell = null;
+            try {
+                CompletableFuture<Map<String, Double>> future = getSectionConnections(well.getUid());
+                CompletableFuture<Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>>> kpiExtractionByWellId = getKpiExtractionByWellId(well.getUid());
+                CompletableFuture.allOf(future, kpiExtractionByWellId).join();
+                last4WellsResponse.setSectionConnections(future.get());
+                trippingDataForWell= kpiExtractionByWellId.get().get(well.getUid());
+            } catch (Exception e) {
+                log.error("Error while calculating trippingData", e);
+            }
             Map<String, Map<String, Float>> wellTrip= new HashMap<>();
             trippingDataForWell.forEach((tripType, tripValue) -> {
                 Map<String, Float> data = new HashMap<>();
@@ -288,6 +296,14 @@ public class WellsCoordinatesService {
             log.error("Error occurred while processing well: {}", well.getUid(), exp);
         }
         return null;
+    }
+
+    private CompletableFuture<Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>>> getKpiExtractionByWellId(String uid) {
+        return CompletableFuture.completedFuture(kpiDashboardClient.getKpiExtractionByWellId(uid));
+    }
+
+    private CompletableFuture<Map<String, Double>> getSectionConnections(String uid) {
+        return CompletableFuture.completedFuture(kpiDashboardClient.getSectionConnections(uid));
     }
 
 
