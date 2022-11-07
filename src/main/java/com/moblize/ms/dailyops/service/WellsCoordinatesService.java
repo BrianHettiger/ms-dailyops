@@ -231,27 +231,23 @@ public class WellsCoordinatesService {
         if(isPrimaryWellInRig)
             rigWells.add(rigWells.size(),primaryWell);
 
-        Map<String,List<MongoWell>> map = new HashMap<>();
         if(rigWells!=null && rigWells.size()>0){
-            map.put(rigId, rigWells);
-            processMap.add(map);
+            long start = System.currentTimeMillis();
+            List<String> uidList = rigWells.stream().map(MongoWell::getUid).collect(Collectors.toList());
+            Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>> trippingData = kpiDashboardClient.getKpiExtractionByWellId(uidList);
+            List<Last4WellsResponse> last4Wells = rigWells.stream().map(well -> populateLast4WellsData(well,wellROPsMap,wellMap,mongoRigMap.get(rigId),trippingData.get(well.getUid()))).collect(Collectors.toList());
+            rigWellsMap.put(rigId,last4Wells);
+            log.error("Time taken to populate populate: {}", System.currentTimeMillis()-start);
         }else{
             rigWellsMap.put(rigId,new ArrayList<Last4WellsResponse>());
             }
         }
-        long start = System.currentTimeMillis();
-        processMap.forEach(map->{
-            map.forEach((key,value)->{
-                List<Last4WellsResponse> last4WellsResponses = value.stream().map(well -> populateLast4WellsData(well, wellROPsMap, wellMap, mongoRigMap.get(key))).collect(Collectors.toList());
-                rigWellsMap.put(key,last4WellsResponses);
-            });
-        });
-        log.error("Time taken to populate populate: {}", System.currentTimeMillis()-start);
         log.error("getTop4WellsByRig took : {}s for well : {}", System.currentTimeMillis()-startTime, primaryWellUid);
         return rigWellsMap;
     }
 
-    private Last4WellsResponse populateLast4WellsData(MongoWell well, Map<String, ROPs> wellROPsMap, Map<String, WellData> wellMap, MongoRig mongoRig){
+    private Last4WellsResponse populateLast4WellsData(MongoWell well, Map<String, ROPs> wellROPsMap, Map<String, WellData> wellMap, MongoRig mongoRig,
+                                                      Map<String, Map<HoleSection.HoleSectionType, Float>> trippingDataForWell ){
     //log.error("Rig Release time for "+well.getUid()+" = "+well.getDaysVsDepthAdjustmentDates().getReleaseDate().toString());
         try {
             Last4WellsResponse last4WellsResponse =  new Last4WellsResponse();
@@ -282,16 +278,7 @@ public class WellsCoordinatesService {
             last4WellsResponse.setAvgMYBySection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgMYBySection());
             last4WellsResponse.setAvgDirectionAngle(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDirectionAngle());
             last4WellsResponse.setAvgDirection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDirection());
-            Map<String, Map<HoleSection.HoleSectionType, Float>> trippingDataForWell = null;
-            try {
-                CompletableFuture<Map<String, Double>> future = getSectionConnections(well.getUid());
-                CompletableFuture<Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>>> kpiExtractionByWellId = getKpiExtractionByWellId(well.getUid());
-                CompletableFuture.allOf(future, kpiExtractionByWellId).join();
-                last4WellsResponse.setSectionConnections(future.get());
-                trippingDataForWell= kpiExtractionByWellId.get().get(well.getUid());
-            } catch (Exception e) {
-                log.error("Error while calculating trippingData", e);
-            }
+            last4WellsResponse.setSectionConnections(kpiDashboardClient.getSectionConnections(well.getUid()));
             Map<String, Map<String, Float>> wellTrip= new HashMap<>();
             trippingDataForWell.forEach((tripType, tripValue) -> {
                 Map<String, Float> data = new HashMap<>();
@@ -306,17 +293,6 @@ public class WellsCoordinatesService {
         }
         return null;
     }
-
-    @Async
-    private CompletableFuture<Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>>> getKpiExtractionByWellId(String uid) {
-        return CompletableFuture.completedFuture(kpiDashboardClient.getKpiExtractionByWellId(uid));
-    }
-
-    @Async
-    private CompletableFuture<Map<String, Double>> getSectionConnections(String uid) {
-        return CompletableFuture.completedFuture(kpiDashboardClient.getSectionConnections(uid));
-    }
-
 
     public Collection<WellCoordinatesResponseV2> getWellCoordinates(String customer, String token) {
         List<MongoWell> mongoWells = null;
