@@ -148,7 +148,7 @@ public class WellsCoordinatesService {
     public Map<String,List<Last4WellsResponse>> getLast4Wells(List<String> rigIds, String token, String customer,String primaryWellUid){
         long startTime = System.currentTimeMillis();
         Map<String,List<Last4WellsResponse>> rigWellsMap= new HashMap<>();
-        long start1 = System.currentTimeMillis();
+
         final Map<String, ROPs> wellROPsMap = getWellROPsMap();
         final Map<String, WellData> wellMap = getWellDataMap();
         MongoWell primaryWell = mongoWellRepository.findByUid(primaryWellUid);
@@ -157,7 +157,7 @@ public class WellsCoordinatesService {
         Map<String, MongoRig> mongoRigMap = allRigsById.stream().collect(Collectors.toMap(MongoRig::getId, Function.identity()));
         List<Map<String,List<MongoWell>>> processMap = new ArrayList<>();
         List<String> wellUidList = new ArrayList<>();
-        log.error("Time taken to calculate common data :{}", System.currentTimeMillis()-start1);
+
         for (String rigId:
             rigIds) {
 
@@ -239,7 +239,6 @@ public class WellsCoordinatesService {
             }
         }
 
-        long start = System.currentTimeMillis();
         Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>> trippingData = kpiDashboardClient.getKpiExtractionByWellId(wellUidList);
         processMap.forEach(map->{
             map.forEach((key,value)->{
@@ -247,7 +246,7 @@ public class WellsCoordinatesService {
                 rigWellsMap.put(key,last4WellsResponses);
             });
         });
-        log.error("Time taken to populate populate: {}", System.currentTimeMillis()-start);
+
         log.error("getTop4WellsByRig took : {}s for well : {}", System.currentTimeMillis()-startTime, primaryWellUid);
         return rigWellsMap;
     }
