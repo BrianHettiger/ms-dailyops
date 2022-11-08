@@ -159,6 +159,7 @@ public class WellsCoordinatesService {
         List<MongoRig> allRigsById = (List<MongoRig>) mongoRigRepository.findAllById(rigIds);
         Map<String, MongoRig> mongoRigMap = allRigsById.stream().collect(Collectors.toMap(MongoRig::getId, Function.identity()));
         List<Map<String,List<MongoWell>>> processMap = new ArrayList<>();
+        List<String> wellUidList = new ArrayList<>();
         log.error("Time taken to calculate common data :{}", System.currentTimeMillis()-start1);
         for (String rigId:
             rigIds) {
@@ -231,17 +232,25 @@ public class WellsCoordinatesService {
         if(isPrimaryWellInRig)
             rigWells.add(rigWells.size(),primaryWell);
 
+        Map<String,List<MongoWell>> map = new HashMap<>();
         if(rigWells!=null && rigWells.size()>0){
-            long start = System.currentTimeMillis();
-            List<String> uidList = rigWells.stream().map(MongoWell::getUid).collect(Collectors.toList());
-            Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>> trippingData = kpiDashboardClient.getKpiExtractionByWellId(uidList);
-            List<Last4WellsResponse> last4Wells = rigWells.stream().map(well -> populateLast4WellsData(well,wellROPsMap,wellMap,mongoRigMap.get(rigId),trippingData.get(well.getUid()))).collect(Collectors.toList());
-            rigWellsMap.put(rigId,last4Wells);
-            log.error("Time taken to populate populate: {}", System.currentTimeMillis()-start);
+            map.put(rigId, rigWells);
+            wellUidList.addAll(rigWells.stream().map(MongoWell::getUid).collect(Collectors.toList()));
+            processMap.add(map);
         }else{
             rigWellsMap.put(rigId,new ArrayList<Last4WellsResponse>());
             }
         }
+
+        long start = System.currentTimeMillis();
+        Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>> trippingData = kpiDashboardClient.getKpiExtractionByWellId(wellUidList);
+        processMap.forEach(map->{
+            map.forEach((key,value)->{
+                List<Last4WellsResponse> last4WellsResponses = value.stream().map(well -> populateLast4WellsData(well, wellROPsMap, wellMap, mongoRigMap.get(key),trippingData.get(well.getUid()))).collect(Collectors.toList());
+                rigWellsMap.put(key,last4WellsResponses);
+            });
+        });
+        log.error("Time taken to populate populate: {}", System.currentTimeMillis()-start);
         log.error("getTop4WellsByRig took : {}s for well : {}", System.currentTimeMillis()-startTime, primaryWellUid);
         return rigWellsMap;
     }
