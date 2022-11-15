@@ -35,7 +35,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -152,9 +154,9 @@ public class WellsCoordinatesService {
         final Map<String, ROPs> wellROPsMap = getWellROPsMap();
         final Map<String, WellData> wellMap = getWellDataMap();
         MongoWell primaryWell = mongoWellRepository.findByUid(primaryWellUid);
-        List<MongoWell> mongoWells = mongoWellRepository.findAllByCustomer(customer);
-        List<MongoRig> allRigsById = (List<MongoRig>) mongoRigRepository.findAllById(rigIds);
-        Map<String, MongoRig> mongoRigMap = allRigsById.stream().collect(Collectors.toMap(MongoRig::getId, Function.identity()));
+        Supplier<Stream<MongoWell>> mongoWellsStream = ()-> mongoWellRepository.findAllByCustomer(customer);
+        Stream<MongoRig> allRigsById = mongoRigRepository.findAllByIdIn(rigIds);
+        Map<String, MongoRig> mongoRigMap = allRigsById.collect(Collectors.toMap(MongoRig::getId, Function.identity()));
         List<Map<String,List<MongoWell>>> processMap = new ArrayList<>();
         List<String> wellUidList = new ArrayList<>();
 
@@ -173,11 +175,8 @@ public class WellsCoordinatesService {
             }
         }
 
-        if(mongoWells!=null) {
-//            mongoWells.stream().forEach(well->{
-//                log.error(well.getRigs().get(0).getRigId());
-//            });
-            rigWells= mongoWells.stream().filter(well -> {
+        if(mongoWellsStream!=null) {
+            rigWells= mongoWellsStream.get().filter(well -> {
                 if(!("completed".equals(well.getStatusWell())))
                     return false;
                 else {
@@ -191,26 +190,25 @@ public class WellsCoordinatesService {
                    }
                    return useWell;
                 }
+            }).sorted(new Comparator<MongoWell>() {
+                @Override
+                public int compare(MongoWell o1, MongoWell o2) {
+                    if(o1.getDaysVsDepthAdjustmentDates()==null && o2.getDaysVsDepthAdjustmentDates()==null)
+                        return 0;
+                    else if(o1.getDaysVsDepthAdjustmentDates()==null && o2.getDaysVsDepthAdjustmentDates()!=null)
+                        return 1;
+                    else if(o2.getDaysVsDepthAdjustmentDates()==null && o1.getDaysVsDepthAdjustmentDates()!=null)
+                        return -1;
+                    else if(o1.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o2.getDaysVsDepthAdjustmentDates().getReleaseDate()==null)
+                        return 0;
+                    else if(o1.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o2.getDaysVsDepthAdjustmentDates().getReleaseDate()!=null)
+                        return 1;
+                    else if(o2.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o1.getDaysVsDepthAdjustmentDates().getReleaseDate()!=null)
+                        return -1;
+                    return o2.getDaysVsDepthAdjustmentDates().getReleaseDate().compareTo(o1.getDaysVsDepthAdjustmentDates().getReleaseDate());
+                }
             }).collect(Collectors.toList());
         }
-        rigWells.sort(new Comparator<MongoWell>() {
-            @Override
-            public int compare(MongoWell o1, MongoWell o2) {
-                if(o1.getDaysVsDepthAdjustmentDates()==null && o2.getDaysVsDepthAdjustmentDates()==null)
-                    return 0;
-                else if(o1.getDaysVsDepthAdjustmentDates()==null && o2.getDaysVsDepthAdjustmentDates()!=null)
-                    return 1;
-                else if(o2.getDaysVsDepthAdjustmentDates()==null && o1.getDaysVsDepthAdjustmentDates()!=null)
-                    return -1;
-                else if(o1.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o2.getDaysVsDepthAdjustmentDates().getReleaseDate()==null)
-                    return 0;
-                else if(o1.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o2.getDaysVsDepthAdjustmentDates().getReleaseDate()!=null)
-                    return 1;
-                else if(o2.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o1.getDaysVsDepthAdjustmentDates().getReleaseDate()!=null)
-                    return -1;
-                return o2.getDaysVsDepthAdjustmentDates().getReleaseDate().compareTo(o1.getDaysVsDepthAdjustmentDates().getReleaseDate());
-            }
-        });
 
         int numWellsToSelect=4;
         if(isPrimaryWellInRig)
@@ -219,7 +217,7 @@ public class WellsCoordinatesService {
         if(rigWells.size()>numWellsToSelect){
             for (MongoWell rigWell:rigWells
                  ) {
-                log.error(rigWell.getName()+", rigdate ="+(rigWell.getDaysVsDepthAdjustmentDates()!=null?rigWell.getDaysVsDepthAdjustmentDates().getReleaseDate():"Null Date"));
+                log.info(rigWell.getName()+", rigdate ="+(rigWell.getDaysVsDepthAdjustmentDates()!=null?rigWell.getDaysVsDepthAdjustmentDates().getReleaseDate():"Null Date"));
             }
             rigWells= rigWells.subList(0,numWellsToSelect);
         }
@@ -247,7 +245,7 @@ public class WellsCoordinatesService {
             });
         });
 
-        log.error("getTop4WellsByRig took : {}s for well : {}", System.currentTimeMillis()-startTime, primaryWellUid);
+        log.info("getTop4WellsByRig took : {}s for well : {}", System.currentTimeMillis()-startTime, primaryWellUid);
         return rigWellsMap;
     }
 
@@ -294,14 +292,14 @@ public class WellsCoordinatesService {
             last4WellsResponse.setRigName(mongoRig.getName());
             return last4WellsResponse;
         }catch (Exception exp){
-            log.error("Error occurred while processing well: {}", well.getUid(), exp);
+            log.info("Error occurred while processing well: {}", well.getUid(), exp);
         }
         return null;
     }
 
     public Collection<WellCoordinatesResponseV2> getWellCoordinates(String customer, String token) {
-        List<MongoWell> mongoWells = null;
-        mongoWells = mongoWellRepository.findAllByCustomer(customer);
+        Supplier<Stream<MongoWell>> mongoWells = null;
+        mongoWells = ()-> mongoWellRepository.findAllByCustomer(customer);
         RemoteCache<String, WellCoordinatesResponseV2> remoteCache = cacheService.getWellCoordinatesCache();
         Map<String, WellCoordinatesResponseV2> latLngMap = new HashMap<>();
 
@@ -312,16 +310,16 @@ public class WellsCoordinatesService {
             if(email != null && restrictedUsers.contains(email.toLowerCase(Locale.ROOT))) {
                 List<String> restrictedRigs = Arrays.asList(new String[]{"H-P 434", "H-P 480", "H-P 427", "H-P 617"});
                 List<String> restrictedRigIds = mobMongoQueryService.getRigIdsByName(restrictedRigs);
-                mongoWells = mobMongoQueryService.getWellsByRigIds(restrictedRigIds);
+                mongoWells = ()-> mobMongoQueryService.getWellsByRigIds(restrictedRigIds).stream();
             } else if (email != null && email.toLowerCase().contains("moblize")) {
-                mongoWells = mongoWellRepository.findAllByCustomer(customer);
+                mongoWells = ()-> mongoWellRepository.findAllByCustomer(customer);
             }
         }
         if(mongoWells == null){
-            mongoWells = mongoWellRepository.findAllByCustomerAndIsHidden(customer, false);
+            mongoWells = ()-> mongoWellRepository.findAllByCustomerAndIsHidden(customer, false);
         }
         if(!remoteCache.isEmpty()) {
-            mongoWells.forEach(mongoWell -> {
+            mongoWells.get().forEach(mongoWell -> {
                 WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
                 if(value != null){
                     value.setEntries();
@@ -329,7 +327,7 @@ public class WellsCoordinatesService {
                 }
             });
             if(latLngMap.isEmpty()) {
-                mongoWells.forEach(mongoWell -> {
+                mongoWells.get().forEach(mongoWell -> {
                     WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
                     if(value != null) {
                         value.setEntries();
@@ -347,7 +345,7 @@ public class WellsCoordinatesService {
         final Map<String, BHAHoleSize> bhaHoleSizeByUidMap = getWellBHAHoleSizeMap(bhaList);
         final Map<String, WellData> wellMap = getWellDataMap();
 
-        mongoWells.forEach(well -> populateForWell(
+        mongoWells.get().forEach(well -> populateForWell(
             well,
             ropByWellUidMap,
             costByWellUidMap,
