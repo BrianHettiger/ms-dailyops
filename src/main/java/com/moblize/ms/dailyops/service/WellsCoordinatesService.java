@@ -2,37 +2,21 @@ package com.moblize.ms.dailyops.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.moblize.ms.dailyops.client.KpiDashboardClient;
 import com.moblize.ms.dailyops.dao.WellsCoordinatesDao;
-import com.moblize.ms.dailyops.domain.MongoWell;
-import com.moblize.ms.dailyops.domain.PerformanceROP;
-import com.moblize.ms.dailyops.domain.WellSurveyPlannedLatLong;
+import com.moblize.ms.dailyops.domain.*;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
-import com.moblize.ms.dailyops.dto.BHA;
-import com.moblize.ms.dailyops.dto.BHACount;
-import com.moblize.ms.dailyops.dto.BHAHoleSize;
-import com.moblize.ms.dailyops.dto.BHASectionCount;
-import com.moblize.ms.dailyops.dto.BHASectionHoleSize;
-import com.moblize.ms.dailyops.dto.Cost;
-import com.moblize.ms.dailyops.dto.Location;
-import com.moblize.ms.dailyops.dto.ROP;
-import com.moblize.ms.dailyops.dto.ROPs;
-import com.moblize.ms.dailyops.dto.RangeData;
-import com.moblize.ms.dailyops.dto.Section;
-import com.moblize.ms.dailyops.dto.SectionData;
-import com.moblize.ms.dailyops.dto.SectionDataDirection;
-import com.moblize.ms.dailyops.dto.SectionDirection;
-import com.moblize.ms.dailyops.dto.WellCoordinatesResponse;
-import com.moblize.ms.dailyops.dto.WellCoordinatesResponseV2;
-import com.moblize.ms.dailyops.dto.WellData;
-import com.moblize.ms.dailyops.dto.WellDataSection;
+import com.moblize.ms.dailyops.dto.*;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceBHARepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceCostRepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceROPRepository;
 import com.moblize.ms.dailyops.repository.mongo.client.PerformanceWellRepository;
+import com.moblize.ms.dailyops.repository.mongo.mob.MongoRigRepository;
 import com.moblize.ms.dailyops.repository.mongo.mob.MongoWellRepository;
 import com.moblize.ms.dailyops.security.jwt.TokenProvider;
+import com.moblize.ms.dailyops.service.dto.HoleSection;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.infinispan.client.hotrod.RemoteCache;
@@ -49,16 +33,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -72,6 +51,8 @@ public class WellsCoordinatesService {
     @Autowired
     private MongoWellRepository mongoWellRepository;
     @Autowired
+    private MongoRigRepository mongoRigRepository;
+    @Autowired
     private PerformanceROPRepository ropRepository;
     @Autowired
     private PerformanceCostRepository costRepository;
@@ -83,6 +64,8 @@ public class WellsCoordinatesService {
     private RestClientService restClientService;
     @Autowired
     private MobMongoQueryService mobMongoQueryService;
+    @Autowired
+    private KpiDashboardClient kpiDashboardClient;
     @Autowired
     @Lazy
     private CacheService cacheService;
@@ -163,10 +146,162 @@ public class WellsCoordinatesService {
             .put(well.getUid(),latLngMap.get(well.getUid()));
         return latLngMap.values();
     }
+
+    public Map<String,List<Last4WellsResponse>> getLast4Wells(List<String> rigIds, String token, String customer,String primaryWellUid){
+        long startTime = System.currentTimeMillis();
+        Map<String,List<Last4WellsResponse>> rigWellsMap= new HashMap<>();
+
+        final Map<String, ROPs> wellROPsMap = getWellROPsMap();
+        final Map<String, WellData> wellMap = getWellDataMap();
+        MongoWell primaryWell = mongoWellRepository.findByUid(primaryWellUid);
+        Supplier<Stream<MongoWell>> mongoWellsStream = ()-> mongoWellRepository.findAllByCustomer(customer);
+        Stream<MongoRig> allRigsById = mongoRigRepository.findAllByIdIn(rigIds);
+        Map<String, MongoRig> mongoRigMap = allRigsById.collect(Collectors.toMap(MongoRig::getId, Function.identity()));
+        List<Map<String,List<MongoWell>>> processMap = new ArrayList<>();
+        List<String> wellUidList = new ArrayList<>();
+
+        for (String rigId:
+            rigIds) {
+
+        List<MongoWell> rigWells = new ArrayList<>();
+        boolean isPrimaryWellInRig=false;
+
+        for (Rig rig:
+            primaryWell.getRigs()) {
+            if(rigId.equals(rig.getRigId())){
+                rigWells.add(primaryWell);
+                isPrimaryWellInRig=true;
+                break;
+            }
+        }
+
+        if(mongoWellsStream!=null) {
+            rigWells= mongoWellsStream.get().filter(well -> {
+                if(!("completed".equals(well.getStatusWell())))
+                    return false;
+                else {
+                      boolean useWell=false;
+                    for (Rig rig:well.getRigs()
+                         ) {
+                        if(rigId.equals(rig.getRigId()) && (!primaryWellUid.equals(well.getUid()))){
+                            useWell=true;
+                            break;
+                        }
+                   }
+                   return useWell;
+                }
+            }).sorted(new Comparator<MongoWell>() {
+                @Override
+                public int compare(MongoWell o1, MongoWell o2) {
+                    if(o1.getDaysVsDepthAdjustmentDates()==null && o2.getDaysVsDepthAdjustmentDates()==null)
+                        return 0;
+                    else if(o1.getDaysVsDepthAdjustmentDates()==null && o2.getDaysVsDepthAdjustmentDates()!=null)
+                        return 1;
+                    else if(o2.getDaysVsDepthAdjustmentDates()==null && o1.getDaysVsDepthAdjustmentDates()!=null)
+                        return -1;
+                    else if(o1.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o2.getDaysVsDepthAdjustmentDates().getReleaseDate()==null)
+                        return 0;
+                    else if(o1.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o2.getDaysVsDepthAdjustmentDates().getReleaseDate()!=null)
+                        return 1;
+                    else if(o2.getDaysVsDepthAdjustmentDates().getReleaseDate()==null && o1.getDaysVsDepthAdjustmentDates().getReleaseDate()!=null)
+                        return -1;
+                    return o2.getDaysVsDepthAdjustmentDates().getReleaseDate().compareTo(o1.getDaysVsDepthAdjustmentDates().getReleaseDate());
+                }
+            }).collect(Collectors.toList());
+        }
+
+        int numWellsToSelect=4;
+        if(isPrimaryWellInRig)
+            numWellsToSelect=3;
+
+        if(rigWells.size()>numWellsToSelect){
+            for (MongoWell rigWell:rigWells
+                 ) {
+                log.info(rigWell.getName()+", rigdate ="+(rigWell.getDaysVsDepthAdjustmentDates()!=null?rigWell.getDaysVsDepthAdjustmentDates().getReleaseDate():"Null Date"));
+            }
+            rigWells= rigWells.subList(0,numWellsToSelect);
+        }
+
+     Collections.reverse(rigWells);
+
+        if(isPrimaryWellInRig)
+            rigWells.add(rigWells.size(),primaryWell);
+
+        Map<String,List<MongoWell>> map = new HashMap<>();
+        if(rigWells!=null && rigWells.size()>0){
+            map.put(rigId, rigWells);
+            wellUidList.addAll(rigWells.stream().map(MongoWell::getUid).collect(Collectors.toList()));
+            processMap.add(map);
+        }else{
+            rigWellsMap.put(rigId,new ArrayList<Last4WellsResponse>());
+            }
+        }
+
+        Map<String, Map<String, Map<HoleSection.HoleSectionType, Float>>> trippingData = kpiDashboardClient.getKpiExtractionByWellId(wellUidList);
+        processMap.forEach(map->{
+            map.forEach((key,value)->{
+                List<Last4WellsResponse> last4WellsResponses = value.stream().map(well -> populateLast4WellsData(well, wellROPsMap, wellMap, mongoRigMap.get(key),trippingData.get(well.getUid()))).collect(Collectors.toList());
+                rigWellsMap.put(key,last4WellsResponses);
+            });
+        });
+
+        log.info("getTop4WellsByRig took : {}s for well : {}", System.currentTimeMillis()-startTime, primaryWellUid);
+        return rigWellsMap;
+    }
+
+    private Last4WellsResponse populateLast4WellsData(MongoWell well, Map<String, ROPs> wellROPsMap, Map<String, WellData> wellMap, MongoRig mongoRig,
+                                                      Map<String, Map<HoleSection.HoleSectionType, Float>> trippingDataForWell ){
+        try {
+            Last4WellsResponse last4WellsResponse =  new Last4WellsResponse();
+            last4WellsResponse.setUid(well.getUid());
+            last4WellsResponse.setName(well.getName());
+            if (null != well.getDaysVsDepthAdjustmentDates()) {
+                last4WellsResponse.setSpudDate(well.getDaysVsDepthAdjustmentDates().getSpudDate());
+                last4WellsResponse.setReleaseDate(well.getDaysVsDepthAdjustmentDates().getReleaseDate());
+            } else {
+                last4WellsResponse.setSpudDate(0f);
+                last4WellsResponse.setReleaseDate(0f);
+            }
+
+            // set avgROP
+            ROPs roPs = wellROPsMap.get(well.getUid());
+            last4WellsResponse.setAvgROP(wellROPsMap.getOrDefault(well.getUid(), new ROPs()).getAvgROP());
+            last4WellsResponse.setSlidingROP(wellROPsMap.getOrDefault(well.getUid(), new ROPs()).getSlidingROP());
+            last4WellsResponse.setRotatingROP(wellROPsMap.getOrDefault(well.getUid(), new ROPs()).getRotatingROP());
+            last4WellsResponse.setEffectiveROP(wellROPsMap.getOrDefault(well.getUid(), new ROPs()).getEffectiveROP());
+            last4WellsResponse.setTotalDays(wellMap.getOrDefault(well.getUid(), new WellData()).getTotalDays());
+            last4WellsResponse.setFootagePerDay(wellMap.getOrDefault(well.getUid(), new WellData()).getFootagePerDay());
+            last4WellsResponse.setSlidingPercentage(wellROPsMap.getOrDefault(well.getUid(), new ROPs()).getSlidingPercentage());
+            last4WellsResponse.setFootageDrilled(wellROPsMap.getOrDefault(well.getUid(), new ROPs()).getFootageDrilled());
+            if(wellMap.get(well.getUid()) != null) {
+                last4WellsResponse.setHoleSectionRange(wellMap.get(well.getUid()).getHoleSectionRange());
+            }
+            last4WellsResponse.setAvgDLSBySection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDLSBySection());
+            last4WellsResponse.setAvgMYBySection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgMYBySection());
+            last4WellsResponse.setAvgDirectionAngle(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDirectionAngle());
+            last4WellsResponse.setAvgDirection(wellMap.getOrDefault(well.getUid(), new WellData()).getAvgDirection());
+            last4WellsResponse.setSectionConnections(kpiDashboardClient.getSectionConnections(well.getUid()));
+            Map<String, Map<String, Float>> wellTrip= new HashMap<>();
+            trippingDataForWell.forEach((tripType, tripValue) -> {
+                Map<String, Float> data = new HashMap<>();
+                tripValue.forEach((key, value) -> data.put((key.name().toLowerCase(Locale.ROOT).substring(0, 1)), value));
+                wellTrip.put(tripType, data);
+            });
+            last4WellsResponse.setTrippingData(wellTrip);
+            last4WellsResponse.setRigName(mongoRig.getName());
+            return last4WellsResponse;
+        }catch (Exception exp){
+            log.info("Error occurred while processing well: {}", well.getUid(), exp);
+        }
+        return null;
+    }
+
     public Collection<WellCoordinatesResponseV2> getWellCoordinates(String customer, String token) {
+        Supplier<Stream<MongoWell>> mongoWells = null;
+        mongoWells = ()-> mongoWellRepository.findAllByCustomer(customer);
         RemoteCache<String, WellCoordinatesResponseV2> remoteCache = cacheService.getWellCoordinatesCache();
         Map<String, WellCoordinatesResponseV2> latLngMap = new HashMap<>();
-        List<MongoWell> mongoWells = null;
+
         if(token != null) {
             Claims claims = tokenProvider.getTokenClaims(token);
             String email = (String) claims.get("email");
@@ -174,16 +309,16 @@ public class WellsCoordinatesService {
             if(email != null && restrictedUsers.contains(email.toLowerCase(Locale.ROOT))) {
                 List<String> restrictedRigs = Arrays.asList(new String[]{"H-P 434", "H-P 480", "H-P 427", "H-P 617"});
                 List<String> restrictedRigIds = mobMongoQueryService.getRigIdsByName(restrictedRigs);
-                mongoWells = mobMongoQueryService.getWellsByRigIds(restrictedRigIds);
+                mongoWells = ()-> mobMongoQueryService.getWellsByRigIds(restrictedRigIds).stream();
             } else if (email != null && email.toLowerCase().contains("moblize")) {
-                mongoWells = mongoWellRepository.findAllByCustomer(customer);
+                mongoWells = ()-> mongoWellRepository.findAllByCustomer(customer);
             }
         }
         if(mongoWells == null){
-            mongoWells = mongoWellRepository.findAllByCustomerAndIsHidden(customer, false);
+            mongoWells = ()-> mongoWellRepository.findAllByCustomerAndIsHidden(customer, false);
         }
         if(!remoteCache.isEmpty()) {
-            mongoWells.forEach(mongoWell -> {
+            mongoWells.get().forEach(mongoWell -> {
                 WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
                 if(value != null){
                     value.setEntries();
@@ -191,7 +326,7 @@ public class WellsCoordinatesService {
                 }
             });
             if(latLngMap.isEmpty()) {
-                mongoWells.forEach(mongoWell -> {
+                mongoWells.get().forEach(mongoWell -> {
                     WellCoordinatesResponseV2 value = remoteCache.get(mongoWell.getUid());
                     if(value != null) {
                         value.setEntries();
@@ -209,7 +344,7 @@ public class WellsCoordinatesService {
         final Map<String, BHAHoleSize> bhaHoleSizeByUidMap = getWellBHAHoleSizeMap(bhaList);
         final Map<String, WellData> wellMap = getWellDataMap();
 
-        mongoWells.forEach(well -> populateForWell(
+        mongoWells.get().forEach(well -> populateForWell(
             well,
             ropByWellUidMap,
             costByWellUidMap,
@@ -466,14 +601,14 @@ public class WellsCoordinatesService {
         }
     }
     private static Double dataConvert(Double value){
-            return null != value ? BigDecimal.valueOf(value).setScale(1, RoundingMode.HALF_UP).doubleValue() : null;
+        return null != value ? BigDecimal.valueOf(value).setScale(1, RoundingMode.HALF_UP).doubleValue() : null;
     }
     private static Double dataConvertTwoDecimal(Double value){
-            return  null != value && value >0 ?  Math.round(value * 100.0) / 100.0 : null;
+        return  null != value && value >0 ?  Math.round(value * 100.0) / 100.0 : null;
     }
 
     private static Long dataRound(Double value){
-            return null != value ?  Math.round(value) : null;
+        return null != value ?  Math.round(value) : null;
     }
 
 
@@ -763,7 +898,7 @@ public class WellsCoordinatesService {
             wellData = new WellData(performanceWell.getUid(), totalDays, footagePerDay, avgDLSBySection, avgMYBySection, avgDirectionAngle, avgDirection, holeSectionRange);
         } catch (Exception e) {
 
-           log.error("Error in performanceWellToDto for UID: {} {}",performanceWell.getUid(), e);
+            log.error("Error in performanceWellToDto for UID: {} {}",performanceWell.getUid(), e);
         }
         return wellData;
     }
@@ -802,7 +937,7 @@ public class WellsCoordinatesService {
                     log.error("Not a valid well {} for customer {}", well.getUid(), COMPANY_NAME);
                 }
             } catch (JsonProcessingException e) {
-               log.error("Error occur for sendWellUpdates ", e );
+                log.error("Error occur for sendWellUpdates ", e );
             }
             log.info("sent update for: {}", well.getUid());
         });

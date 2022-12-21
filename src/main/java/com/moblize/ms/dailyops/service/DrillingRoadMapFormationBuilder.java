@@ -1,5 +1,7 @@
 package com.moblize.ms.dailyops.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moblize.ms.dailyops.domain.FormationMarker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.WordUtils;
@@ -10,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -18,7 +21,8 @@ public class DrillingRoadMapFormationBuilder {
 
     @Autowired
     private DrillingRoadmapDAO drillingRoadMapDao;
-
+    @Autowired
+    private ObjectMapper objectMapper;
     /**
      * getFormationMap formation map that has primary well and matching offset wells
      *
@@ -29,40 +33,34 @@ public class DrillingRoadMapFormationBuilder {
     public Map<String, List<FormationMarker>> getFormationMap(String primaryWellUid, List<String> offsetWellUids, String wellboreUid) {
         Map<String, List<FormationMarker>> wellFormationMap = new HashMap<>();
         try {
-            Map<String, List<FormationMarker>> offsetWellFormationsMap = drillingRoadMapDao.getFormationMarkersForOffset(offsetWellUids);
-            List<FormationMarker> primaryWellFormationList = drillingRoadMapDao.getFormationMarkers(primaryWellUid, wellboreUid);
+            List<String> allWellUid = new ArrayList<>(offsetWellUids);
+            allWellUid.add(primaryWellUid);
+            Map<String, List<FormationMarker>> formationMarkersForAllWells= drillingRoadMapDao.formationMarkersForAllWells(allWellUid);
 
-            primaryWellFormationList.stream().
-                filter(formationMarker -> formationMarker.getMD() == null || formationMarker.getMD() == 0.0).findFirst().
-                ifPresent(formationMaker -> {
-                    primaryWellFormationList.remove(formationMaker);
-                });
-
+            final List<FormationMarker> primaryWellFormationList =
+                formationMarkersForAllWells.remove(primaryWellUid).stream()
+                    .filter(formationMarker -> formationMarker.getMD() != null && formationMarker.getMD() != 0.0)
+                    .collect(Collectors.toList());
             sortOffsetWellFormationByMD(primaryWellFormationList);
-
-            for (String wellUid : offsetWellFormationsMap.keySet()) {
-                List<FormationMarker> matchingFormationList = new ArrayList<>();
-                List<FormationMarker> offsetWellFormations = offsetWellFormationsMap.get(wellUid);
-
-                for (FormationMarker primaryWellFormation : primaryWellFormationList) {
-                    String primaryWellFormationName = primaryWellFormation.getName().trim();
-
+            formationMarkersForAllWells.forEach((wellUid, offsetWellFormations) -> {
+                final List<FormationMarker> matchingFormationList = new ArrayList<>();
+                primaryWellFormationList.forEach(primaryWellFormation-> {
+                    final String primaryWellFormationName = WordUtils.capitalizeFully(primaryWellFormation.getName().trim());
                     primaryWellFormation.setName(WordUtils.capitalizeFully(primaryWellFormationName));
-                    for (FormationMarker offsetWellFormation : offsetWellFormations) {
+                    offsetWellFormations.forEach(offsetWellFormation -> {
                         String offsetWellFormationName = offsetWellFormation.getName().trim();
                         if (offsetWellFormationName.equalsIgnoreCase(primaryWellFormationName)) {
-                            offsetWellFormation.setName(WordUtils.capitalizeFully(primaryWellFormationName));
+                            offsetWellFormation.setName(primaryWellFormationName);
                             matchingFormationList.add(offsetWellFormation);
-                            break;
                         }
-                    }
-                }
+                    });
+                });
                 //Ignoring wells with matching one formation ,as that will not be a part of calculation.
                 if (matchingFormationList.size() > 1) {
                     sortOffsetWellFormationByMD(matchingFormationList);
                     wellFormationMap.put(wellUid, matchingFormationList);
                 }
-            }
+            });
 
             wellFormationMap.put(primaryWellUid, primaryWellFormationList);
 

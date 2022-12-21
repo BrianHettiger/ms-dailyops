@@ -7,13 +7,8 @@ import com.moblize.ms.dailyops.domain.mongo.PerformanceBHA;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceCost;
 import com.moblize.ms.dailyops.domain.mongo.PerformanceWell;
 import com.moblize.ms.dailyops.domain.mongo.TargetWindowDPVA;
-import com.moblize.ms.dailyops.dto.BCWDepthPlotDTO;
-import com.moblize.ms.dailyops.dto.BCWDepthPlotResponse;
-import com.moblize.ms.dailyops.dto.BHA;
-import com.moblize.ms.dailyops.dto.DPVARequestDTO;
-import com.moblize.ms.dailyops.dto.NearByWellRequestDTO;
-import com.moblize.ms.dailyops.dto.ResponseDTO;
-import com.moblize.ms.dailyops.dto.TortuosityRequestDTO;
+import com.moblize.ms.dailyops.dto.*;
+
 import com.moblize.ms.dailyops.service.AnalyticsWellMetaDataService;
 import com.moblize.ms.dailyops.service.BCWDepthLogPlotService;
 import com.moblize.ms.dailyops.service.CacheService;
@@ -27,6 +22,9 @@ import com.moblize.ms.dailyops.service.TargetWindowDPVAService;
 import com.moblize.ms.dailyops.service.TortuosityService;
 import com.moblize.ms.dailyops.service.TrueROPDataService;
 import com.moblize.ms.dailyops.service.WellsCoordinatesService;
+
+import com.moblize.ms.dailyops.service.*;
+
 import com.moblize.ms.dailyops.service.dto.DPVAResult;
 import com.moblize.ms.dailyops.service.dto.PlannedPerFeetDTO;
 import com.moblize.ms.dailyops.service.dto.SurveyPerFeetDTO;
@@ -90,6 +88,12 @@ public class DailyopsController {
     @Autowired
     private BCWDepthLogPlotService bcwDepthLogPlotService;
 
+    @Autowired
+    private OffSetWellService offSetWellService;
+
+    @Autowired
+    private DrillingRoadMapMobileService drillingRoadMapMobileService;
+
 
     @Transactional(readOnly = true)
     @GetMapping("/api/v1/getWellCoordinates")
@@ -117,6 +121,18 @@ public class DailyopsController {
         } else {
             return ResponseDTO.complete(wellsCoordinatesService.getWellCoordinates(customer, token));
         }
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/api/v2/getLast4Wells")
+    public  Map<String, List<Last4WellsResponse>> getTop4WellsByRig(
+        @RequestParam("rigIds") List<String> rigIds, @RequestParam("customer") String customer,
+        @RequestParam("primaryWellUid") String primaryWellUid,
+        @RequestHeader(value = "authorization", required = false) String token,
+        HttpServletResponse response) {
+        log.info("Got request inside getTop4WellsByRig");
+        Map<String, List<Last4WellsResponse>> last4Wells = wellsCoordinatesService.getLast4Wells(rigIds, token, customer,primaryWellUid);
+        return last4Wells;
     }
 
     @Transactional(readOnly = true)
@@ -500,5 +516,19 @@ public class DailyopsController {
         return dpvaService.getScaledSurveyDataList(uid,customer);
     }
 
+    @PostMapping("/api/v1/getBCWOffSetWellList")
+    public OffSetWellByDistance getBCWOffSetWellList(@RequestBody BCWDTO bcwdto){
+        return offSetWellService.getBCWOffSetWellList(bcwdto);
+    }
+    @PostMapping("/api/v1/drillingRoadMapMobile")
+    public DrillingRoadmapJsonResponse getDrillingRoadMapMobile(@RequestBody DrillingRoadMapSearchDTO drillingRoadMapSearchDTO, HttpServletResponse response){
+        DrillingRoadmapJsonResponse drillingRoadmapJsonResponse = new DrillingRoadmapJsonResponse();
+        if (drillingRoadMapSearchDTO == null || drillingRoadMapSearchDTO.getOffsetWellUids().size() < 0) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        } else {
+            drillingRoadmapJsonResponse = drillingRoadMapMobileService.readMobile(drillingRoadMapSearchDTO);
+        }
 
+        return drillingRoadmapJsonResponse;
+    }
 }

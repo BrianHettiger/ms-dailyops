@@ -47,4 +47,6 @@ public class HoleSection {
     private Float odSize;
 
     private Float weight;
+
+    private Float idSize;
 }

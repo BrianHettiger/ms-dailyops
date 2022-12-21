@@ -1,5 +1,6 @@
 package com.moblize.ms.dailyops.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moblize.ms.dailyops.client.KpiDashboardClient;
@@ -32,16 +33,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -51,7 +43,8 @@ import java.util.stream.IntStream;
 public class BCWDepthLogPlotService {
 
     static RestTemplate restTemplate = new RestTemplate();
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private DrillingRoadMapFormationBuilder drillingRoadMapFormationBuilder;
@@ -77,23 +70,34 @@ public class BCWDepthLogPlotService {
 
     public BCWDepthPlotResponse getBCWDepthLog(BCWDepthPlotDTO bcwDepthPlotDTO) {
         BCWDepthPlotResponse bcwDepthPlotResponse = new BCWDepthPlotResponse();
-
         try {
             if(bcwDepthPlotDTO.getActionType() == null || bcwDepthPlotDTO.getActionType().isEmpty()){
-                bcwDepthPlotDTO.setActionType("select");
+                if(bcwDepthPlotDTO.getBcwId() != null) {
+                    bcwDepthPlotDTO.setActionType("select");
+                } else {
+                    bcwDepthPlotDTO.setActionType("create");
+                }
             }
 
             if (bcwDepthPlotDTO.getActionType().equalsIgnoreCase("create")
                 || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("update")
-                || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("refresh")){
+                || bcwDepthPlotDTO.getActionType().equalsIgnoreCase("refresh")) {
                 bcwDepthPlotDTO.setStartIndex(0);
                 bcwDepthPlotDTO.setEndIndex(50000);
+            }
+
+            if (bcwDepthPlotDTO.getBcwId() != null && bcwDepthPlotDTO.getActionType().equalsIgnoreCase("select")) {
+                bcwDepthPlotResponse.setData(findSmoothData(bcwDepthPlotDTO).getDepthLogResponseList());
+                if(bcwDepthPlotResponse.getData() != null && bcwDepthPlotResponse.getData().size() > 0) {
+                    bcwDepthPlotResponse.setStatus("success");
+                    bcwDepthPlotResponse.setMessage("success");
+                    return bcwDepthPlotResponse;
+                }
             }
 
             //Get Drilling log Map data
             //Extract formationBcwData and sort by measure depth
             List<DrillingRoadMapWells> ls = this.getDrillingRoadmap(bcwDepthPlotDTO);
-
             //filter out the offset well by using start and end index
 
             List<DepthLogResponse> bcwDepthLog = new ArrayList<>();
@@ -105,7 +109,7 @@ public class BCWDepthLogPlotService {
 
                 if (bcwDepthPlotDTO.getActionType().equalsIgnoreCase("select")) {
                     BCWSmoothLogData dbObj = findSmoothData(bcwDepthPlotDTO);
-                    if(dbObj != null){
+                    if(dbObj != null && dbObj.getDepthLogResponseList() != null && !dbObj.getDepthLogResponseList().isEmpty()){
                         bcwDepthLog = dbObj.getDepthLogResponseList();
                     } else {
                         log.debug("No smoothed data found in DB, Get depth log for smoothing and saved it");
@@ -125,7 +129,6 @@ public class BCWDepthLogPlotService {
                 bcwDepthLog = this.getOffSetLog1(ls, bcwDepthPlotDTO.getEndIndex(), bcwDepthPlotDTO.getStartIndex(), false);
             }
 
-            //  saveBCWDepthLog(bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthLog);
             bcwDepthPlotResponse.setStatus("success");
             bcwDepthPlotResponse.setMessage("success");
             bcwDepthPlotResponse.setData(bcwDepthLog);
@@ -144,6 +147,9 @@ public class BCWDepthLogPlotService {
         bcwDepthLog = this.getOffSetLog1(ls, bcwDepthPlotDTO.getEndIndex(), bcwDepthPlotDTO.getStartIndex(), true);
         bcwDepthLog = smoothData(bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthLog);
         saveUpdateSmoothData(bcwDepthPlotDTO, bcwDepthLog);
+        bcwDepthLog = bcwDepthLog.stream()
+            .filter(log -> log.getHoleDepth() >= bcwDepthPlotDTO.getStartIndex()
+                && log.holeDepth <= bcwDepthPlotDTO.getEndIndex()).collect(Collectors.toList());
         return bcwDepthLog;
     }
 
@@ -199,7 +205,7 @@ public class BCWDepthLogPlotService {
             }
             Double firstDepth = bcwDepthLog.get(0).getHoleDepth();
             Double lastDepth = bcwDepthLog.get(bcwDepthLog.size() - 1).getHoleDepth();
-            log.info("FirstDepth: {} ,LastDepth: {}", firstDepth, lastDepth);
+            log.debug("FirstDepth: {} ,LastDepth: {}", firstDepth, lastDepth);
 
             DepthClass depthClass = new DepthClass();
             Map<HoleSection.HoleSectionType, HoleSection> finalHoleSectionMap = holeSectionMap;
@@ -400,18 +406,8 @@ public class BCWDepthLogPlotService {
     }
 
 
-   /* public void saveBCWDepthLog(final String wellUID, final List<Map<String, Object>> bcwDepthLogData) {
-        BCWDepthLog bcwDepthLog = new BCWDepthLog();
-        bcwDepthLog.setUid(wellUID);
-        bcwDepthLog.setBcwDepthLog(bcwDepthLogData);
-
-        bcwDepthLogService.saveUpdateBCWDepthLog(bcwDepthLog);
-
-    }*/
-
-    private List<DrillingRoadMapWells> getDrillingRoadmap(BCWDepthPlotDTO bcwDepthPlotDTO) {
+    public List<DrillingRoadMapWells> getDrillingRoadmap(BCWDepthPlotDTO bcwDepthPlotDTO) {
         Map<String, List<FormationMarker>> formationMarkerMap = drillingRoadMapFormationBuilder.getFormationMap(bcwDepthPlotDTO.getPrimaryWellUid(), bcwDepthPlotDTO.getOffsetWellUids(), "Wellbore1");
-
         List<String> primaryWellFormation = formationMarkerMap.get(bcwDepthPlotDTO.getPrimaryWellUid()).stream().map(formation -> formation.getName()).collect(Collectors.toList());
 
         Set<String> formationWellList = formationMarkerMap.keySet();
@@ -464,15 +460,7 @@ public class BCWDepthLogPlotService {
     }
 
     private void shortFilterList(List<DrillingRoadMapWells> filterList) {
-        Collections.sort(filterList, new Comparator<DrillingRoadMapWells>() {
-            @Override
-            public int compare(DrillingRoadMapWells obj1, DrillingRoadMapWells obj2) {
-                double d1 = Double.parseDouble(obj1.getMD());
-                double d2 = Double.parseDouble(obj2.getMD());
-                int checkValue = d1 > d2 ? 1 : -1;
-                return d1 == d2 ? 0 : checkValue;
-            }
-        });
+        Collections.sort(filterList, Comparator.comparing(DrillingRoadMapWells::getMD));
     }
 
     private List<Map<String, Object>> getOffSetLog(List<DrillingRoadMapWells> offSetList, int lastOffSetEndIndex, int lastOffSetStartIndex) {
@@ -517,7 +505,6 @@ public class BCWDepthLogPlotService {
                             k -> k.getHoleDepth() >= ls.getStartIndex()
                                 && k.getHoleDepth() <= ls.getEndIndex())
                             .collect(Collectors.toList());
-                        //logData.parallelStream().forEach(map -> map.put("offSetWellUid", ls.getWellUID()));
                         return logData;
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -643,6 +630,7 @@ public class BCWDepthLogPlotService {
         if (response.getStatusCode().is2xxSuccessful()) {
             logObj = response.getBody().getData();
         } else {
+            log.error("No data returned {}", response.getStatusCode().name());
             return null;
         }
 
